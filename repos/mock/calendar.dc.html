@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>まなびのライブ 開催スケジュール</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#F7F5F0; --surface:#FFFFFF;
+    --ink:#1E1B16; --ink-soft:#6B6459; --ink-faint:#9C948A;
+    --line:#E7E2D8; --line-soft:#F0EDE5;
+    --teal:#3D6B5C; --teal-soft:#E4ECE8;
+    --amber:#B8763E; --amber-soft:#F5E9DA;
+    --slate:#4A6A8A; --slate-soft:#E4EAF0;
+    --plum:#7A5C8C; --plum-soft:#EBE4EF;
+    --green:#4C8C6B;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--ink);}
+  h1,h2{font-family:'Zen Kaku Gothic New','Noto Sans JP',sans-serif;margin:0;}
+  .cal-cell{border-right:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);}
+  .cal-cell:nth-child(7n){border-right:none;}
+</style>
+</helmet>
+
+<div style="position:relative;width:100%;max-width:1280px;min-height:1040px;margin:0 auto;background:var(--bg);padding:48px clamp(20px,6vw,72px) 110px;display:flex;flex-direction:column;gap:24px;box-sizing:border-box;">
+
+  <!-- header -->
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div style="width:34px;height:34px;border-radius:10px;background:var(--teal-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2.5"></rect><path d="M8 3v4M16 3v4M4 10h16"></path></svg>
+    </div>
+    <div>
+      <h1 style="font-size:26px;font-weight:800;">まなびのライブ 開催スケジュール</h1>
+      <div style="font-size:13px;color:var(--ink-faint);margin-top:6px;">もくもく会の開催日と、終わった部屋の記録をカレンダーで確認できます</div>
+    </div>
+  </div>
+
+  <!-- month nav -->
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <button style="width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);cursor:pointer;display:flex;align-items:center;justify-content:center;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
+    </button>
+    <div style="font-size:18px;font-weight:800;min-width:120px;">2026年9月</div>
+    <button style="width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);cursor:pointer;display:flex;align-items:center;justify-content:center;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+    </button>
+    <span style="font-size:12px;font-weight:700;padding:7px 16px;border-radius:999px;border:1px solid var(--line);color:var(--ink-soft);">今日</span>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:14px;font-size:11.5px;color:var(--ink-faint);flex-wrap:wrap;">
+      <span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:999px;background:var(--teal);"></span>もくもく会</span>
+      <span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:999px;background:var(--ink-faint);"></span>終了</span>
+    </div>
+  </div>
+
+  <!-- calendar grid -->
+  <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:6px 6px 0 0 var(--surface),6px 6px 0 1px var(--line),11px 11px 0 0 var(--bg),11px 11px 0 1px var(--line-soft);">
+
+    <!-- weekday header -->
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);background:var(--line-soft);">
+      <div style="padding:10px 0;text-align:center;font-size:12px;font-weight:700;color:var(--amber);">日</div>
+      <div style="padding:10px 0;text-align:center;font-size:12px;font-weight:700;color:var(--ink-soft);">月</div>
+      <div style="padding:10px 0;text-align:center;font-size:12px;font-weight:700;color:var(--ink-soft);">火</div>
+      <div style="padding:10px 0;text-align:center;font-size:12px;font-weight:700;color:var(--ink-soft);">水</div>
+      <div style="padding:10px 0;text-align:center;font-size:12px;font-weight:700;color:var(--ink-soft);">木</div>
+      <div style="padding:10px 0;text-align:center;font-size:12px;font-weight:700;color:var(--ink-soft);">金</div>
+      <div style="padding:10px 0;text-align:center;font-size:12px;font-weight:700;color:var(--slate);">土</div>
+    </div>
+
+    <!-- week rows -->
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);">
+      <!-- row 1 -->
+      <div class="cal-cell" style="min-height:112px;padding:8px;"></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--ink-soft);">1</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--ink-soft);">2</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--ink-soft);">3</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--ink-soft);">4</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--slate);">5</div></div>
+
+      <!-- row 2 -->
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--amber);">6</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--ink-soft);">7</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--ink-soft);">8</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--ink-soft);">9</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--ink-soft);">10</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--ink-soft);">11</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--slate);">12</div></div>
+
+      <!-- row 3 -->
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--amber);">13</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--ink-soft);">14</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="font-size:12px;font-weight:700;color:var(--ink-soft);">15</div>
+        <span style="position:relative;display:inline-flex;align-items:center;padding:3px 10px 3px 14px;clip-path:polygon(0 50%,8px 0,100% 0,100% 100%,8px 100%);background:var(--teal-soft);color:var(--teal);font-size:10.5px;font-weight:700;"><span style="position:absolute;left:3px;top:50%;width:4px;height:4px;margin-top:-2px;border-radius:999px;border:1.2px solid currentColor;"></span>火曜もくもく会</span>
+      </div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="font-size:12px;font-weight:700;color:var(--ink-soft);">16</div>
+        <span style="position:relative;display:inline-flex;align-items:center;padding:3px 10px 3px 14px;clip-path:polygon(0 50%,8px 0,100% 0,100% 100%,8px 100%);background:var(--line-soft);color:var(--ink-faint);font-size:10.5px;font-weight:700;"><span style="position:absolute;left:3px;top:50%;width:4px;height:4px;margin-top:-2px;border-radius:999px;border:1.2px solid currentColor;"></span>水曜もくもく会（終了）</span>
+      </div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--ink-soft);">17</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="font-size:12px;font-weight:700;color:var(--ink-soft);">18</div>
+        <span style="position:relative;display:inline-flex;align-items:center;padding:3px 10px 3px 14px;clip-path:polygon(0 50%,8px 0,100% 0,100% 100%,8px 100%);background:var(--teal-soft);color:var(--teal);font-size:10.5px;font-weight:700;"><span style="position:absolute;left:3px;top:50%;width:4px;height:4px;margin-top:-2px;border-radius:999px;border:1.2px solid currentColor;"></span>生成AI活用ミートアップ</span>
+      </div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--slate);">19</div></div>
+
+      <!-- row 4 (today = 20) -->
+      <div class="cal-cell" style="min-height:112px;padding:8px;background:var(--teal-soft);">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="width:22px;height:22px;border-radius:999px;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;">20</span>
+          <span style="font-size:10px;font-weight:700;color:var(--teal);">今日</span>
+        </div>
+      </div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--ink-soft);">21</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="font-size:12px;font-weight:700;color:var(--ink-soft);">22</div>
+        <span style="position:relative;display:inline-flex;align-items:center;padding:3px 10px 3px 14px;clip-path:polygon(0 50%,8px 0,100% 0,100% 100%,8px 100%);background:var(--surface);border:1.2px solid var(--teal);color:var(--teal);font-size:10.5px;font-weight:700;"><span style="position:absolute;left:3px;top:50%;width:4px;height:4px;margin-top:-2px;border-radius:999px;border:1.2px solid currentColor;"></span>火曜もくもく会（次回）</span>
+      </div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--ink-soft);">23</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--ink-soft);">24</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--ink-soft);">25</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--slate);">26</div></div>
+
+      <!-- row 5 -->
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--amber);">27</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--ink-soft);">28</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;display:flex;flex-direction:column;gap:6px;">
+        <div style="font-size:12px;font-weight:700;color:var(--ink-soft);">29</div>
+        <span style="position:relative;display:inline-flex;align-items:center;padding:3px 10px 3px 14px;clip-path:polygon(0 50%,8px 0,100% 0,100% 100%,8px 100%);background:var(--surface);border:1.2px solid var(--teal);color:var(--teal);font-size:10.5px;font-weight:700;"><span style="position:absolute;left:3px;top:50%;width:4px;height:4px;margin-top:-2px;border-radius:999px;border:1.2px solid currentColor;"></span>火曜もくもく会（次回）</span>
+      </div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"><div style="font-size:12px;font-weight:700;color:var(--ink-soft);">30</div></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"></div>
+      <div class="cal-cell" style="min-height:112px;padding:8px;"></div>
+    </div>
+  </div>
+
+  <!-- bottom nav: group <-> profile <-> calendar -->
+  <div style="position:fixed;left:0;right:0;bottom:0;width:100vw;height:80px;background:var(--surface);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:clamp(20px,8vw,56px);padding:0 16px;box-sizing:border-box;z-index:10;">
+    <a href="./group.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:5px;text-decoration:none;color:var(--ink-faint);">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16a1 1 0 011 1V15a1 1 0 01-1 1H10l-4.5 4V16H4a1 1 0 01-1-1V6.5a1 1 0 011-1z"></path></svg>
+      <span style="font-size:11px;font-weight:700;">まなびのライブ</span>
+      <span style="width:4px;height:4px;border-radius:999px;background:transparent;"></span>
+    </a>
+    <a href="./profile.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:5px;text-decoration:none;color:var(--ink-faint);">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.3" r="3.3"></circle><path d="M5 20c0-3.8 3.1-6.2 7-6.2s7 2.4 7 6.2"></path></svg>
+      <span style="font-size:11px;font-weight:700;">プロフィール</span>
+      <span style="width:4px;height:4px;border-radius:999px;background:transparent;"></span>
+    </a>
+    <a href="./calendar.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:5px;text-decoration:none;color:var(--teal);">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2.5"></rect><path d="M8 3v4M16 3v4M4 10h16"></path></svg>
+      <span style="font-size:11px;font-weight:700;">カレンダー</span>
+      <span style="width:4px;height:4px;border-radius:999px;background:var(--teal);"></span>
+    </a>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1040}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

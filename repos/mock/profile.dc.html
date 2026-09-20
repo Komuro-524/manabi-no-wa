@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>プロフィール</title>
 <script src="./support.js"></script>
 </head>
@@ -25,21 +26,21 @@
 </style>
 </helmet>
 
-<div style="width:1280px;height:820px;background:var(--bg);padding:64px 72px;display:flex;flex-direction:column;gap:36px;">
+<div style="position:relative;width:100%;max-width:1280px;min-height:900px;margin:0 auto;background:var(--bg);padding:48px clamp(20px,6vw,72px) 110px;display:flex;flex-direction:column;gap:36px;box-sizing:border-box;">
 
   <!-- header: avatar(ring) / name / interest tags -->
-  <div style="display:flex;align-items:flex-start;justify-content:space-between;">
-    <div style="display:flex;align-items:center;gap:28px;">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:20px;">
+    <div style="display:flex;align-items:center;gap:28px;flex-wrap:wrap;">
       <div style="width:120px;height:120px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:700;flex-shrink:0;box-shadow:0 0 0 5px var(--bg),0 0 0 8px var(--teal);">直</div>
       <div style="display:flex;flex-direction:column;gap:6px;">
         <h1 style="font-size:32px;font-weight:800;">山田 直子</h1>
         <div style="font-size:13px;color:var(--ink-faint);">人材育成部　・　入社6年目</div>
         <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;">
           <span style="font-size:13px;font-weight:600;color:var(--ink-soft);">興味タグ：</span>
-          <span style="font-size:12px;font-weight:600;padding:6px 14px 6px 11px;border-radius:999px;background:var(--amber-soft);color:var(--amber);display:inline-flex;align-items:center;gap:5px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>生成AI活用</span>
-          <span style="font-size:12px;font-weight:600;padding:6px 14px 6px 11px;border-radius:999px;background:var(--amber-soft);color:var(--amber);display:inline-flex;align-items:center;gap:5px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>データ可視化</span>
-          <span style="font-size:12px;font-weight:600;padding:6px 14px 6px 11px;border-radius:999px;background:var(--amber-soft);color:var(--amber);display:inline-flex;align-items:center;gap:5px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>ノーコード開発</span>
-          <span style="font-size:12px;font-weight:600;padding:6px 14px 6px 11px;border-radius:999px;background:var(--amber-soft);color:var(--amber);display:inline-flex;align-items:center;gap:5px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>チームビルディング</span>
+          <span style="position:relative;display:inline-flex;align-items:center;padding:6px 16px 6px 22px;clip-path:polygon(0 50%,12px 0,100% 0,100% 100%,12px 100%);background:var(--amber-soft);color:var(--amber);font-size:12px;font-weight:600;"><span style="position:absolute;left:5px;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:999px;border:1.6px solid currentColor;"></span>生成AI活用</span>
+          <span style="position:relative;display:inline-flex;align-items:center;padding:6px 16px 6px 22px;clip-path:polygon(0 50%,12px 0,100% 0,100% 100%,12px 100%);background:var(--amber-soft);color:var(--amber);font-size:12px;font-weight:600;"><span style="position:absolute;left:5px;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:999px;border:1.6px solid currentColor;"></span>データ可視化</span>
+          <span style="position:relative;display:inline-flex;align-items:center;padding:6px 16px 6px 22px;clip-path:polygon(0 50%,12px 0,100% 0,100% 100%,12px 100%);background:var(--amber-soft);color:var(--amber);font-size:12px;font-weight:600;"><span style="position:absolute;left:5px;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:999px;border:1.6px solid currentColor;"></span>ノーコード開発</span>
+          <span style="position:relative;display:inline-flex;align-items:center;padding:6px 16px 6px 22px;clip-path:polygon(0 50%,12px 0,100% 0,100% 100%,12px 100%);background:var(--amber-soft);color:var(--amber);font-size:12px;font-weight:600;"><span style="position:absolute;left:5px;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:999px;border:1.6px solid currentColor;"></span>チームビルディング</span>
         </div>
       </div>
     </div>
@@ -56,7 +57,7 @@
       <span style="font-size:12px;color:var(--ink-faint);">もくもく会のトーク履歴からAIが自動で分類しました</span>
     </div>
 
-    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;">
 
       <!-- データ活用 -->
       <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:5px 5px 0 0 var(--surface),5px 5px 0 1px var(--line),9px 9px 0 0 var(--bg),9px 9px 0 1px var(--line-soft);">
@@ -313,9 +314,27 @@
     </div>
   </div>
 
+  <!-- bottom nav: group <-> profile (viewport-fixed, stays put while scrolling) -->
+  <div style="position:fixed;left:0;right:0;bottom:0;width:100vw;height:80px;background:var(--surface);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:clamp(20px,8vw,56px);padding:0 16px;box-sizing:border-box;z-index:10;">
+    <a href="./group.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:5px;text-decoration:none;color:var(--ink-faint);">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16a1 1 0 011 1V15a1 1 0 01-1 1H10l-4.5 4V16H4a1 1 0 01-1-1V6.5a1 1 0 011-1z"></path></svg>
+      <span style="font-size:11px;font-weight:700;">まなびのライブ</span>
+      <span style="width:4px;height:4px;border-radius:999px;background:transparent;"></span>
+    </a>
+    <a href="./profile.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:5px;text-decoration:none;color:var(--teal);">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.3" r="3.3"></circle><path d="M5 20c0-3.8 3.1-6.2 7-6.2s7 2.4 7 6.2"></path></svg>
+      <span style="font-size:11px;font-weight:700;">プロフィール</span>
+      <span style="width:4px;height:4px;border-radius:999px;background:var(--teal);"></span>
+    </a>
+    <a href="./calendar.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:5px;text-decoration:none;color:var(--ink-faint);">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2.5"></rect><path d="M8 3v4M16 3v4M4 10h16"></path></svg>
+      <span style="font-size:11px;font-weight:700;">カレンダー</span>
+      <span style="width:4px;height:4px;border-radius:999px;background:transparent;"></span>
+    </a>
+  </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":820}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
 class Component extends DCLogic {
   renderVals() {
     return {};

@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>グループトーク</title>
 <script src="./support.js"></script>
 </head>
@@ -26,7 +27,7 @@
 </style>
 </helmet>
 
-<div style="width:1280px;height:940px;background:var(--bg);padding:56px 64px;display:flex;flex-direction:column;gap:22px;">
+<div style="width:100%;max-width:1280px;min-height:940px;margin:0 auto;background:var(--bg);padding:40px clamp(20px,6vw,64px);display:flex;flex-direction:column;gap:22px;box-sizing:border-box;">
 
   <!-- header -->
   <div style="display:flex;align-items:center;justify-content:space-between;">
@@ -35,7 +36,7 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
       </a>
       <div>
-        <div style="display:flex;align-items:center;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <span style="width:8px;height:8px;border-radius:999px;background:var(--green);flex-shrink:0;"></span>
           <span style="font-size:11px;font-weight:700;color:var(--green);">開催中</span>
           <h1 style="font-size:24px;font-weight:800;">議事録、もっと早く書けないか問題</h1>
@@ -47,7 +48,7 @@
 
   <!-- 現在の話題（AI検出） -->
   <div style="display:flex;flex-direction:column;gap:10px;background:var(--teal-soft);border-radius:14px;padding:14px 20px;">
-    <div style="display:flex;align-items:center;gap:12px;">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><rect x="4" y="7" width="16" height="13" rx="3" stroke="var(--teal)" stroke-width="1.8"></rect><circle cx="9" cy="7" r="2.3" fill="var(--teal-soft)" stroke="var(--teal)" stroke-width="1.8"></circle><path d="M8 12.5h8M8 16h5" stroke="var(--teal)" stroke-width="1.6" stroke-linecap="round"></path></svg>
       <span style="font-size:11px;font-weight:700;color:var(--teal);flex-shrink:0;">AIが検出中・現在の話題</span>
       <span style="font-size:14px;font-weight:700;color:var(--ink);">議事録テンプレートを部署共通にできないか</span>
@@ -55,16 +56,16 @@
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-left:30px;">
       <span style="font-size:11px;font-weight:600;color:var(--teal);opacity:0.8;">抽出中のタグ：</span>
-      <span style="font-size:11px;font-weight:600;padding:3px 11px 3px 8px;border-radius:999px;background:var(--surface);color:var(--teal);display:inline-flex;align-items:center;gap:4px;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>議事録テンプレート</span>
-      <span style="font-size:11px;font-weight:600;padding:3px 11px 3px 8px;border-radius:999px;background:var(--surface);color:var(--teal);display:inline-flex;align-items:center;gap:4px;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>情報整理術</span>
+      <span style="position:relative;display:inline-flex;align-items:center;padding:3px 13px 3px 16px;clip-path:polygon(0 50%,9px 0,100% 0,100% 100%,9px 100%);background:var(--surface);color:var(--teal);font-size:11px;font-weight:600;"><span style="position:absolute;left:3.5px;top:50%;width:4.5px;height:4.5px;margin-top:-2.25px;border-radius:999px;border:1.3px solid currentColor;"></span>議事録テンプレート</span>
+      <span style="position:relative;display:inline-flex;align-items:center;padding:3px 13px 3px 16px;clip-path:polygon(0 50%,9px 0,100% 0,100% 100%,9px 100%);background:var(--surface);color:var(--teal);font-size:11px;font-weight:600;"><span style="position:absolute;left:3.5px;top:50%;width:4.5px;height:4.5px;margin-top:-2.25px;border-radius:999px;border:1.3px solid currentColor;"></span>情報整理術</span>
     </div>
   </div>
 
-  <!-- main: 2 columns -->
-  <div style="display:flex;gap:28px;align-items:flex-start;">
+  <!-- main: 2 columns (wraps to a single column on narrow windows) -->
+  <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start;">
 
     <!-- left: スピーカー -->
-    <div style="width:352px;flex-shrink:0;display:flex;flex-direction:column;gap:18px;">
+    <div style="flex:1 1 320px;min-width:280px;display:flex;flex-direction:column;gap:18px;">
       <div style="font-size:13.5px;font-weight:700;color:var(--ink-soft);">スピーカー</div>
 
       <!-- speaker 1: 詳しい 85% -->
@@ -123,7 +124,7 @@
     </div>
 
     <!-- right: リスナー一覧 / コメント -->
-    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:16px;">
+    <div style="flex:2 1 300px;min-width:0;display:flex;flex-direction:column;gap:16px;">
 
       <!-- リスナー一覧 -->
       <div style="display:flex;align-items:center;gap:10px;">
