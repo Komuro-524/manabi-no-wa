@@ -28,3 +28,9 @@ yarn-error.log*
 Thumbs.db
 .vscode/
 .idea/
+
+# ===== Claude Code の個人設定（共有するのは settings.json だけ）=====
+.claude/settings.local.json
+
+# CLAUDE.md は提出物に含める（上の Claude.md 除外を打ち消す）
+!CLAUDE.md

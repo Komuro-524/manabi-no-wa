@@ -1,0 +1,15 @@
+{
+  "name": "manabi-no-wa",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed:users": "node scripts/seed-demo-users.mjs",
+    "recorder": "node scripts/recorder.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "dotenv": "^16.4.5",
+    "openai": "^4.68.0"
+  }
+}

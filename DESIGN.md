@@ -549,6 +549,9 @@ alter table lives add constraint lives_quest_fk
 
 **テーブルを作ったら必ず同じ回で書く。あとから付けると必ず漏れる。**
 
+> 実際に流す SQL は `supabase/migrations/` にある。ここは考え方の説明。
+> `0001_schema.sql` → `0002_rls.sql` → `0003_seed.sql` の順に実行し、`supabase/checks.sql` で確認する。
+
 ```sql
 alter table users                  enable row level security;
 alter table tags                   enable row level security;
@@ -589,8 +592,8 @@ create policy "公開は全員 非公開は本人だけ" on user_tags
   for select to authenticated
   using (visibility = 'public' or user_id = auth.uid());
 
-create policy "公開設定は本人が変えられる" on user_tags
-  for update to authenticated using (user_id = auth.uid());
+-- ★ update ポリシーは作らない（strength や answer_count を自分で盛れてしまう）
+--    公開設定の変更だけ security definer 関数で許可する → set_tag_visibility()
 
 -- ライブと参加者：一覧は全員に見える
 create policy "ライブは全員見える" on lives
@@ -621,8 +624,8 @@ create policy "自分としてだけ投稿できる" on messages
 -- 打診：自分宛だけ
 create policy "自分宛の打診だけ見える" on invitations
   for select to authenticated using (user_id = auth.uid());
-create policy "自分宛の打診に返事できる" on invitations
-  for update to authenticated using (user_id = auth.uid());
+-- ★ update ポリシーは作らない（quest_id を書き換えて他人の企てに割り込める）
+--    返事だけ security definer 関数で受ける → respond_invitation()
 
 -- 予定：本人だけ（他人の空き時間が見えるのは それ自体が漏洩）
 create policy "自分の予定だけ見える" on calendar_events
@@ -641,6 +644,7 @@ create policy "自分の予定だけ見える" on calendar_events
 | # | ルール | 破るとどうなるか |
 |---|---|---|
 | 1 | `users` に **update ポリシーを作らない** | 一般社員が自分を管理者に昇格できる |
+| 1.5 | **update ポリシーは「どの列を」縛れない。** 列を守りたいものは update ポリシーを作らず `security definer` 関数にする（`user_tags` `invitations` も同じ） | 強さを自分で盛る／他人の企てに割り込む |
 | 2 | LLM が返した `user_id` は **必ず候補リストと照合してから使う** | インジェクションで任意の人に通知を送れる |
 | 3 | エージェントのAPIは **`CRON_SECRET` で縛る** | 誰でも叩けてクレジットが溶ける／打診が乱射される |
 | 4 | `service_role` を読むファイルの1行目に **`import 'server-only'`** | ブラウザに焼き込まれて全データが読み書きされる |
