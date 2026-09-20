@@ -1,0 +1,709 @@
+# 学びの輪 — 設計書
+
+社内の会話から「いま誰が何を知りたがっていて 誰がそれを知っているか」を読み取り、
+**場を立てる価値があるとAIが自分で判断したときだけ** 人に声をかけて学びの場を立ち上げるプラットフォーム。
+
+- 大会: AI HACK 2026（テーマ「業務を自律化するAIエージェント」）
+- 必須: OrcaRouter（OpenAI互換のAI推論ゲートウェイ）を通すこと
+
+---
+
+## 0. このファイルの使い方
+
+**実装の前に必ずここを読む。** 決まったことはここに書き戻す。
+`§8 絶対に壊してはいけないルール` は、踏むと設計の意図が崩れるものだけを集めてある。
+**コードを書く前と PR を出す前に §8 を読み直すこと。**
+
+---
+
+## 1. 用語
+
+| 用語 | 意味 |
+|---|---|
+| **まなびのライブ** | 学びの場。インスタライブ／Xのスペース形式。**必ず始まりと終わりがある** |
+| **スピーカー** | ライブで音声を話す人。知見を持っている側 |
+| **リスナー** | 聞くだけの人。チャットでコメントできる。**聞くだけの参加が正式な席** |
+| **タグ** | 知識の単位。`知見タグ`（詳しい）と `興味タグ`（知りたい）の2種類。**「ラベル」とは呼ばない** |
+| **タグ辞書** | 会社が持つ正式なタグの一覧。`tags` テーブル |
+| **知見カード** | ライブから切り出された知識のかけら。タグと1対1。話した人が紐づく |
+| **企て（quest）** | エージェントが抱えている未完了の仕事。日をまたいで1つのゴールを追う |
+| **三重の門** | タグの正しさを守る仕組み。形／中身／本人 の3段 |
+
+---
+
+## 2. 全体像
+
+### 2.1 エージェント設計図
+
+```mermaid
+flowchart LR
+  L["🎙️ まなびのライブ<br/>スピーカー + リスナー"]
+  A["🎙️ A 記録係<br/>Lv.2 判断しない"]
+  T["🏷️ タグ<br/>tags / user_tags"]
+  B["🎪 B 幹事<br/>Lv.3 自律・心臓"]
+  C["🔍 C 自己分析係<br/>本人がボタンを押したら"]
+  G1{{"🚪 本人の同意<br/>はい / いいえ"}}
+  G2{{"🏷️ 管理者が承認<br/>proposed → official"}}
+
+  L -- "終わると" --> A
+  A -- "知見カードとタグ" --> T
+  A -- "昇格を提案" --> G2
+  G2 --> T
+  T -- "溜まると" --> B
+  B -- "立てる価値があるか判断" --> G1
+  G1 -- "はい" --> B
+  B -- "日程を決めて予約する" --> L
+  C -- "タグ候補（本人にだけ）" --> T
+
+  style B fill:#F6E7D5,stroke:#B36A24,stroke-width:2px
+  style G1 fill:#DEEBE7,stroke:#37776A
+  style G2 fill:#DEEBE7,stroke:#37776A
+```
+
+> **口を持っているのは 🎪B だけ。** 通知を送る権限は B のキーにしか渡さない。
+> A が乗っ取られても 外に出ていくものがない。
+> 4つの層が輪になっている: **集まる → 残る → 知る → つながる → また集まる**
+
+---
+
+## 3. エージェント
+
+3体ともトリガーが違う。だから別のエージェントとして分ける。
+
+| | 🎙️ A 記録係 | 🎪 B 幹事 | 🔍 C 自己分析係 |
+|---|---|---|---|
+| **起動** | ライブが終わったら | 1日1回 自分で | 本人がボタンを押したら |
+| **読む** | トランスクリプト・チャット | タグ・企て・予定・過去の結末 | 画面の静止画 |
+| **書く** | 知見カード・タグ | 企て・ライブ・通知 | タグ候補（本人にだけ） |
+| **人に喋る** | **できない** | できる | できない |
+| **APIキー** | `ORCA_KEY_RECORDER` 通知権限なし | `ORCA_KEY_ORGANIZER` 通知あり | `ORCA_KEY_MIRROR` |
+| **主なモデル** | 安い担当（量が多い） | 強い担当（回数は少ない） | vision |
+| **自律レベル** | Lv.2 自動化（判断しない） | **Lv.3 自律（心臓）** | Lv.2 |
+
+> **口を持っているのは B だけ。** 通知を送る権限は B のキーにしか渡さない。
+> 乗っ取られても A は他人に何も言えない。これが「機能の分離」ではなく **「権限の分離」**。
+
+### 3.1 🎙️ A 記録係
+
+**トリガー**: ライブが `ended` になったら（`lives.ingest_status = 'pending'` を拾う）
+
+**やること（順番）**
+
+1. 音声トランスクリプトとチャットを読む
+   - **`messages.is_agent = false` のものだけ**（AIの発言を入力にしない）
+2. 知見カードを切り出す（構造化出力）
+   - **本文に発言をそのまま引用しない。必ず要約する**（カードは全社公開のため）
+3. タグを決める → **三重の門**（§5）を通す
+4. `user_tags` を更新する（候補タグでも作る）
+5. 昇格の条件を満たしたタグを `proposed` にする（**自分で `official` にはしない**）
+6. 「またやりたい」という趣旨の発言があれば `quests.encore_count` に数える
+   - 2 と同じ構造化出力の1項目にする。**LLMの追加呼び出しはしない**
+
+**コスト方針**: 無料モデル（Union Alpha）でまず足切り → 残った発言だけ強いモデルへ
+
+### 3.2 🎪 B 幹事
+
+**トリガー**: 1日1回（Vercel Cron）＋ 進行中の企てがあれば毎回見に行く
+
+**やること（順番）**
+
+1. 進行中の企てを全部見て、それぞれの次の一手を決める
+2. 新しく立てる価値のあるタグを探す
+3. **「立てるか」を毎回判断する**（§3.3）
+4. 相談役の候補をコードで作る → LLM は**その中から選ぶだけ**
+5. 打診する（`invitations`）
+6. OKが出たら **予定を見て日程を決める**（`calendar_events` の free/busy のみ）
+7. ライブを予約する → 最初の一言を書く
+8. 誰も喋っていなければ呼び水を投げる
+9. 企てを閉じて `outcome` を残す
+
+**判断は3値で出す**
+
+```json
+{
+  "decision": "open" | "wait" | "skip",
+  "confidence": 0.0,
+  "reason": "なぜそう判断したか",
+  "next_review_at": "wait のときだけ"
+}
+```
+
+`wait`（まだ）を選べるようにするのが重要。2値だとAIは必ずどちらかに倒す。
+**判断はすべて `quest_steps` に理由つきで残す。立てなかった判断も残す。**
+
+### 3.3 「立てる価値があるか」の判断材料
+
+数だけで決めない。以下を材料としてLLMに渡す。
+
+| # | 材料 | 取り方 |
+|---|---|---|
+| 1 | 前回からの間隔 | `tags.last_live_at` |
+| 2 | **顔ぶれの入れ替わり** | 前回の `quests.interested_ids` との差分 |
+| 3 | 興味の勢い | この1週間で `user_tags` が何人に新しく付いたか |
+| 4 | 前回の反応 | `quests.attendee_count` `message_count` `cards_created` |
+| 5 | **アンコール** | `quests.encore_count` |
+| 6 | 話題の進展 | 前回と違う知見カードが溜まっているか |
+| 7 | 相談役の負担 | 直近の `invitations` の数 |
+
+**ハードリミット（コードで保証する。LLMに任せない）**
+
+- 前回のライブ終了から **14日** は絶対に立てない
+- 同じ人への打診は **1週間に2回まで**
+- 候補 **3人** に断られたら諦めて管理者へエスカレーション
+- 1つの企てが **14日** 動かなければ諦める
+
+### 3.4 🔍 C 自己分析係
+
+**トリガー**: プロフィール画面のボタン
+
+**やること**
+
+1. ブラウザの画面共有API（`getDisplayMedia`）で共有を開始する
+   - **共有する範囲は本人がOSのダイアログで選ぶ**
+2. 開始時に**終了時刻を宣言する**。時間が来たら自分で止まる
+3. 数分おきに静止画を1枚だけ取って溜める。前の1枚とほぼ同じなら捨てる
+4. 終了時に**まとめて1回だけ**モデルに渡す
+5. タグ候補を出す → 三重の門を通す → **本人にだけ見せる**
+6. 本人が「採用」を押したら `user_tags` に `source = 'self'` で入る
+
+**画像は一切保存しない。** DBに画像を持つ列を作らない。ログにも出さない。
+
+---
+
+## 4. 人が介在する場所は3つだけ
+
+| | ゲート | 誰が | 何を |
+|---|---|---|---|
+| 1 | 🚪 **相談役への打診** | 打診された本人 | はい／いいえ。**断れることが大事** |
+| 2 | 🏷️ **タグ格上げの承認** | 管理者 | `proposed` → `official` |
+| 3 | 🚨 **例外エスカレーション** | 管理者 | Firewallが弾いた／候補が尽きた／確信度が割れた |
+
+> **これ以外の判断はすべてAIが自分で決める。**
+> 語り方は「全部AIがやります」ではなく
+> **「人の介在点を3か所に絞って設計しました」**。
+
+---
+
+## 5. 三重の門 — タグの正しさを守る
+
+「正しさ」は1つの問題ではなく3つの問題。分けると別々の道具で解ける。
+
+| 何が起きるか | 実例 | 受ける門 |
+|---|---|---|
+| 言葉が壊れる | 知見 → 治験 ／ チキンラベル | 門1 形 |
+| 中身が間違っている | 自信なく喋った話が事実として違う | 門2 中身 |
+| 貼られたくない | 聞かれても困るから付けたくない | 門3 本人 |
+
+### 門1｜形
+
+- **正式タグにあるものはそのまま通す**（0円）
+- **辞書にない新語は 3つの検査を通す**
+
+| 検査 | 内容 | コスト |
+|---|---|---|
+| 1. 形 | 20文字以内／**空白・改行・句読点・記号を含まない**／1文字や数字だけは落とす | 0円（正規表現） |
+| 2. 固有名詞 | 禁止リストとの照合 ＋「**概念か 固有名か**」の判定 | 安いモデル |
+| 3. 空似 | 既存の正式タグの**かな読み**と比べて言い間違いなら既存に寄せる | 安いモデル |
+
+> 検査1でインジェクションはほぼ死ぬ。**命令は必ず「文」だから。**
+> 検査3は**かな読みで比べる**こと。「治験」と「知見」は漢字を1文字も共有していない。
+
+落ちた語は `status = 'rejected'` にして `rejected_reason` を残す。
+`tags.name` が UNIQUE なので、一度弾けば二度と候補に湧かない。
+
+### 門2｜中身
+
+- **タグは人に直接貼らない。まず知見カードに貼り、カードが集まって初めて人のタグになる**
+- 1回の誤変換や1回の勘違いでは人のタグが動かない（**冗長性で守る**）
+- 裏取りは「人」ではなく「カード」に対してやる → `knowledge_cards.verification`
+- 検証するのは「発言が真実か」ではなく **「この人が詳しいと言えるか」**
+- 自己申告だけでは育てない。**他人に答えた実績**（`user_tags.answer_count`）を重みにする
+
+### 門3｜本人
+
+- 「貼っていいですか」で止めない（待ち行列になる）
+- 貼ってから通知して「違ったら外してね」＝ **オプトアウト**
+- 公開／非公開は本人が選ぶ（`user_tags.visibility`）
+
+---
+
+## 6. データモデル
+
+### 6.0 テーブル設計図
+
+データも輪になっている。**ライブ → 知見カード → 人のタグ → 企て → またライブ。**
+
+```mermaid
+erDiagram
+  users ||--o{ user_tags : "持つ"
+  users ||--o{ knowledge_cards : "話す"
+  users ||--o{ live_participants : "招かれる"
+  users ||--o{ messages : "書く"
+  users ||--o{ invitations : "受ける"
+  users ||--o{ calendar_events : "予定"
+
+  tags ||--o{ user_tags : "指す"
+  tags ||--o{ knowledge_cards : "分類する"
+  tags ||--o{ quests : "きっかけ"
+
+  lives ||--o{ knowledge_cards : "生む"
+  lives ||--o{ live_participants : "招く"
+  lives ||--o{ messages : "含む"
+
+  quests ||--o{ quest_steps : "判断ログ"
+  quests ||--o{ invitations : "打診"
+  quests ||--o| lives : "予約する"
+
+  users {
+    uuid id PK
+    text display_name
+    text role "member / admin"
+  }
+  tags {
+    bigint id PK
+    text name UK
+    text status "candidate/proposed/official/rejected/banned"
+    int mention_count
+    timestamptz last_live_at
+  }
+  lives {
+    bigint id PK
+    text status "scheduled/live/ended/cancelled"
+    text source_ref UK "二重取り込み防止"
+    timestamptz scheduled_start
+  }
+  live_participants {
+    bigint live_id PK
+    uuid user_id PK
+    text role "speaker / listener"
+    timestamptz invited_at
+    timestamptz joined_at
+  }
+  messages {
+    bigint id PK
+    bigint live_id FK
+    uuid user_id FK "AIならnull"
+    boolean is_agent "★Aはfalseだけ読む"
+  }
+  knowledge_cards {
+    bigint id PK
+    bigint tag_id FK
+    uuid speaker_id FK
+    text body "★逐語引用しない"
+    text verification
+  }
+  user_tags {
+    bigint id PK
+    text kind "knowledge / interest"
+    numeric strength
+    int answer_count
+    text source "live / self / manual"
+    text visibility "public / private"
+    timestamptz expires_at
+  }
+  quests {
+    bigint id PK
+    bigint tag_id FK
+    text status "skipped/scouting/inviting/scheduling/opened/done/abandoned"
+    int tried_count
+    timestamptz next_action_at
+    int encore_count
+  }
+  quest_steps {
+    bigint id PK
+    text decision "open / wait / skip"
+    text reason "★立てなかった理由もここ"
+    numeric cost_usd
+  }
+  invitations {
+    bigint id PK
+    text status "sent/accepted/declined/expired"
+  }
+  calendar_events {
+    bigint id PK
+    boolean busy "★空き埋まりだけ。タイトルは持たない"
+  }
+```
+
+**かたまりで見るとこうなる。**
+
+| かたまり | テーブル | 守りの要 |
+|---|---|---|
+| 👤 人 | `users` `user_tags` | `users` に update ポリシーを作らない／`visibility` |
+| 🏷️ 知識 | `tags` `knowledge_cards` | **カードの `tag_id` が `tags` を参照＝辞書外は入らない** |
+| 🎙️ 場 | `lives` `live_participants` `messages` | `source_ref` UNIQUE／**終了後は参加できない** |
+| 🎪 自律 | `quests` `quest_steps` `invitations` | **タグごとに進行中は1つまで**／ブラウザから見えない |
+| 📅 予定 | `calendar_events` | **本人だけ。** タイトルも参加者も持たない |
+| 🧾 記録 | `agent_runs` | ②のレシートと ③の再開。ブラウザから見えない |
+
+### 6.1 テーブル一覧
+
+| テーブル | 中身 | 書く人 | 優先 |
+|---|---|---|---|
+| `users` | 社員 | — | 🔴 |
+| `tags` | タグ辞書（候補と正式を1枚で） | A / 管理者 | 🔴 |
+| `knowledge_cards` | 知見カード。タグと1対1 | A | 🔴 |
+| `user_tags` | 人に付いたタグ（知見と興味を1枚で） | A / C | 🔴 |
+| `lives` | まなびのライブ。1回が1行 | B | 🔴 |
+| `live_participants` | 招待と参加。speaker / listener | B / 本人 | 🔴 |
+| `messages` | リスナーのコメント | 本人 / B | 🔴 |
+| `quests` | 企て | B | 🔴 |
+| `quest_steps` | 判断ログ | B | 🔴 |
+| `invitations` | 打診 | B | 🔴 |
+| `agent_runs` | 実行記録（レシートと再開） | 全員 | 🔴 |
+| `calendar_events` | 予定（デモではダミー） | — | 🟡 |
+| `self_analysis_sessions` | 自己分析の記録。**画像は持たない** | C | ⚪ |
+
+### 6.2 DDL
+
+```sql
+-- 社員
+create table users (
+  id           uuid primary key references auth.users(id),
+  display_name text not null,
+  department   text,
+  role         text not null default 'member' check (role in ('member','admin')),
+  created_at   timestamptz not null default now()
+);
+
+-- タグ辞書（候補・提案・正式・弾いた・禁止 を1枚で持つ）
+create table tags (
+  id                bigserial primary key,
+  name              text not null unique,
+  kind              text not null check (kind in ('分野','技術','業務')),
+  status            text not null default 'candidate'
+                    check (status in ('candidate','proposed','official','rejected','banned')),
+  mention_count     int  not null default 0,
+  last_mentioned_at timestamptz,
+  last_live_at      timestamptz,
+  alias_of          bigint references tags(id),   -- 空似の寄せ先
+  rejected_reason   text,
+  proposed_at       timestamptz,
+  promoted_at       timestamptz,
+  reviewed_by       uuid references users(id),
+  reviewed_at       timestamptz,
+  review_note       text,
+  created_at        timestamptz not null default now()
+);
+
+-- まなびのライブ
+create table lives (
+  id              bigserial primary key,
+  title           text,
+  topic_tag_id    bigint references tags(id),
+  quest_id        bigint,
+  status          text not null default 'scheduled'
+                  check (status in ('scheduled','live','ended','cancelled')),
+  scheduled_start timestamptz,
+  scheduled_end   timestamptz,
+  started_at      timestamptz,
+  ended_at        timestamptz,
+  source_ref      text unique,                    -- 音声トランスクリプトID（二重取り込み防止）
+  ingest_status   text not null default 'pending',
+  created_at      timestamptz not null default now()
+);
+
+-- 招待と参加（行があれば 過去の会話を読める）
+create table live_participants (
+  live_id    bigint not null references lives(id),
+  user_id    uuid   not null references users(id),
+  role       text check (role in ('speaker','listener')),   -- 参加したら決まる
+  invited_at timestamptz,
+  joined_at  timestamptz,
+  primary key (live_id, user_id)
+);
+
+-- リスナーのコメント
+create table messages (
+  id         bigserial primary key,
+  live_id    bigint not null references lives(id),
+  user_id    uuid references users(id) default auth.uid(),  -- AIの発言なら null
+  body       text not null,
+  is_agent   boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index on messages (live_id, created_at);
+
+-- 知見カード（タグと1対1・話した人が付く）
+create table knowledge_cards (
+  id           bigserial primary key,
+  live_id      bigint not null references lives(id),
+  tag_id       bigint not null references tags(id),
+  speaker_id   uuid   not null references users(id),
+  headline     text not null,
+  body         text not null,          -- ★ 逐語引用しない。要約する
+  verification text not null default 'unverified'
+               check (verification in ('unverified','verified','rejected')),
+  confidence   numeric(3,2),
+  view_count   int  not null default 0,
+  created_at   timestamptz not null default now()
+);
+
+-- 人に付いたタグ（知見と興味を1枚で）
+create table user_tags (
+  id           bigserial primary key,
+  user_id      uuid   not null references users(id),
+  tag_id       bigint not null references tags(id),
+  kind         text not null check (kind in ('knowledge','interest')),
+  strength     numeric(5,2) not null default 0,
+  answer_count int  not null default 0,          -- 他人に答えた実績
+  source       text not null check (source in ('live','self','manual')),
+  visibility   text not null default 'public' check (visibility in ('public','private')),
+  expires_at   timestamptz,                      -- 賞味期限つき興味タグ
+  updated_at   timestamptz not null default now(),
+  unique (user_id, tag_id, kind)
+);
+
+-- 企て
+create table quests (
+  id                bigserial primary key,
+  tag_id            bigint not null references tags(id),
+  previous_quest_id bigint references quests(id),
+  status            text not null default 'scouting'
+                    check (status in ('skipped','scouting','inviting','scheduling',
+                                      'opened','done','abandoned')),
+  interested_ids    uuid[] not null,
+  current_invitee   uuid references users(id),
+  tried_count       int not null default 0,
+  live_id           bigint references lives(id),
+  next_action_at    timestamptz,
+  reevaluate_at     timestamptz,
+  attendee_count    int,
+  message_count     int,
+  cards_created     int,
+  encore_count      int,
+  outcome           text,
+  created_at        timestamptz not null default now(),
+  closed_at         timestamptz
+);
+
+-- ★ タグごとに 進行中の企ては1つまで（毎日同じ部屋が立つのを防ぐ）
+create unique index quests_one_active_per_tag
+  on quests (tag_id)
+  where status in ('scouting','inviting','scheduling','opened');
+
+-- 判断ログ（立てなかった理由もここ）
+create table quest_steps (
+  id         bigserial primary key,
+  quest_id   bigint not null references quests(id),
+  kind       text not null,          -- judge / invite / remind / giveup / schedule / open / nudge
+  decision   text not null,          -- open / wait / skip / ...
+  reason     text not null,
+  model      text,
+  cost_usd   numeric(10,6),
+  created_at timestamptz not null default now()
+);
+
+-- 打診
+create table invitations (
+  id           bigserial primary key,
+  quest_id     bigint not null references quests(id),
+  user_id      uuid   not null references users(id),
+  status       text not null default 'sent'
+               check (status in ('sent','accepted','declined','expired')),
+  sent_at      timestamptz not null default now(),
+  responded_at timestamptz
+);
+
+-- 予定（★ タイトルも参加者も持たない。空き／埋まりだけ）
+create table calendar_events (
+  id        bigserial primary key,
+  user_id   uuid not null references users(id),
+  starts_at timestamptz not null,
+  ends_at   timestamptz not null,
+  busy      boolean not null default true
+);
+create index on calendar_events (user_id, starts_at);
+
+-- エージェントの実行記録（②のレシートと ③の再開）
+create table agent_runs (
+  id            bigserial primary key,
+  agent         text not null check (agent in ('A','B','C')),
+  trigger       text not null,
+  status        text not null default 'running'
+                check (status in ('running','succeeded','failed')),
+  ref_id        text,
+  model         text,
+  input_tokens  int,
+  output_tokens int,
+  cost_usd      numeric(10,6),
+  error         text,
+  started_at    timestamptz not null default now(),
+  finished_at   timestamptz
+);
+
+alter table lives add constraint lives_quest_fk
+  foreign key (quest_id) references quests(id);
+```
+
+### 6.3 用語がぶつかる箇所（実装で混ざりやすい）
+
+| 列 | 意味 |
+|---|---|
+| `users.role` | `admin` / `member` — **アカウントの権限** |
+| `live_participants.role` | `speaker` / `listener` — **そのライブでの立ち位置** |
+
+---
+
+## 7. RLS
+
+**テーブルを作ったら必ず同じ回で書く。あとから付けると必ず漏れる。**
+
+```sql
+alter table users                  enable row level security;
+alter table tags                   enable row level security;
+alter table knowledge_cards        enable row level security;
+alter table user_tags              enable row level security;
+alter table lives                  enable row level security;
+alter table live_participants      enable row level security;
+alter table messages               enable row level security;
+alter table quests                 enable row level security;
+alter table quest_steps            enable row level security;
+alter table invitations            enable row level security;
+alter table calendar_events        enable row level security;
+alter table agent_runs             enable row level security;
+
+-- 社員名簿：読むだけ。★ update ポリシーは意図的に作らない
+-- （作ると自分の role を admin に書き換えられてしまう）
+create policy "社員は全員読める" on users
+  for select to authenticated using (true);
+
+-- タグ：正式タグは全員／候補・弾いた語は管理者だけ
+create policy "正式タグは全員 それ以外は管理者" on tags
+  for select to authenticated
+  using (
+    status = 'official'
+    or exists (select 1 from users where id = auth.uid() and role = 'admin')
+  );
+
+create policy "管理者だけタグを裁ける" on tags
+  for update to authenticated
+  using (exists (select 1 from users where id = auth.uid() and role = 'admin'));
+
+-- 知見カード：全社公開（本文は要約なので出してよい）
+create policy "知見カードは全員読める" on knowledge_cards
+  for select to authenticated using (true);
+
+-- 人に付いたタグ：公開は全員／非公開は本人だけ
+create policy "公開は全員 非公開は本人だけ" on user_tags
+  for select to authenticated
+  using (visibility = 'public' or user_id = auth.uid());
+
+create policy "公開設定は本人が変えられる" on user_tags
+  for update to authenticated using (user_id = auth.uid());
+
+-- ライブと参加者：一覧は全員に見える
+create policy "ライブは全員見える" on lives
+  for select to authenticated using (true);
+create policy "参加者は全員見える" on live_participants
+  for select to authenticated using (true);
+
+-- ★ 終了したライブには 誰も参加できない（過去ログが後から広がらない）
+create policy "開催中のライブにだけ参加できる" on live_participants
+  for insert to authenticated
+  with check (
+    user_id = auth.uid()
+    and exists (select 1 from lives l where l.id = live_id and l.status = 'live')
+  );
+
+-- 元発言：誘われた人だけ読める
+create policy "誘われた人だけ読める" on messages
+  for select to authenticated
+  using (exists (
+    select 1 from live_participants lp
+    where lp.live_id = messages.live_id and lp.user_id = auth.uid()
+  ));
+
+create policy "自分としてだけ投稿できる" on messages
+  for insert to authenticated
+  with check (user_id = auth.uid() and is_agent = false);
+
+-- 打診：自分宛だけ
+create policy "自分宛の打診だけ見える" on invitations
+  for select to authenticated using (user_id = auth.uid());
+create policy "自分宛の打診に返事できる" on invitations
+  for update to authenticated using (user_id = auth.uid());
+
+-- 予定：本人だけ（他人の空き時間が見えるのは それ自体が漏洩）
+create policy "自分の予定だけ見える" on calendar_events
+  for select to authenticated using (user_id = auth.uid());
+
+-- 企て・判断ログ・実行記録：ポリシーを作らない
+--   ＝ ブラウザからは一切見えない。エージェント（service_role）だけが触る
+```
+
+---
+
+## 8. 絶対に壊してはいけないルール
+
+**実装で踏みやすく、踏むと採点で致命傷になるものだけを集めた。**
+
+| # | ルール | 破るとどうなるか |
+|---|---|---|
+| 1 | `users` に **update ポリシーを作らない** | 一般社員が自分を管理者に昇格できる |
+| 2 | LLM が返した `user_id` は **必ず候補リストと照合してから使う** | インジェクションで任意の人に通知を送れる |
+| 3 | エージェントのAPIは **`CRON_SECRET` で縛る** | 誰でも叩けてクレジットが溶ける／打診が乱射される |
+| 4 | `service_role` を読むファイルの1行目に **`import 'server-only'`** | ブラウザに焼き込まれて全データが読み書きされる |
+| 5 | A の入力は **`is_agent = false` の発言だけ** | AIが自分の発言から知見を作り タグが自己増殖する |
+| 6 | 知見カードの本文に **発言を逐語引用しない。要約する** | 「元発言は参加者だけ」が形だけになる |
+| 7 | 終了したライブには **誰も参加・招待できない** | あとから招待すれば過去ログが読めてしまう |
+| 8 | タグは **AIが `official` にしない**。`proposed` まで | 管理者の承認という設計が意味をなくす |
+| 9 | ただし **管理者が承認しなくても B は止まらない** | 管理者が見ていない週末は場がひとつも立たない＝自律性が死ぬ |
+| 10 | 企ての停止条件（14日／3人／コスト上限）は **コードで持つ。LLMに任せない** | ループが止まらず課金され続ける |
+| 11 | カレンダーは **free/busy だけ取る**。タイトルも参加者も読まない | 「A社との商談」が1つ漏れるだけで事故 |
+| 12 | C は **画像を保存しない**。DBに画像の列を作らない | 社外秘が写り込んだまま残る |
+| 13 | タグは **自由文にしない**。辞書からの選択にする | インジェクションで任意の文字列が書き込める |
+| 14 | 企ては **`user_tags` の重なりだけで判断する**。タグの状態を条件にしない | ルール9が崩れる |
+
+> **9 の補足**: タグの正式化は「**全社の語彙になるか**」、企ては「**人と人をつなぐか**」。
+> 別のレイヤーなので独立させられる。ここを混ぜると自律性が死ぬ。
+
+---
+
+## 9. OrcaRouter
+
+```
+base_url = https://api.orcarouter.ai/v1
+```
+
+**キーは1つのアカウントから3本発行する。**（権限を分けたうえで 利用明細が1か所にまとまる）
+
+| 変数 | 用途 | 権限 |
+|---|---|---|
+| `ORCA_KEY_RECORDER` | 🎙️ A | 通知なし・予算小 |
+| `ORCA_KEY_ORGANIZER` | 🎪 B | 通知あり・予算あり・期限つき |
+| `ORCA_KEY_MIRROR` | 🔍 C | vision・予算小 |
+
+**Named Router を作って モデル名をコードに書かない。**
+
+| 担当 | 使う場面 |
+|---|---|
+| Mundane（安い） | タグ貼り・要約・新語の検査・巡回の足切り |
+| Hard（強い） | 立てるか判断・打診文・タグ昇格の最終確認 |
+| Fallback | 候補に入れていない別ベンダーを1本（使われない限り課金なし） |
+
+**注意**
+
+- PII Shield の既定は「マスク」。**氏名・住所・社名は既定では検出対象外** → カスタムルールを足す
+- OpenAI SDK は既定で `max_retries=2`。自前のフォールバックより先にSDKが同じモデルへ再試行する
+- 429 は **別プロバイダのモデルへ逃がす**と安定する
+
+---
+
+## 10. 今回の範囲外
+
+設計としては決めたうえで、今回のスコープには入れていないもの。
+
+| やらないこと | 今回の判断 |
+|---|---|
+| マルチテナント分離 | 今回は1社前提。複数社に出すなら全テーブルに `org_id` を足して RLS の条件に入れる |
+| キーの完全分離 | A と B のキーは分けたが同じプロセスにある。**防いでいるのは事故であって攻撃ではない** |
+| カレンダー実連携 | デモはダミー。本番は Outlook の FreeBusy を叩く。**予定のタイトルは最初から取りに行かない設計** |
+| リアルタイムの「現在の話題」 | コストと、雑談が部屋の外に漏れる懸念のため見送り |
+| 定期開催の設定画面 | **作らない。** 興味が溜まれば結果として また開かれる |
+
+> **穴がないふりをせず 穴の位置を正確に書くことを方針にしている。**
+
+---
+
+*最終更新: 2026-09-20 / 変更したらこのファイルに書き戻すこと*
