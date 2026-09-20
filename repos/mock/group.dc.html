@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>グループチャット</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#F7F5F0; --surface:#FFFFFF;
+    --ink:#1E1B16; --ink-soft:#6B6459; --ink-faint:#9C948A;
+    --line:#E7E2D8; --line-soft:#F0EDE5;
+    --teal:#3D6B5C; --teal-soft:#E4ECE8;
+    --amber:#B8763E; --amber-soft:#F5E9DA;
+    --slate:#4A6A8A; --slate-soft:#E4EAF0;
+    --plum:#7A5C8C; --plum-soft:#EBE4EF;
+    --green:#4C8C6B;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--ink);}
+  h1,h2{font-family:'Zen Kaku Gothic New','Noto Sans JP',sans-serif;margin:0;}
+</style>
+</helmet>
+
+<div style="width:1280px;height:1000px;background:var(--bg);padding:64px 72px;display:flex;flex-direction:column;gap:28px;">
+
+  <!-- header -->
+  <div style="display:flex;flex-direction:column;gap:14px;">
+    <div>
+      <h1 style="font-size:26px;font-weight:800;">グループチャット</h1>
+      <div style="font-size:13px;color:var(--ink-faint);margin-top:6px;">もくもく会も、AIが立てた部屋も、同じ一覧で参加できます</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:12px;font-weight:700;padding:7px 16px;border-radius:999px;background:var(--ink);color:#fff;">すべて</span>
+      <span style="font-size:12px;font-weight:600;padding:7px 16px;border-radius:999px;border:1px solid var(--line);color:var(--ink-soft);">もくもく会</span>
+      <span style="font-size:12px;font-weight:600;padding:7px 16px;border-radius:999px;border:1px solid var(--line);color:var(--ink-soft);">AIが立てた部屋</span>
+    </div>
+  </div>
+
+  <!-- room list -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <!-- row 1: もくもく会・開催中 -->
+    <div style="display:flex;align-items:center;gap:22px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px;">
+      <div style="width:72px;height:72px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0014 0"></path><path d="M12 18v3M9 21h6"></path></svg>
+      </div>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="width:8px;height:8px;border-radius:999px;background:var(--green);flex-shrink:0;"></span>
+          <span style="font-size:11px;font-weight:700;color:var(--green);">開催中</span>
+          <div style="font-size:20px;font-weight:800;">議事録、もっと早く書けないか問題</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-size:12px;color:var(--ink-soft);font-weight:600;">知見タグ：</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--teal-soft);color:var(--teal);">議事録の書き方</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--teal-soft);color:var(--teal);">ファシリテーション</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--teal-soft);color:var(--teal);">情報整理</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-faint);">
+          <span>火曜もくもく会</span>
+          <span>・</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 19c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6"></path><circle cx="17.5" cy="9" r="2.6"></circle><path d="M15.5 13.6c2.8.4 4.5 2.3 4.5 5.4"></path></svg>
+          <span>6人が参加中</span>
+        </div>
+      </div>
+      <button style="flex-shrink:0;padding:12px 28px;border-radius:10px;border:none;background:var(--teal);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">参加する</button>
+    </div>
+
+    <!-- row 2: もくもく会・開催中 -->
+    <div style="display:flex;align-items:center;gap:22px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px;">
+      <div style="width:72px;height:72px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0014 0"></path><path d="M12 18v3M9 21h6"></path></svg>
+      </div>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="width:8px;height:8px;border-radius:999px;background:var(--green);flex-shrink:0;"></span>
+          <span style="font-size:11px;font-weight:700;color:var(--green);">開催中</span>
+          <div style="font-size:20px;font-weight:800;">生成AIで資料作成、どこまで任せる？</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-size:12px;color:var(--ink-soft);font-weight:600;">知見タグ：</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--teal-soft);color:var(--teal);">生成AI活用</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--teal-soft);color:var(--teal);">プロンプト設計</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-faint);">
+          <span>生成AI活用ミートアップ</span>
+          <span>・</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 19c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6"></path><circle cx="17.5" cy="9" r="2.6"></circle><path d="M15.5 13.6c2.8.4 4.5 2.3 4.5 5.4"></path></svg>
+          <span>4人が参加中</span>
+        </div>
+      </div>
+      <button style="flex-shrink:0;padding:12px 28px;border-radius:10px;border:none;background:var(--teal);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">参加する</button>
+    </div>
+
+    <!-- row 3: AIが立てた部屋 -->
+    <div style="display:flex;align-items:center;gap:22px;background:var(--surface);border:1px solid var(--plum-soft);border-radius:16px;padding:22px 24px;">
+      <div style="width:72px;height:72px;border-radius:999px;background:var(--plum-soft);color:var(--plum);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"></path></svg>
+      </div>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--plum);color:#fff;flex-shrink:0;">AI発足</span>
+          <div style="font-size:20px;font-weight:800;">Excel VBAで定型業務を自動化する型、聞きたいです</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-size:12px;color:var(--ink-soft);font-weight:600;">知見タグ：</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--amber-soft);color:var(--amber);">Excel VBA</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--amber-soft);color:var(--amber);">RPA導入</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-faint);">
+          <span>VBA自動化、聞いてみよう部屋</span>
+          <span>・</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 19c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6"></path><circle cx="17.5" cy="9" r="2.6"></circle><path d="M15.5 13.6c2.8.4 4.5 2.3 4.5 5.4"></path></svg>
+          <span>あなたを含め3人に依頼中</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;">
+        <button style="padding:11px 26px;border-radius:10px;border:none;background:var(--plum);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">参加する</button>
+        <button style="padding:9px 26px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink-faint);font-size:12.5px;font-weight:600;cursor:pointer;">今回は見送る</button>
+      </div>
+    </div>
+
+    <!-- row 4: AIが立てた部屋 -->
+    <div style="display:flex;align-items:center;gap:22px;background:var(--surface);border:1px solid var(--plum-soft);border-radius:16px;padding:22px 24px;">
+      <div style="width:72px;height:72px;border-radius:999px;background:var(--plum-soft);color:var(--plum);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"></path></svg>
+      </div>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--plum);color:#fff;flex-shrink:0;">AI発足</span>
+          <div style="font-size:20px;font-weight:800;">新人オンボーディング、最初の1週間どう組む？</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-size:12px;color:var(--ink-soft);font-weight:600;">知見タグ：</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--slate-soft);color:var(--slate);">新人育成</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--slate-soft);color:var(--slate);">OJT設計</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-faint);">
+          <span>オンボーディング設計、相談部屋</span>
+          <span>・</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 19c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6"></path><circle cx="17.5" cy="9" r="2.6"></circle><path d="M15.5 13.6c2.8.4 4.5 2.3 4.5 5.4"></path></svg>
+          <span>5人に依頼中</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;">
+        <button style="padding:11px 26px;border-radius:10px;border:none;background:var(--plum);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">参加する</button>
+        <button style="padding:9px 26px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink-faint);font-size:12.5px;font-weight:600;cursor:pointer;">今回は見送る</button>
+      </div>
+    </div>
+
+    <!-- row 5: もくもく会・終了 -->
+    <div style="display:flex;align-items:center;gap:22px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px;opacity:0.75;">
+      <div style="width:72px;height:72px;border-radius:999px;background:var(--line-soft);color:var(--ink-faint);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0014 0"></path><path d="M12 18v3M9 21h6"></path></svg>
+      </div>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="width:8px;height:8px;border-radius:999px;background:var(--ink-faint);flex-shrink:0;"></span>
+          <span style="font-size:11px;font-weight:700;color:var(--ink-faint);">終了</span>
+          <div style="font-size:20px;font-weight:800;color:var(--ink-soft);">社内Wiki、どこまで整理する？</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-size:12px;color:var(--ink-soft);font-weight:600;">知見タグ：</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--line-soft);color:var(--ink-faint);">社内Wiki整理</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-faint);">
+          <span>水曜もくもく会</span>
+          <span>・</span>
+          <span>2026/9/16 開催</span>
+        </div>
+      </div>
+      <button style="flex-shrink:0;padding:12px 28px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink-soft);font-size:14px;font-weight:700;cursor:pointer;">記録を見る</button>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
