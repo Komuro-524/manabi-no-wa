@@ -1,0 +1,15 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-09-20T09:00:00Z"},
+  "title": "もくもく会プラットフォーム 画面モック",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 1280, "h": 820, "title": "プロフィール／スキルシート（§6.4 ①）", "is_interactive": true}
+  },
+  "order": ["Main.dc.html"],
+  "notes": {
+    "n1": {"x": 0, "y": -180, "text": "もくもく会プラットフォーム — 画面モック（§6.4）", "kind": "title1", "maxW": 1280, "color": "teal"}
+  },
+  "designSystems": []
+}

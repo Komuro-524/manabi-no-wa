@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>プロフィール</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#F7F5F0; --surface:#FFFFFF;
+    --ink:#1E1B16; --ink-soft:#6B6459; --ink-faint:#9C948A;
+    --line:#E7E2D8; --line-soft:#F0EDE5;
+    --teal:#3D6B5C; --teal-soft:#E4ECE8;
+    --amber:#B8763E; --amber-soft:#F5E9DA;
+    --slate:#4A6A8A; --slate-soft:#E4EAF0;
+    --plum:#7A5C8C; --plum-soft:#EBE4EF;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--ink);}
+  h1,h2{font-family:'Zen Kaku Gothic New','Noto Sans JP',sans-serif;margin:0;}
+</style>
+</helmet>
+
+<div style="width:1280px;height:820px;background:var(--bg);padding:64px 72px;display:flex;flex-direction:column;gap:36px;">
+
+  <!-- header: avatar / name / interest tags -->
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:28px;">
+      <div style="width:120px;height:120px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:700;flex-shrink:0;">直</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <h1 style="font-size:32px;font-weight:800;">山田 直子</h1>
+        <div style="font-size:13px;color:var(--ink-faint);">人材育成部　・　入社6年目</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;">
+          <span style="font-size:13px;font-weight:600;color:var(--ink-soft);">興味タグ：</span>
+          <span style="font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;background:var(--amber-soft);color:var(--amber);">生成AI活用</span>
+          <span style="font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;background:var(--amber-soft);color:var(--amber);">データ可視化</span>
+          <span style="font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;background:var(--amber-soft);color:var(--amber);">ノーコード開発</span>
+          <span style="font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;background:var(--amber-soft);color:var(--amber);">チームビルディング</span>
+        </div>
+      </div>
+    </div>
+    <button style="padding:9px 18px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;">編集する</button>
+  </div>
+
+  <!-- 知見分類 section -->
+  <div style="display:flex;flex-direction:column;gap:14px;">
+    <div style="display:flex;align-items:baseline;gap:10px;">
+      <h2 style="font-size:18px;font-weight:700;">知見分類</h2>
+      <span style="font-size:12px;color:var(--ink-faint);">もくもく会のトーク履歴からAIが自動で分類しました</span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;">
+
+      <!-- データ活用 -->
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line-soft);">
+          <span style="width:9px;height:9px;border-radius:999px;background:var(--teal);flex-shrink:0;"></span>
+          <span style="font-size:14px;font-weight:800;">データ活用</span>
+          <span style="margin-left:auto;font-size:11px;color:var(--ink-faint);">3件</span>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;padding:14px 18px;border-bottom:1px solid var(--line-soft);">
+          <div style="font-size:13px;font-weight:700;">生成AIで議事録を要約する運用</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-faint);">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 19c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6"></path><circle cx="17.5" cy="9" r="2.6"></circle><path d="M15.5 13.6c2.8.4 4.5 2.3 4.5 5.4"></path></svg>
+            <span>15人が同じ知見</span>
+            <span>・</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16a1 1 0 011 1V15a1 1 0 01-1 1H10l-4.5 4V16H4a1 1 0 01-1-1V6.5a1 1 0 011-1z"></path></svg>
+            <span>トーク履歴 4件</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.8 2.7 2.8 15.3 0 18M12 3c-2.8 2.7-2.8 15.3 0 18"></path></svg>
+            <span style="font-size:11px;color:var(--ink-faint);">公開</span>
+            <div style="width:32px;height:18px;border-radius:999px;background:var(--teal);position:relative;flex-shrink:0;margin-left:auto;">
+              <div style="width:14px;height:14px;border-radius:999px;background:#fff;position:absolute;top:2px;right:2px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;padding:14px 18px;border-bottom:1px solid var(--line-soft);">
+          <div style="font-size:13px;font-weight:700;">データ可視化の型</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-faint);">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 19c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6"></path><circle cx="17.5" cy="9" r="2.6"></circle><path d="M15.5 13.6c2.8.4 4.5 2.3 4.5 5.4"></path></svg>
+            <span>9人が同じ知見</span>
+            <span>・</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16a1 1 0 011 1V15a1 1 0 01-1 1H10l-4.5 4V16H4a1 1 0 01-1-1V6.5a1 1 0 011-1z"></path></svg>
+            <span>トーク履歴 2件</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.8 2.7 2.8 15.3 0 18M12 3c-2.8 2.7-2.8 15.3 0 18"></path></svg>
+            <span style="font-size:11px;color:var(--ink-faint);">公開</span>
+            <div style="width:32px;height:18px;border-radius:999px;background:var(--teal);position:relative;flex-shrink:0;margin-left:auto;">
+              <div style="width:14px;height:14px;border-radius:999px;background:#fff;position:absolute;top:2px;right:2px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;padding:14px 18px;">
+          <div style="font-size:13px;font-weight:700;">SQLの基礎</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-faint);">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 19c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6"></path><circle cx="17.5" cy="9" r="2.6"></circle><path d="M15.5 13.6c2.8.4 4.5 2.3 4.5 5.4"></path></svg>
+            <span>5人が同じ知見</span>
+            <span>・</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16a1 1 0 011 1V15a1 1 0 01-1 1H10l-4.5 4V16H4a1 1 0 01-1-1V6.5a1 1 0 011-1z"></path></svg>
+            <span>トーク履歴 1件</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 018 0v4"></path></svg>
+            <span style="font-size:11px;color:var(--ink-faint);">非公開</span>
+            <div style="width:32px;height:18px;border-radius:999px;background:#E3DFD5;position:relative;flex-shrink:0;margin-left:auto;">
+              <div style="width:14px;height:14px;border-radius:999px;background:#fff;position:absolute;top:2px;left:2px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ツール活用 -->
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line-soft);">
+          <span style="width:9px;height:9px;border-radius:999px;background:var(--amber);flex-shrink:0;"></span>
+          <span style="font-size:14px;font-weight:800;">ツール活用</span>
+          <span style="margin-left:auto;font-size:11px;color:var(--ink-faint);">3件</span>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;padding:14px 18px;border-bottom:1px solid var(--line-soft);">
+          <div style="font-size:13px;font-weight:700;">Excel VBAで定型業務を自動化</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-faint);">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 19c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6"></path><circle cx="17.5" cy="9" r="2.6"></circle><path d="M15.5 13.6c2.8.4 4.5 2.3 4.5 5.4"></path></svg>
+            <span>15人が同じ知見</span>
+            <span>・</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16a1 1 0 011 1V15a1 1 0 01-1 1H10l-4.5 4V16H4a1 1 0 01-1-1V6.5a1 1 0 011-1z"></path></svg>
+            <span>トーク履歴 3件</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.8 2.7 2.8 15.3 0 18M12 3c-2.8 2.7-2.8 15.3 0 18"></path></svg>
+            <span style="font-size:11px;color:var(--ink-faint);">公開</span>
+            <div style="width:32px;height:18px;border-radius:999px;background:var(--amber);position:relative;flex-shrink:0;margin-left:auto;">
+              <div style="width:14px;height:14px;border-radius:999px;background:#fff;position:absolute;top:2px;right:2px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;padding:14px 18px;border-bottom:1px solid var(--line-soft);">
+          <div style="font-size:13px;font-weight:700;">RPA導入の勘所</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-faint);">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 19c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6"></path><circle cx="17.5" cy="9" r="2.6"></circle><path d="M15.5 13.6c2.8.4 4.5 2.3 4.5 5.4"></path></svg>
+            <span>9人が同じ知見</span>
+            <span>・</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16a1 1 0 011 1V15a1 1 0 01-1 1H10l-4.5 4V16H4a1 1 0 01-1-1V6.5a1 1 0 011-1z"></path></svg>
+            <span>トーク履歴 2件</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.8 2.7 2.8 15.3 0 18M12 3c-2.8 2.7-2.8 15.3 0 18"></path></svg>
+            <span style="font-size:11px;color:var(--ink-faint);">公開</span>
+            <div style="width:32px;height:18px;border-radius:999px;background:var(--amber);position:relative;flex-shrink:0;margin-left:auto;">
+              <div style="width:14px;height:14px;border-radius:999px;background:#fff;position:absolute;top:2px;right:2px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;padding:14px 18px;">
+          <div style="font-size:13px;font-weight:700;">社内Wikiの整理術</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-faint);">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 19c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6"></path><circle cx="17.5" cy="9" r="2.6"></circle><path d="M15.5 13.6c2.8.4 4.5 2.3 4.5 5.4"></path></svg>
+            <span>4人が同じ知見</span>
+            <span>・</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16a1 1 0 011 1V15a1 1 0 01-1 1H10l-4.5 4V16H4a1 1 0 01-1-1V6.5a1 1 0 011-1z"></path></svg>
+            <span>トーク履歴 1件</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 018 0v4"></path></svg>
+            <span style="font-size:11px;color:var(--ink-faint);">非公開</span>
+            <div style="width:32px;height:18px;border-radius:999px;background:#E3DFD5;position:relative;flex-shrink:0;margin-left:auto;">
+              <div style="width:14px;height:14px;border-radius:999px;background:#fff;position:absolute;top:2px;left:2px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ファシリテーション -->
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line-soft);">
+          <span style="width:9px;height:9px;border-radius:999px;background:var(--slate);flex-shrink:0;"></span>
+          <span style="font-size:14px;font-weight:800;">ファシリテーション</span>
+          <span style="margin-left:auto;font-size:11px;color:var(--ink-faint);">3件</span>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;padding:14px 18px;border-bottom:1px solid var(--line-soft);">
+          <div style="font-size:13px;font-weight:700;">会議ファシリテーションの型</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-faint);">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 19c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6"></path><circle cx="17.5" cy="9" r="2.6"></circle><path d="M15.5 13.6c2.8.4 4.5 2.3 4.5 5.4"></path></svg>
+            <span>11人が同じ知見</span>
+            <span>・</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16a1 1 0 011 1V15a1 1 0 01-1 1H10l-4.5 4V16H4a1 1 0 01-1-1V6.5a1 1 0 011-1z"></path></svg>
+            <span>トーク履歴 3件</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.8 2.7 2.8 15.3 0 18M12 3c-2.8 2.7-2.8 15.3 0 18"></path></svg>
+            <span style="font-size:11px;color:var(--ink-faint);">公開</span>
+            <div style="width:32px;height:18px;border-radius:999px;background:var(--slate);position:relative;flex-shrink:0;margin-left:auto;">
+              <div style="width:14px;height:14px;border-radius:999px;background:#fff;position:absolute;top:2px;right:2px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;padding:14px 18px;border-bottom:1px solid var(--line-soft);">
+          <div style="font-size:13px;font-weight:700;">1on1の進め方</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-faint);">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 19c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6"></path><circle cx="17.5" cy="9" r="2.6"></circle><path d="M15.5 13.6c2.8.4 4.5 2.3 4.5 5.4"></path></svg>
+            <span>6人が同じ知見</span>
+            <span>・</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16a1 1 0 011 1V15a1 1 0 01-1 1H10l-4.5 4V16H4a1 1 0 01-1-1V6.5a1 1 0 011-1z"></path></svg>
+            <span>トーク履歴 2件</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.8 2.7 2.8 15.3 0 18M12 3c-2.8 2.7-2.8 15.3 0 18"></path></svg>
+            <span style="font-size:11px;color:var(--ink-faint);">公開</span>
+            <div style="width:32px;height:18px;border-radius:999px;background:var(--slate);position:relative;flex-shrink:0;margin-left:auto;">
+              <div style="width:14px;height:14px;border-radius:999px;background:#fff;position:absolute;top:2px;right:2px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;padding:14px 18px;">
+          <div style="font-size:13px;font-weight:700;">アイスブレイク集</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-faint);">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 19c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6"></path><circle cx="17.5" cy="9" r="2.6"></circle><path d="M15.5 13.6c2.8.4 4.5 2.3 4.5 5.4"></path></svg>
+            <span>3人が同じ知見</span>
+            <span>・</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16a1 1 0 011 1V15a1 1 0 01-1 1H10l-4.5 4V16H4a1 1 0 01-1-1V6.5a1 1 0 011-1z"></path></svg>
+            <span>トーク履歴 1件</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 018 0v4"></path></svg>
+            <span style="font-size:11px;color:var(--ink-faint);">非公開</span>
+            <div style="width:32px;height:18px;border-radius:999px;background:#E3DFD5;position:relative;flex-shrink:0;margin-left:auto;">
+              <div style="width:14px;height:14px;border-radius:999px;background:#fff;position:absolute;top:2px;left:2px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 新人育成 -->
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line-soft);">
+          <span style="width:9px;height:9px;border-radius:999px;background:var(--plum);flex-shrink:0;"></span>
+          <span style="font-size:14px;font-weight:800;">新人育成</span>
+          <span style="margin-left:auto;font-size:11px;color:var(--ink-faint);">3件</span>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;padding:14px 18px;border-bottom:1px solid var(--line-soft);">
+          <div style="font-size:13px;font-weight:700;">新人オンボーディング1週間プラン</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-faint);">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 19c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6"></path><circle cx="17.5" cy="9" r="2.6"></circle><path d="M15.5 13.6c2.8.4 4.5 2.3 4.5 5.4"></path></svg>
+            <span>8人が同じ知見</span>
+            <span>・</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16a1 1 0 011 1V15a1 1 0 01-1 1H10l-4.5 4V16H4a1 1 0 01-1-1V6.5a1 1 0 011-1z"></path></svg>
+            <span>トーク履歴 3件</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.8 2.7 2.8 15.3 0 18M12 3c-2.8 2.7-2.8 15.3 0 18"></path></svg>
+            <span style="font-size:11px;color:var(--ink-faint);">公開</span>
+            <div style="width:32px;height:18px;border-radius:999px;background:var(--plum);position:relative;flex-shrink:0;margin-left:auto;">
+              <div style="width:14px;height:14px;border-radius:999px;background:#fff;position:absolute;top:2px;right:2px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;padding:14px 18px;border-bottom:1px solid var(--line-soft);">
+          <div style="font-size:13px;font-weight:700;">OJTの設計</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-faint);">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 19c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6"></path><circle cx="17.5" cy="9" r="2.6"></circle><path d="M15.5 13.6c2.8.4 4.5 2.3 4.5 5.4"></path></svg>
+            <span>5人が同じ知見</span>
+            <span>・</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16a1 1 0 011 1V15a1 1 0 01-1 1H10l-4.5 4V16H4a1 1 0 01-1-1V6.5a1 1 0 011-1z"></path></svg>
+            <span>トーク履歴 2件</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.8 2.7 2.8 15.3 0 18M12 3c-2.8 2.7-2.8 15.3 0 18"></path></svg>
+            <span style="font-size:11px;color:var(--ink-faint);">公開</span>
+            <div style="width:32px;height:18px;border-radius:999px;background:var(--plum);position:relative;flex-shrink:0;margin-left:auto;">
+              <div style="width:14px;height:14px;border-radius:999px;background:#fff;position:absolute;top:2px;right:2px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;padding:14px 18px;">
+          <div style="font-size:13px;font-weight:700;">メンター制度の運用</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-faint);">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 19c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6"></path><circle cx="17.5" cy="9" r="2.6"></circle><path d="M15.5 13.6c2.8.4 4.5 2.3 4.5 5.4"></path></svg>
+            <span>4人が同じ知見</span>
+            <span>・</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16a1 1 0 011 1V15a1 1 0 01-1 1H10l-4.5 4V16H4a1 1 0 01-1-1V6.5a1 1 0 011-1z"></path></svg>
+            <span>トーク履歴 1件</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 018 0v4"></path></svg>
+            <span style="font-size:11px;color:var(--ink-faint);">非公開</span>
+            <div style="width:32px;height:18px;border-radius:999px;background:#E3DFD5;position:relative;flex-shrink:0;margin-left:auto;">
+              <div style="width:14px;height:14px;border-radius:999px;background:#fff;position:absolute;top:2px;left:2px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":820}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
