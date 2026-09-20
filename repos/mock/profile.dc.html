@@ -27,19 +27,19 @@
 
 <div style="width:1280px;height:820px;background:var(--bg);padding:64px 72px;display:flex;flex-direction:column;gap:36px;">
 
-  <!-- header: avatar / name / interest tags -->
+  <!-- header: avatar(ring) / name / interest tags -->
   <div style="display:flex;align-items:flex-start;justify-content:space-between;">
     <div style="display:flex;align-items:center;gap:28px;">
-      <div style="width:120px;height:120px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:700;flex-shrink:0;">直</div>
+      <div style="width:120px;height:120px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:700;flex-shrink:0;box-shadow:0 0 0 5px var(--bg),0 0 0 8px var(--teal);">直</div>
       <div style="display:flex;flex-direction:column;gap:6px;">
         <h1 style="font-size:32px;font-weight:800;">山田 直子</h1>
         <div style="font-size:13px;color:var(--ink-faint);">人材育成部　・　入社6年目</div>
         <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;">
           <span style="font-size:13px;font-weight:600;color:var(--ink-soft);">興味タグ：</span>
-          <span style="font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;background:var(--amber-soft);color:var(--amber);">生成AI活用</span>
-          <span style="font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;background:var(--amber-soft);color:var(--amber);">データ可視化</span>
-          <span style="font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;background:var(--amber-soft);color:var(--amber);">ノーコード開発</span>
-          <span style="font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;background:var(--amber-soft);color:var(--amber);">チームビルディング</span>
+          <span style="font-size:12px;font-weight:600;padding:6px 14px 6px 11px;border-radius:999px;background:var(--amber-soft);color:var(--amber);display:inline-flex;align-items:center;gap:5px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>生成AI活用</span>
+          <span style="font-size:12px;font-weight:600;padding:6px 14px 6px 11px;border-radius:999px;background:var(--amber-soft);color:var(--amber);display:inline-flex;align-items:center;gap:5px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>データ可視化</span>
+          <span style="font-size:12px;font-weight:600;padding:6px 14px 6px 11px;border-radius:999px;background:var(--amber-soft);color:var(--amber);display:inline-flex;align-items:center;gap:5px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>ノーコード開発</span>
+          <span style="font-size:12px;font-weight:600;padding:6px 14px 6px 11px;border-radius:999px;background:var(--amber-soft);color:var(--amber);display:inline-flex;align-items:center;gap:5px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>チームビルディング</span>
         </div>
       </div>
     </div>
@@ -48,7 +48,10 @@
 
   <!-- 知見分類 section -->
   <div style="display:flex;flex-direction:column;gap:14px;">
-    <div style="display:flex;align-items:baseline;gap:10px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:30px;height:30px;border-radius:10px;background:var(--teal-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="4" y="7" width="16" height="13" rx="3" stroke="var(--teal)" stroke-width="1.8"></rect><circle cx="9" cy="7" r="2.3" fill="var(--teal-soft)" stroke="var(--teal)" stroke-width="1.8"></circle><path d="M8 12.5h8M8 16h5" stroke="var(--teal)" stroke-width="1.6" stroke-linecap="round"></path></svg>
+      </div>
       <h2 style="font-size:18px;font-weight:700;">知見分類</h2>
       <span style="font-size:12px;color:var(--ink-faint);">もくもく会のトーク履歴からAIが自動で分類しました</span>
     </div>
@@ -56,9 +59,9 @@
     <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;">
 
       <!-- データ活用 -->
-      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:5px 5px 0 0 var(--surface),5px 5px 0 1px var(--line),9px 9px 0 0 var(--bg),9px 9px 0 1px var(--line-soft);">
         <div style="display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line-soft);">
-          <span style="width:9px;height:9px;border-radius:999px;background:var(--teal);flex-shrink:0;"></span>
+          <span style="width:10px;height:10px;border-radius:999px;border:2.5px solid var(--teal);background:var(--surface);flex-shrink:0;"></span>
           <span style="font-size:14px;font-weight:800;">データ活用</span>
           <span style="margin-left:auto;font-size:11px;color:var(--ink-faint);">3件</span>
         </div>
@@ -119,9 +122,9 @@
       </div>
 
       <!-- ツール活用 -->
-      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:5px 5px 0 0 var(--surface),5px 5px 0 1px var(--line),9px 9px 0 0 var(--bg),9px 9px 0 1px var(--line-soft);">
         <div style="display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line-soft);">
-          <span style="width:9px;height:9px;border-radius:999px;background:var(--amber);flex-shrink:0;"></span>
+          <span style="width:10px;height:10px;border-radius:999px;border:2.5px solid var(--amber);background:var(--surface);flex-shrink:0;"></span>
           <span style="font-size:14px;font-weight:800;">ツール活用</span>
           <span style="margin-left:auto;font-size:11px;color:var(--ink-faint);">3件</span>
         </div>
@@ -182,9 +185,9 @@
       </div>
 
       <!-- ファシリテーション -->
-      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:5px 5px 0 0 var(--surface),5px 5px 0 1px var(--line),9px 9px 0 0 var(--bg),9px 9px 0 1px var(--line-soft);">
         <div style="display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line-soft);">
-          <span style="width:9px;height:9px;border-radius:999px;background:var(--slate);flex-shrink:0;"></span>
+          <span style="width:10px;height:10px;border-radius:999px;border:2.5px solid var(--slate);background:var(--surface);flex-shrink:0;"></span>
           <span style="font-size:14px;font-weight:800;">ファシリテーション</span>
           <span style="margin-left:auto;font-size:11px;color:var(--ink-faint);">3件</span>
         </div>
@@ -245,9 +248,9 @@
       </div>
 
       <!-- 新人育成 -->
-      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:5px 5px 0 0 var(--surface),5px 5px 0 1px var(--line),9px 9px 0 0 var(--bg),9px 9px 0 1px var(--line-soft);">
         <div style="display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line-soft);">
-          <span style="width:9px;height:9px;border-radius:999px;background:var(--plum);flex-shrink:0;"></span>
+          <span style="width:10px;height:10px;border-radius:999px;border:2.5px solid var(--plum);background:var(--surface);flex-shrink:0;"></span>
           <span style="font-size:14px;font-weight:800;">新人育成</span>
           <span style="margin-left:auto;font-size:11px;color:var(--ink-faint);">3件</span>
         </div>

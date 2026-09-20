@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<title>グループチャット</title>
+<title>まなびのライブ</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -30,9 +30,14 @@
 
   <!-- header -->
   <div style="display:flex;flex-direction:column;gap:14px;">
-    <div>
-      <h1 style="font-size:26px;font-weight:800;">グループチャット</h1>
-      <div style="font-size:13px;color:var(--ink-faint);margin-top:6px;">もくもく会も、AIが立てた部屋も、同じ一覧で参加できます</div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:34px;height:34px;border-radius:10px;background:var(--teal-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="4" y="7" width="16" height="13" rx="3" stroke="var(--teal)" stroke-width="1.8"></rect><circle cx="9" cy="7" r="2.3" fill="var(--teal-soft)" stroke="var(--teal)" stroke-width="1.8"></circle><path d="M8 12.5h8M8 16h5" stroke="var(--teal)" stroke-width="1.6" stroke-linecap="round"></path></svg>
+      </div>
+      <div>
+        <h1 style="font-size:26px;font-weight:800;">まなびのライブ</h1>
+        <div style="font-size:13px;color:var(--ink-faint);margin-top:6px;">もくもく会も、AIが立てた部屋も、同じ一覧で参加できます</div>
+      </div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
       <span style="font-size:12px;font-weight:700;padding:7px 16px;border-radius:999px;background:var(--ink);color:#fff;">すべて</span>
@@ -42,11 +47,11 @@
   </div>
 
   <!-- room list -->
-  <div style="display:flex;flex-direction:column;gap:16px;">
+  <div style="display:flex;flex-direction:column;gap:22px;">
 
     <!-- row 1: もくもく会・開催中 -->
-    <div style="display:flex;align-items:center;gap:22px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px;">
-      <div style="width:72px;height:72px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+    <div style="display:flex;align-items:center;gap:22px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px;box-shadow:6px 6px 0 0 var(--surface),6px 6px 0 1px var(--line),11px 11px 0 0 var(--bg),11px 11px 0 1px var(--line-soft);">
+      <div style="width:72px;height:72px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 0 4px var(--bg),0 0 0 7px var(--teal);">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0014 0"></path><path d="M12 18v3M9 21h6"></path></svg>
       </div>
       <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;">
@@ -57,9 +62,9 @@
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <span style="font-size:12px;color:var(--ink-soft);font-weight:600;">知見タグ：</span>
-          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--teal-soft);color:var(--teal);">議事録の書き方</span>
-          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--teal-soft);color:var(--teal);">ファシリテーション</span>
-          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--teal-soft);color:var(--teal);">情報整理</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px 4px 9px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:inline-flex;align-items:center;gap:4px;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>議事録の書き方</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px 4px 9px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:inline-flex;align-items:center;gap:4px;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>ファシリテーション</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px 4px 9px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:inline-flex;align-items:center;gap:4px;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>情報整理</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-faint);">
           <span>火曜もくもく会</span>
@@ -68,12 +73,12 @@
           <span>6人が参加中</span>
         </div>
       </div>
-      <button style="flex-shrink:0;padding:12px 28px;border-radius:10px;border:none;background:var(--teal);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">参加する</button>
+      <button onclick="showJoinConfirm()" style="flex-shrink:0;padding:12px 28px;border-radius:10px;border:none;background:var(--teal);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">参加する</button>
     </div>
 
     <!-- row 2: もくもく会・開催中 -->
-    <div style="display:flex;align-items:center;gap:22px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px;">
-      <div style="width:72px;height:72px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+    <div style="display:flex;align-items:center;gap:22px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px;box-shadow:6px 6px 0 0 var(--surface),6px 6px 0 1px var(--line),11px 11px 0 0 var(--bg),11px 11px 0 1px var(--line-soft);">
+      <div style="width:72px;height:72px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 0 4px var(--bg),0 0 0 7px var(--teal);">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0014 0"></path><path d="M12 18v3M9 21h6"></path></svg>
       </div>
       <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;">
@@ -84,8 +89,8 @@
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <span style="font-size:12px;color:var(--ink-soft);font-weight:600;">知見タグ：</span>
-          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--teal-soft);color:var(--teal);">生成AI活用</span>
-          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--teal-soft);color:var(--teal);">プロンプト設計</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px 4px 9px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:inline-flex;align-items:center;gap:4px;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>生成AI活用</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px 4px 9px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:inline-flex;align-items:center;gap:4px;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>プロンプト設計</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-faint);">
           <span>生成AI活用ミートアップ</span>
@@ -94,12 +99,12 @@
           <span>4人が参加中</span>
         </div>
       </div>
-      <button style="flex-shrink:0;padding:12px 28px;border-radius:10px;border:none;background:var(--teal);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">参加する</button>
+      <button onclick="showJoinConfirm()" style="flex-shrink:0;padding:12px 28px;border-radius:10px;border:none;background:var(--teal);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">参加する</button>
     </div>
 
     <!-- row 3: AIが立てた部屋 -->
-    <div style="display:flex;align-items:center;gap:22px;background:var(--surface);border:1px solid var(--plum-soft);border-radius:16px;padding:22px 24px;">
-      <div style="width:72px;height:72px;border-radius:999px;background:var(--plum-soft);color:var(--plum);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+    <div style="display:flex;align-items:center;gap:22px;background:var(--surface);border:1px solid var(--plum-soft);border-radius:16px;padding:22px 24px;box-shadow:6px 6px 0 0 var(--surface),6px 6px 0 1px var(--plum-soft),11px 11px 0 0 var(--bg),11px 11px 0 1px var(--line-soft);">
+      <div style="width:72px;height:72px;border-radius:999px;background:var(--plum-soft);color:var(--plum);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 0 4px var(--bg),0 0 0 7px var(--plum);">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"></path></svg>
       </div>
       <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;">
@@ -109,8 +114,8 @@
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <span style="font-size:12px;color:var(--ink-soft);font-weight:600;">知見タグ：</span>
-          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--amber-soft);color:var(--amber);">Excel VBA</span>
-          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--amber-soft);color:var(--amber);">RPA導入</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px 4px 9px;border-radius:999px;background:var(--amber-soft);color:var(--amber);display:inline-flex;align-items:center;gap:4px;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>Excel VBA</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px 4px 9px;border-radius:999px;background:var(--amber-soft);color:var(--amber);display:inline-flex;align-items:center;gap:4px;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>RPA導入</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-faint);">
           <span>VBA自動化、聞いてみよう部屋</span>
@@ -120,14 +125,14 @@
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;">
-        <button style="padding:11px 26px;border-radius:10px;border:none;background:var(--plum);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">参加する</button>
+        <button onclick="showJoinConfirm()" style="padding:11px 26px;border-radius:10px;border:none;background:var(--plum);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">参加する</button>
         <button style="padding:9px 26px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink-faint);font-size:12.5px;font-weight:600;cursor:pointer;">今回は見送る</button>
       </div>
     </div>
 
     <!-- row 4: AIが立てた部屋 -->
-    <div style="display:flex;align-items:center;gap:22px;background:var(--surface);border:1px solid var(--plum-soft);border-radius:16px;padding:22px 24px;">
-      <div style="width:72px;height:72px;border-radius:999px;background:var(--plum-soft);color:var(--plum);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+    <div style="display:flex;align-items:center;gap:22px;background:var(--surface);border:1px solid var(--plum-soft);border-radius:16px;padding:22px 24px;box-shadow:6px 6px 0 0 var(--surface),6px 6px 0 1px var(--plum-soft),11px 11px 0 0 var(--bg),11px 11px 0 1px var(--line-soft);">
+      <div style="width:72px;height:72px;border-radius:999px;background:var(--plum-soft);color:var(--plum);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 0 4px var(--bg),0 0 0 7px var(--plum);">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"></path></svg>
       </div>
       <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;">
@@ -137,8 +142,8 @@
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <span style="font-size:12px;color:var(--ink-soft);font-weight:600;">知見タグ：</span>
-          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--slate-soft);color:var(--slate);">新人育成</span>
-          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--slate-soft);color:var(--slate);">OJT設計</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px 4px 9px;border-radius:999px;background:var(--slate-soft);color:var(--slate);display:inline-flex;align-items:center;gap:4px;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>新人育成</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px 4px 9px;border-radius:999px;background:var(--slate-soft);color:var(--slate);display:inline-flex;align-items:center;gap:4px;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>OJT設計</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-faint);">
           <span>オンボーディング設計、相談部屋</span>
@@ -148,14 +153,14 @@
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;">
-        <button style="padding:11px 26px;border-radius:10px;border:none;background:var(--plum);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">参加する</button>
+        <button onclick="showJoinConfirm()" style="padding:11px 26px;border-radius:10px;border:none;background:var(--plum);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">参加する</button>
         <button style="padding:9px 26px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink-faint);font-size:12.5px;font-weight:600;cursor:pointer;">今回は見送る</button>
       </div>
     </div>
 
     <!-- row 5: もくもく会・終了 -->
     <div style="display:flex;align-items:center;gap:22px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px;opacity:0.75;">
-      <div style="width:72px;height:72px;border-radius:999px;background:var(--line-soft);color:var(--ink-faint);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <div style="width:72px;height:72px;border-radius:999px;background:var(--line-soft);color:var(--ink-faint);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 0 4px var(--bg),0 0 0 7px var(--ink-faint);">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0014 0"></path><path d="M12 18v3M9 21h6"></path></svg>
       </div>
       <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;">
@@ -166,7 +171,7 @@
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <span style="font-size:12px;color:var(--ink-soft);font-weight:600;">知見タグ：</span>
-          <span style="font-size:11.5px;font-weight:600;padding:4px 12px;border-radius:999px;background:var(--line-soft);color:var(--ink-faint);">社内Wiki整理</span>
+          <span style="font-size:11.5px;font-weight:600;padding:4px 12px 4px 9px;border-radius:999px;background:var(--line-soft);color:var(--ink-faint);display:inline-flex;align-items:center;gap:4px;"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3H5a2 2 0 00-2 2v6l10 10 8-8L11 3z"></path><circle cx="7.2" cy="7.2" r="1" fill="currentColor" stroke="none"></circle></svg>社内Wiki整理</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-faint);">
           <span>水曜もくもく会</span>
@@ -179,6 +184,32 @@
 
   </div>
 </div>
+
+<!-- 参加確認モーダル -->
+<div id="join-modal" style="display:none;position:fixed;inset:0;background:rgba(30,27,22,0.45);align-items:center;justify-content:center;z-index:100;">
+  <div style="background:var(--surface);border-radius:20px;padding:36px 40px;width:320px;box-shadow:0 20px 50px rgba(30,27,22,0.28);display:flex;flex-direction:column;align-items:center;gap:22px;text-align:center;">
+    <div style="width:44px;height:44px;border-radius:12px;background:var(--teal-soft);display:flex;align-items:center;justify-content:center;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="7" width="16" height="13" rx="3" stroke="var(--teal)" stroke-width="1.8"></rect><circle cx="9" cy="7" r="2.3" fill="var(--teal-soft)" stroke="var(--teal)" stroke-width="1.8"></circle><path d="M8 12.5h8M8 16h5" stroke="var(--teal)" stroke-width="1.6" stroke-linecap="round"></path></svg>
+    </div>
+    <div style="font-size:17px;font-weight:800;">参加しますか？</div>
+    <div style="display:flex;gap:12px;width:100%;">
+      <button onclick="closeJoinModal()" style="flex:1;padding:12px 0;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:14px;font-weight:700;cursor:pointer;">いいえ</button>
+      <button onclick="confirmJoin()" style="flex:1;padding:12px 0;border-radius:10px;border:none;background:var(--teal);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">はい</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showJoinConfirm(){
+  document.getElementById('join-modal').style.display = 'flex';
+}
+function closeJoinModal(){
+  document.getElementById('join-modal').style.display = 'none';
+}
+function confirmJoin(){
+  window.location.href = './talk.dc.html';
+}
+</script>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1000}}'>
 class Component extends DCLogic {
