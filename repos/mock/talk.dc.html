@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>グループトーク</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#F7F5F0; --surface:#FFFFFF;
+    --ink:#1E1B16; --ink-soft:#6B6459; --ink-faint:#9C948A;
+    --line:#E7E2D8; --line-soft:#F0EDE5;
+    --teal:#3D6B5C; --teal-soft:#E4ECE8;
+    --amber:#B8763E; --amber-soft:#F5E9DA;
+    --slate:#4A6A8A; --slate-soft:#E4EAF0;
+    --plum:#7A5C8C; --plum-soft:#EBE4EF;
+    --green:#4C8C6B;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--ink);}
+  h1,h2{font-family:'Zen Kaku Gothic New','Noto Sans JP',sans-serif;margin:0;}
+</style>
+</helmet>
+
+<div style="width:1280px;height:900px;background:var(--bg);padding:56px 64px;display:flex;flex-direction:column;gap:22px;">
+
+  <!-- header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:18px;">
+      <div style="width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
+      </div>
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="width:8px;height:8px;border-radius:999px;background:var(--green);flex-shrink:0;"></span>
+          <span style="font-size:11px;font-weight:700;color:var(--green);">開催中</span>
+          <h1 style="font-size:24px;font-weight:800;">議事録、もっと早く書けないか問題</h1>
+        </div>
+        <div style="font-size:12.5px;color:var(--ink-faint);margin-top:6px;">火曜もくもく会　・　経過 18:42　・　6人が参加中</div>
+      </div>
+    </div>
+    <button style="flex-shrink:0;padding:11px 24px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:13.5px;font-weight:700;cursor:pointer;">退出する</button>
+  </div>
+
+  <!-- 現在の話題（AI検出） -->
+  <div style="display:flex;align-items:center;gap:12px;background:var(--teal-soft);border-radius:14px;padding:14px 20px;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="var(--teal)"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"></path></svg>
+    <span style="font-size:11px;font-weight:700;color:var(--teal);flex-shrink:0;">AIが検出中・現在の話題</span>
+    <span style="font-size:14px;font-weight:700;color:var(--ink);">議事録テンプレートを部署共通にできないか</span>
+    <span style="margin-left:auto;font-size:11.5px;color:var(--teal);font-weight:600;flex-shrink:0;">→ 終了後に知見カードになります</span>
+  </div>
+
+  <!-- main: 2 columns -->
+  <div style="display:flex;gap:28px;align-items:flex-start;">
+
+    <!-- left: スピーカー -->
+    <div style="width:352px;flex-shrink:0;display:flex;flex-direction:column;gap:14px;">
+      <div style="font-size:13.5px;font-weight:700;color:var(--ink-soft);">スピーカー</div>
+
+      <!-- speaker 1 -->
+      <div style="display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;">
+        <div style="position:relative;flex-shrink:0;">
+          <div style="width:56px;height:56px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;">直</div>
+          <div style="position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-radius:999px;background:var(--teal);border:2px solid var(--surface);display:flex;align-items:center;justify-content:center;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0014 0"></path><path d="M12 18v3M9 21h6"></path></svg>
+          </div>
+        </div>
+        <div style="min-width:0;">
+          <div style="font-size:15px;font-weight:800;">山田 直子</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:7px;">
+            <div style="display:flex;gap:3px;">
+              <span style="width:6px;height:6px;border-radius:999px;background:var(--teal);"></span>
+              <span style="width:6px;height:6px;border-radius:999px;background:var(--teal);"></span>
+              <span style="width:6px;height:6px;border-radius:999px;background:var(--teal);"></span>
+              <span style="width:6px;height:6px;border-radius:999px;background:var(--teal);"></span>
+              <span style="width:6px;height:6px;border-radius:999px;background:var(--line);"></span>
+            </div>
+            <span style="font-size:11.5px;font-weight:600;color:var(--teal);">この話題に詳しい</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- speaker 2 -->
+      <div style="display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;">
+        <div style="position:relative;flex-shrink:0;">
+          <div style="width:56px;height:56px;border-radius:999px;background:var(--slate-soft);color:var(--slate);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;">健</div>
+          <div style="position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-radius:999px;background:var(--slate);border:2px solid var(--surface);display:flex;align-items:center;justify-content:center;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0014 0"></path><path d="M12 18v3M9 21h6"></path></svg>
+          </div>
+        </div>
+        <div style="min-width:0;">
+          <div style="font-size:15px;font-weight:800;">佐藤 健太</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:7px;">
+            <div style="display:flex;gap:3px;">
+              <span style="width:6px;height:6px;border-radius:999px;background:var(--slate);"></span>
+              <span style="width:6px;height:6px;border-radius:999px;background:var(--slate);"></span>
+              <span style="width:6px;height:6px;border-radius:999px;background:var(--slate);"></span>
+              <span style="width:6px;height:6px;border-radius:999px;background:var(--line);"></span>
+              <span style="width:6px;height:6px;border-radius:999px;background:var(--line);"></span>
+            </div>
+            <span style="font-size:11.5px;font-weight:600;color:var(--slate);">ふつう</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- speaker 3 -->
+      <div style="display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;">
+        <div style="position:relative;flex-shrink:0;">
+          <div style="width:56px;height:56px;border-radius:999px;background:var(--line-soft);color:var(--ink-faint);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;">亮</div>
+          <div style="position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-radius:999px;background:var(--ink-faint);border:2px solid var(--surface);display:flex;align-items:center;justify-content:center;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0014 0"></path><path d="M12 18v3M9 21h6"></path></svg>
+          </div>
+        </div>
+        <div style="min-width:0;">
+          <div style="font-size:15px;font-weight:800;">鈴木 亮</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:7px;">
+            <div style="display:flex;gap:3px;">
+              <span style="width:6px;height:6px;border-radius:999px;background:var(--ink-faint);"></span>
+              <span style="width:6px;height:6px;border-radius:999px;background:var(--line);"></span>
+              <span style="width:6px;height:6px;border-radius:999px;background:var(--line);"></span>
+              <span style="width:6px;height:6px;border-radius:999px;background:var(--line);"></span>
+              <span style="width:6px;height:6px;border-radius:999px;background:var(--line);"></span>
+            </div>
+            <span style="font-size:11.5px;font-weight:600;color:var(--ink-faint);">学び始め</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- right: リスナー一覧 / コメント -->
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:16px;">
+
+      <!-- リスナー一覧 -->
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:13.5px;font-weight:700;color:var(--ink-soft);">リスナー一覧</span>
+        <span style="font-size:12px;color:var(--ink-faint);">3人</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--ink-faint)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+        <div style="display:flex;margin-left:6px;">
+          <div style="width:26px;height:26px;border-radius:999px;background:var(--amber-soft);color:var(--amber);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid var(--bg);">美</div>
+          <div style="width:26px;height:26px;border-radius:999px;background:var(--plum-soft);color:var(--plum);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid var(--bg);margin-left:-8px;">拓</div>
+          <div style="width:26px;height:26px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid var(--bg);margin-left:-8px;">陽</div>
+        </div>
+      </div>
+
+      <div style="font-size:13.5px;font-weight:700;color:var(--ink-soft);">コメント</div>
+
+      <!-- comment feed -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- comment 1 -->
+        <div style="display:flex;align-items:flex-start;">
+          <div style="width:40px;height:40px;border-radius:999px;background:var(--slate-soft);color:var(--slate);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">健</div>
+          <div style="position:relative;margin-left:14px;">
+            <div style="position:absolute;left:-6px;top:15px;width:11px;height:11px;background:var(--surface);border-left:1px solid var(--line);border-bottom:1px solid var(--line);transform:rotate(45deg);"></div>
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 18px;display:flex;flex-direction:column;gap:5px;max-width:560px;">
+              <div style="font-size:11.5px;font-weight:700;color:var(--ink-faint);">佐藤 健太</div>
+              <div style="font-size:13.5px;line-height:1.5;">うちの部署もテンプレがバラバラです</div>
+              <div style="font-size:13.5px;line-height:1.5;">議事録は項目名が違うだけで中身はほぼ同じなんですよね</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- comment 2 -->
+        <div style="display:flex;align-items:flex-start;">
+          <div style="width:40px;height:40px;border-radius:999px;background:var(--line-soft);color:var(--ink-faint);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">亮</div>
+          <div style="position:relative;margin-left:14px;">
+            <div style="position:absolute;left:-6px;top:15px;width:11px;height:11px;background:var(--surface);border-left:1px solid var(--line);border-bottom:1px solid var(--line);transform:rotate(45deg);"></div>
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 18px;display:flex;flex-direction:column;gap:5px;max-width:560px;">
+              <div style="font-size:11.5px;font-weight:700;color:var(--ink-faint);">鈴木 亮</div>
+              <div style="font-size:13.5px;line-height:1.5;">前にNotionでテンプレ配ったことあります</div>
+              <div style="font-size:13.5px;line-height:1.5;">定着はしなかったですが型は残ってるはずです</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI system note -->
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:4px 0;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--plum)"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"></path></svg>
+          <span style="font-size:11.5px;font-weight:700;color:var(--plum);background:var(--plum-soft);padding:5px 14px;border-radius:999px;">知見カードを自動生成しました：「議事録テンプレートの共通化」</span>
+        </div>
+
+        <!-- comment 3 -->
+        <div style="display:flex;align-items:flex-start;">
+          <div style="width:40px;height:40px;border-radius:999px;background:var(--amber-soft);color:var(--amber);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">美</div>
+          <div style="position:relative;margin-left:14px;">
+            <div style="position:absolute;left:-6px;top:15px;width:11px;height:11px;background:var(--surface);border-left:1px solid var(--line);border-bottom:1px solid var(--line);transform:rotate(45deg);"></div>
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 18px;display:flex;flex-direction:column;gap:5px;max-width:560px;">
+              <div style="font-size:11.5px;font-weight:700;color:var(--ink-faint);">田中 美咲</div>
+              <div style="font-size:13.5px;line-height:1.5;">その型、あとで共有してもらえますか？</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- input -->
+      <div style="display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px 8px 6px 18px;margin-top:4px;">
+        <input placeholder="コメントを送る" style="flex:1;border:none;outline:none;font-size:13.5px;background:transparent;color:var(--ink);font-family:'Noto Sans JP',sans-serif;">
+        <button style="flex-shrink:0;width:38px;height:38px;border-radius:10px;border:none;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
