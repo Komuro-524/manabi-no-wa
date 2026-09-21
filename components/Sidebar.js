@@ -30,11 +30,12 @@ export default function Sidebar({ me, liveCount, inviteCount }) {
       <div className="navlbl">まなぶ</div>
       <NavLink href="/livehub" icon="live" label="まなびのライブ" badge={liveCount} />
       <NavLink href="/cards" icon="cards" label="知見カード" />
-      <NavLink href="/map" icon="map" label="知識地図" soon />
+      <NavLink href="/map" icon="map" label="知識地図" />
 
       <div className="navlbl">じぶん</div>
       <NavLink href="/profile" icon="profile" label="プロフィール" />
       <NavLink href="/invite" icon="invite" label="AIからの打診" badge={inviteCount} />
+      <NavLink href="/calendar" icon="clock" label="日程カレンダー" />
       <NavLink href="/selfscan" icon="scan" label="自己分析" />
 
       <span style={{ flexGrow: 1 }} />

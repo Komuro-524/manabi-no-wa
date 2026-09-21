@@ -6,6 +6,9 @@ const ITEMS = [
   { href: '/admin', label: 'ダッシュボード' },
   { href: '/admin/tags', label: 'タグ辞書' },
   { href: '/admin/quests', label: '企ての一覧' },
+  { href: '/admin/agents', label: 'エージェント運用' },
+  { href: '/admin/security', label: 'セキュリティ' },
+  { href: '/admin/people', label: 'メンバーと権限' },
 ]
 export default function AdminNav() {
   const path = usePathname()

@@ -1,0 +1,71 @@
+import Link from 'next/link'
+import { supabaseServer, currentUser } from '@/lib/supabase/server'
+import Topbar from '@/components/Topbar'
+
+// 知識地図（簡易）。円＝正式タグ（大きさ＝カード枚数）、線＝同じライブで一緒に語られた。読めるデータ（RLS）だけで描く
+export default async function MapPage() {
+  const me = await currentUser()
+  const db = await supabaseServer()
+  const [{ data: tags }, { data: cards }, { data: ut }] = await Promise.all([
+    db.from('tags').select('id, name, kind').eq('status', 'official'),
+    db.from('knowledge_cards').select('tag_id, live_id'),
+    db.from('user_tags').select('tag_id, user_id, kind'),
+  ])
+  const cardN = new Map(), people = new Map(), livesOf = new Map()
+  for (const c of cards ?? []) {
+    cardN.set(c.tag_id, (cardN.get(c.tag_id) ?? 0) + 1)
+    if (!livesOf.has(c.tag_id)) livesOf.set(c.tag_id, new Set()); livesOf.get(c.tag_id).add(c.live_id)
+  }
+  for (const u of ut ?? []) { if (!people.has(u.tag_id)) people.set(u.tag_id, new Set()); people.get(u.tag_id).add(u.user_id) }
+  const mine = new Set((ut ?? []).filter(u => u.user_id === me.id).map(u => u.tag_id))
+  const nodes = (tags ?? []).map(t => ({ ...t, cards: cardN.get(t.id) ?? 0, people: people.get(t.id)?.size ?? 0 }))
+    .sort((a, b) => b.cards - a.cards)
+  const W = 900, H = 600, cx = W / 2, cy = H / 2
+  nodes.forEach((n, i) => {
+    const ring = i === 0 ? 0 : i < 7 ? 1 : 2
+    const idxInRing = ring === 0 ? 0 : ring === 1 ? i - 1 : i - 7
+    const cnt = ring === 1 ? Math.min(6, nodes.length - 1) : Math.max(1, nodes.length - 7)
+    const rad = [0, 170, 270][ring]
+    const ang = (idxInRing / cnt) * Math.PI * 2 + ring * 0.4
+    n.x = cx + rad * Math.cos(ang); n.y = cy + rad * 0.78 * Math.sin(ang)
+    n.r = 18 + Math.min(40, n.cards * 6)
+  })
+  const edges = []
+  for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
+    const a = livesOf.get(nodes[i].id), b = livesOf.get(nodes[j].id)
+    if (!a || !b) continue
+    const shared = [...a].filter(x => b.has(x)).length
+    if (shared) edges.push({ a: nodes[i], b: nodes[j], w: shared })
+  }
+  const COLOR = { '分野': ['#E2E9F0', '#1B3A5C'], '技術': ['#E6EDDC', '#3C5C34'], '業務': ['#F3E8CE', '#8C6A0C'] }
+
+  return (
+    <>
+      <Topbar me={me} title="知識地図" sub="円が大きいほど知見カードが多い。線は同じライブで一緒に語られたタグ" />
+      <div className="body">
+        <div className="card sh" style={{ padding: 12 }}>
+          {nodes.length === 0 ? <div className="empty">まだ正式なタグがありません</div> : (
+            <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto' }} role="img" aria-label="タグのつながり">
+              {edges.map((e, i) => <line key={i} x1={e.a.x} y1={e.a.y} x2={e.b.x} y2={e.b.y} stroke="#D8BE7C" strokeWidth={1 + e.w} opacity=".7" />)}
+              {nodes.map(n => {
+                const [bg, fg] = COLOR[n.kind] ?? COLOR['分野']
+                return (
+                  <a key={n.id} href={`/cards?tag=${n.id}`}>
+                    <circle cx={n.x} cy={n.y} r={n.r} fill={bg} stroke={mine.has(n.id) ? '#A83B2E' : fg} strokeWidth={mine.has(n.id) ? 3 : 1.2} />
+                    <text x={n.x} y={n.y - 2} textAnchor="middle" fontSize="13" fontWeight="700" fill={fg}>{n.name}</text>
+                    <text x={n.x} y={n.y + 14} textAnchor="middle" fontSize="10" fill="#6B6459">{n.cards}枚・{n.people}人</text>
+                  </a>
+                )
+              })}
+            </svg>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          {Object.entries(COLOR).map(([k, [bg, fg]]) => <span key={k} className="chip" style={{ background: bg, color: fg }}>{k}</span>)}
+          <span className="chip" style={{ background: '#FFF', color: 'var(--shu)', border: '2px solid var(--shu)' }}>あなたのタグ</span>
+          <span className="sub">円を押すと、そのタグの知見カードへ</span>
+        </div>
+      </div>
+    </>
+  )
+}
