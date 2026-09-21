@@ -57,6 +57,7 @@
 - 1タスク完了ごとに `git commit`（push はしない）
 - コミットメッセージは日本語でよい。何をしたか1行
 - 動作確認のログは `docs/evidence/` に残す（スクショの代わりになる）
+- **行が増えるテーブルを条件なしで読まない**。Supabase は1回1000行で黙って切る。人は `lib/users-by-id.js`、全部要るときは `lib/fetch-all.mjs`（DESIGN §12）
 - 画面の内部リンクは `components/Link.js` を使う（先読みを切ってある。先読みの嵐で画面が固まったため）
 - 画面の確認は `npm run build` → `npm run start`（ポート3030）。`dev` と `build` を同時に動かさない（`.next` を取り合う）
 

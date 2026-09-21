@@ -1,4 +1,5 @@
 import { supabaseServer, currentUser } from '@/lib/supabase/server'
+import { usersByIds } from '@/lib/users-by-id'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import Topbar from '@/components/Topbar'
 import { Icon } from '@/components/icons'
@@ -20,11 +21,9 @@ export default async function InvitePage() {
   if (questIds.length) {
     const admin = supabaseAdmin()
     // ★ エージェントの判断メモ（quest_steps）は管理者向けの言葉なので、本人の画面には出さない。理由は数えた事実3つで示す
-    const [{ data: quests }, { data: users }] = await Promise.all([
-      admin.from('quests').select('id, tag_id, interested_ids, live_id, tags(name)').in('id', questIds),
-      admin.from('users').select('id, department'),
-    ])
-    const dept = new Map((users ?? []).map(u => [u.id, u.department]))
+    const { data: quests } = await admin.from('quests').select('id, tag_id, interested_ids, live_id, tags(name)').in('id', questIds)
+    const users = await usersByIds(admin, (quests ?? []).flatMap(q => q.interested_ids ?? []), 'id, department')
+    const dept = new Map([...users.values()].map(u => [u.id, u.department]))
     const tagIds = (quests ?? []).map(q => q.tag_id)
     const [{ data: myCards }, { data: myMents }, { data: holders }] = await Promise.all([
       db.from('knowledge_cards').select('tag_id').eq('speaker_id', me.id).in('tag_id', tagIds),

@@ -1,18 +1,27 @@
 import { requireAdmin } from '@/lib/admin-guard'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import Topbar from '@/components/Topbar'
+import Link from '@/components/Link'
+
+const PER = 50
 
 // メンバーと権限。★ 権限の変更は画面からできない（users に update ポリシーを作らない設計。ルール1）
-export default async function AdminPeople() {
+export default async function AdminPeople({ searchParams }) {
+  const sp = await searchParams
+  const page = Math.max(1, Number(sp?.page) || 1)
   const me = await requireAdmin()
   const db = supabaseAdmin()
   const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString()
-  const [{ data: users }, { data: tags }, { data: invites }, { data: cards }] = await Promise.all([
-    db.from('users').select('id, display_name, department, role').order('department'),
-    db.from('user_tags').select('user_id, kind'),
-    db.from('invitations').select('user_id, status, sent_at').gte('sent_at', since),
-    db.from('knowledge_cards').select('speaker_id'),
-  ])
+  // ★ 数千人になっても読めるよう、1ページ50人ずつ。数えるのもそのページの人の分だけ
+  const { data: users, count: total } = await db.from('users').select('id, display_name, department, role', { count: 'exact' })
+    .order('department').order('display_name').range((page - 1) * PER, page * PER - 1)
+  const ids = (users ?? []).map(u => u.id)
+  const [{ data: tags }, { data: invites }, { data: cards }] = ids.length ? await Promise.all([
+    db.from('user_tags').select('user_id, kind').in('user_id', ids),
+    db.from('invitations').select('user_id, status, sent_at').in('user_id', ids).gte('sent_at', since),
+    db.from('knowledge_cards').select('speaker_id').in('speaker_id', ids),
+  ]) : [{ data: [] }, { data: [] }, { data: [] }]
+  const pages = Math.max(1, Math.ceil((total ?? 0) / PER))
   const count = (arr, f) => { const m = new Map(); for (const x of arr ?? []) { const k = f(x); m.set(k, (m.get(k) ?? 0) + 1) } return m }
   const know = count((tags ?? []).filter(t => t.kind === 'knowledge'), t => t.user_id)
   const intr = count((tags ?? []).filter(t => t.kind === 'interest'), t => t.user_id)
@@ -40,6 +49,13 @@ export default async function AdminPeople() {
             </tbody>
           </table>
         </div>
+        {pages > 1 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center' }}>
+            {page > 1 ? <Link className="btn btn-s" href={`/admin/people?page=${page - 1}`}>前の50人</Link> : <span />}
+            <span className="sub">{page} / {pages} ページ（全{total}人）</span>
+            {page < pages ? <Link className="btn btn-s" href={`/admin/people?page=${page + 1}`}>次の50人</Link> : <span />}
+          </div>
+        )}
       </div>
     </>
   )

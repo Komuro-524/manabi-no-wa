@@ -1,4 +1,5 @@
 import Link from '@/components/Link'
+import { usersByIds } from '@/lib/users-by-id'
 import { requireAdmin } from '@/lib/admin-guard'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import Topbar from '@/components/Topbar'
@@ -13,11 +14,9 @@ export default async function SeedDetail({ searchParams }) {
   const sp = await searchParams
   const me = await requireAdmin()
   const db = supabaseAdmin()
-  const [{ data: quests }, { data: users }] = await Promise.all([
-    db.from('quests').select('id, status, current_invitee, live_id, tags(name)').order('id', { ascending: false }),
-    db.from('users').select('id, display_name'),
-  ])
-  const who = new Map((users ?? []).map(u => [u.id, u.display_name]))
+  const { data: quests } = await db.from('quests').select('id, status, current_invitee, live_id, tags(name)').order('id', { ascending: false }).limit(300)
+  const people = await usersByIds(db, (quests ?? []).map(q => q.current_invitee), 'id, display_name')
+  const who = new Map([...people.values()].map(u => [u.id, u.display_name]))
   const selId = sp.id ? Number(sp.id) : (quests ?? [])[0]?.id
   const sel = (quests ?? []).find(q => q.id === selId)
   const { data: steps } = sel ? await db.from('quest_steps').select('id, kind, decision, reason, created_at').eq('quest_id', sel.id).order('id') : { data: [] }

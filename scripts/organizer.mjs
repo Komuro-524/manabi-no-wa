@@ -28,6 +28,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { fetchAll } from '../lib/fetch-all.mjs'
 import dotenv from 'dotenv'
 import OpenAI from 'openai'
 import { createClient } from '@supabase/supabase-js'
@@ -275,13 +276,14 @@ try {
   console.log(`   予算上限: $${BUDGET_USD.toFixed(2)}\n`)
 
   // --- 0. 土台のデータを1回で読み込む -----------------------------------
+  // ★ どれも社員数・年月で増える。1回1000行の上限で黙って欠けないよう fetchAll でページを送って読む
   const [{ data: tags }, { data: allUserTags }, { data: allUsers }, { data: activeQuests }, { data: recentInvites }] =
     await Promise.all([
-      db.from('tags').select('id, name, last_live_at').in('status', ['official', 'proposed', 'candidate']),
-      db.from('user_tags').select('user_id, tag_id, kind, strength, answer_count, updated_at'),
-      db.from('users').select('id, display_name'),
-      db.from('quests').select('*').in('status', ['scouting', 'inviting', 'scheduling', 'opened']),
-      db.from('invitations').select('user_id, sent_at').gte('sent_at', daysAgo(7).toISOString()),
+      fetchAll(() => db.from('tags').select('id, name, last_live_at').in('status', ['official', 'proposed', 'candidate']).order('id')),
+      fetchAll(() => db.from('user_tags').select('user_id, tag_id, kind, strength, answer_count, updated_at').order('id')),
+      fetchAll(() => db.from('users').select('id, display_name').order('id')),
+      fetchAll(() => db.from('quests').select('*').in('status', ['scouting', 'inviting', 'scheduling', 'opened']).order('id')),
+      fetchAll(() => db.from('invitations').select('user_id, sent_at').gte('sent_at', daysAgo(7).toISOString()).order('id')),
     ])
 
   const nameById = new Map((allUsers ?? []).map(u => [u.id, u.display_name]))
@@ -289,7 +291,7 @@ try {
 
   // ★ 14日ルールの「前回のライブ」は、tags.last_live_at だけでなく、実際に終わったライブからも数える
   //   （画面から始めて終えたライブや、人が立てた配信でも、同じ話題が続けて立たないように。動作確認で見つけた穴）
-  const { data: endedLives } = await db.from('lives').select('topic_tag_id, ended_at').eq('status', 'ended').not('topic_tag_id', 'is', null)
+  const { data: endedLives } = await fetchAll(() => db.from('lives').select('id, topic_tag_id, ended_at').eq('status', 'ended').not('topic_tag_id', 'is', null).order('id'))
   for (const l of endedLives ?? []) {
     const t = tagById.get(l.topic_tag_id)
     if (t && l.ended_at && (!t.last_live_at || new Date(l.ended_at) > new Date(t.last_live_at))) t.last_live_at = l.ended_at

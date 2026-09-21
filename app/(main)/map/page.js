@@ -1,6 +1,7 @@
 import Link from '@/components/Link'
 import { supabaseServer, currentUser } from '@/lib/supabase/server'
 import Topbar from '@/components/Topbar'
+import { fetchAll } from '@/lib/fetch-all.mjs'
 
 // 知識地図（簡易）。円＝正式タグ（大きさ＝カード枚数）、線＝同じライブで一緒に語られた。読めるデータ（RLS）だけで描く
 export default async function MapPage() {
@@ -8,8 +9,9 @@ export default async function MapPage() {
   const db = await supabaseServer()
   const [{ data: tags }, { data: cards }, { data: ut }] = await Promise.all([
     db.from('tags').select('id, name, kind').eq('status', 'official'),
-    db.from('knowledge_cards').select('tag_id, live_id'),
-    db.from('user_tags').select('tag_id, user_id, kind'),
+    // ★ 年月で増える。上限で黙って欠けないようページを送って読む（本来はDB側で集計する: DESIGN §12）
+    fetchAll(() => db.from('knowledge_cards').select('tag_id, live_id').order('id')),
+    fetchAll(() => db.from('user_tags').select('tag_id, user_id, kind').order('id')),
   ])
   const cardN = new Map(), people = new Map(), livesOf = new Map()
   for (const c of cards ?? []) {

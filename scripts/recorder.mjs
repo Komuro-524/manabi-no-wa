@@ -22,6 +22,7 @@ import { fileURLToPath } from 'node:url'
 import dotenv from 'dotenv'
 import OpenAI from 'openai'
 import { createClient } from '@supabase/supabase-js'
+import { fetchAll } from '../lib/fetch-all.mjs'
 
 // ★ dotenv は既定では .env しか読まない。.env.local を明示的に読ませる
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
@@ -235,15 +236,16 @@ try {
     process.exit(1)
   }
 
-  const { data: segments, error: segErr } = await db.from('transcript_segments')
-    .select('seq,user_id,body').eq('live_id', LIVE_ID).order('seq')
+  // ★ 2時間のライブなら1000行を超えうる。1回1000行の上限で後半が黙って欠けないよう、ページを送って全部読む
+  const { data: segments, error: segErr } = await fetchAll(() => db.from('transcript_segments')
+    .select('seq,user_id,body').eq('live_id', LIVE_ID).order('seq'))
   if (segErr) throw new Error(`文字起こしを読めません: ${segErr.message}`)
 
   // --- 1.2 チャットも読む（★F3。is_agent=false だけ。§8 ルール5） -----------
   //   行番号の空間は文字起こし [s番号] とは分ける（[c番号]）。混ざると
   //   「s3」と「c3」が同じ行を指しているように見えて、話者の取り違えが起きる
-  const { data: chatRows, error: chatErr } = await db.from('messages')
-    .select('user_id,body').eq('live_id', LIVE_ID).eq('is_agent', false).order('created_at')
+  const { data: chatRows, error: chatErr } = await fetchAll(() => db.from('messages')
+    .select('user_id,body').eq('live_id', LIVE_ID).eq('is_agent', false).order('created_at').order('id'))
   if (chatErr) throw new Error(`チャットを読めません: ${chatErr.message}`)
   const chats = (chatRows ?? []).map((m, i) => ({ seq: i + 1, user_id: m.user_id, body: m.body }))
   // 画面から開いたライブは文字起こしが無く、チャットだけのこともある。どちらも無いときだけ止める
@@ -268,7 +270,7 @@ try {
   if (FORCE_FALLBACK) console.log(`\n🧨 ORCA_FORCE_FALLBACK=${FORCE_FALLBACK}: 1回目を存在しないモデル（${BROKEN_MODEL}）にして呼びます\n`)
 
   // --- 1.5 タグ辞書を読む（★抽出の前。既存の語と表記を揃えるための参考として渡す）
-  const { data: allTags, error: tagErr } = await db.from('tags').select('id,name,status,alias_of')
+  const { data: allTags, error: tagErr } = await fetchAll(() => db.from('tags').select('id,name,status,alias_of').order('id'))
   if (tagErr) throw new Error(`タグ辞書が読めません: ${tagErr.message}`)
   if (!allTags?.length) throw new Error('タグ辞書が空です。0003_seed.sql を流しましたか')
   OFFICIAL_TAGS = allTags.filter(t => t.status === 'official').map(t => t.name)

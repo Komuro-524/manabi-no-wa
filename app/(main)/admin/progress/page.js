@@ -1,4 +1,5 @@
 import Link from '@/components/Link'
+import { usersByIds } from '@/lib/users-by-id'
 import { requireAdmin } from '@/lib/admin-guard'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import Topbar from '@/components/Topbar'
@@ -19,13 +20,17 @@ const COLS = [
 export default async function Seeds() {
   const me = await requireAdmin()
   const db = supabaseAdmin()
-  const [{ data: quests }, { data: steps }, { data: users }, { data: runs }] = await Promise.all([
-    db.from('quests').select('id, status, current_invitee, tried_count, next_action_at, reevaluate_at, tags(name)').in('status', COLS.map(c => c[0])).order('id', { ascending: false }),
-    db.from('quest_steps').select('quest_id, reason, created_at').order('id', { ascending: false }).limit(200),
-    db.from('users').select('id, display_name'),
+  const [{ data: quests }, { data: runs }] = await Promise.all([
+    db.from('quests').select('id, status, current_invitee, tried_count, next_action_at, reevaluate_at, tags(name)').in('status', COLS.map(c => c[0])).order('id', { ascending: false }).limit(500),
     db.from('agent_runs').select('status, started_at').eq('agent', 'B').order('id', { ascending: false }).limit(1),
   ])
-  const who = new Map((users ?? []).map(u => [u.id, u.display_name]))
+  // 足あとは「いま進行中のタネ」の分だけ・話し手は相談中の人だけを読む（全件読むと年月で上限に当たる）
+  const qIds = (quests ?? []).map(q => q.id)
+  const [{ data: steps }, people] = await Promise.all([
+    qIds.length ? db.from('quest_steps').select('quest_id, reason, created_at').in('quest_id', qIds).order('id', { ascending: false }).limit(1000) : { data: [] },
+    usersByIds(db, (quests ?? []).map(q => q.current_invitee), 'id, display_name'),
+  ])
+  const who = new Map([...people.values()].map(u => [u.id, u.display_name]))
   const last = new Map()
   for (const s of steps ?? []) if (!last.has(s.quest_id)) last.set(s.quest_id, s)
   const run = runs?.[0]

@@ -1,4 +1,5 @@
 import Link from '@/components/Link'
+import { usersByIds } from '@/lib/users-by-id'
 import { supabaseServer, currentUser } from '@/lib/supabase/server'
 import Topbar from '@/components/Topbar'
 import { ownTagNames } from '@/lib/own-tag-names'
@@ -21,12 +22,10 @@ export default async function Cards({ searchParams }) {
   if (q) query = query.or(`headline.ilike.%${q.replace(/[%,()]/g, '')}%,body.ilike.%${q.replace(/[%,()]/g, '')}%`)
   if (tagId) query = query.eq('tag_id', tagId)
 
-  const [{ data: cards }, { data: users }, { data: officialTags }] = await Promise.all([
+  const [{ data: cards }, { data: officialTags }] = await Promise.all([
     query,
-    db.from('users').select('id, display_name, department'),
     db.from('tags').select('id, name').eq('status', 'official').order('name'),
   ])
-  const who = new Map((users ?? []).map(u => [u.id, u]))
   // 自分が話したカードのうち、育ちかけでタグ名が読めないものは名前だけ引く（自分の行の tag_id に限る）
   const ownMissing = (cards ?? []).filter(c => !c.tags && c.speaker_id === me.id).map(c => c.tag_id)
   if (ownMissing.length) {
@@ -36,21 +35,24 @@ export default async function Cards({ searchParams }) {
   const sel = (cards ?? []).find(c => c.id === selId) ?? (cards ?? [])[0]
 
   // 選んだカードの詳細（詳しい人・元の発言・元のライブ）
-  let experts = [], quotes = null, live = null, amIn = false
+  let experts = [], quotes = null, live = null, amIn = false, ut = null
   if (sel) {
-    const [{ data: ut }, { data: segs }, { data: lv }, { data: chats }, { data: part }] = await Promise.all([
+    const [{ data: utRows }, { data: segs }, { data: lv }, { data: chats }, { data: part }] = await Promise.all([
       db.from('user_tags').select('user_id, kind').eq('tag_id', sel.tag_id).eq('kind', 'knowledge'),   // RLS: 公開かつ正式 or 本人 or 管理者
       db.from('transcript_segments').select('seq, body').eq('live_id', sel.live_id).eq('user_id', sel.speaker_id).order('seq').limit(3), // RLS: 参加者だけ
       db.from('lives').select('id, title, ended_at, started_at').eq('id', sel.live_id).maybeSingle(),
       db.from('messages').select('id, body').eq('live_id', sel.live_id).eq('user_id', sel.speaker_id).eq('is_agent', false).order('id').limit(3), // RLS: 参加者だけ
       db.from('live_participants').select('user_id').eq('live_id', sel.live_id).eq('user_id', me.id).maybeSingle(),
     ])
-    experts = [...new Set((ut ?? []).map(r => r.user_id))].map(id => who.get(id)).filter(Boolean)
+    ut = utRows
     // 画面から開いたライブは文字起こしが無く、コメントだけのこともある
     quotes = (segs ?? []).length ? segs.map(x => ({ k: 's' + x.seq, body: x.body })) : (chats ?? []).map(x => ({ k: 'c' + x.id, body: x.body }))
     amIn = !!part
     live = lv
   }
+  // 画面に出てくる人（カードの話し手・詳しい人）だけを読む
+  const who = await usersByIds(db, [...(cards ?? []).map(c => c.speaker_id), ...(ut ?? []).map(r => r.user_id)])
+  experts = [...new Set((ut ?? []).map(r => r.user_id))].map(id => who.get(id)).filter(Boolean)
   const qs = (extra) => {
     const p = new URLSearchParams()
     if (q) p.set('q', q); if (tagId) p.set('tag', tagId)

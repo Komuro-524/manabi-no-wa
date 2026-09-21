@@ -12,6 +12,7 @@ import AutoRefresh from '@/components/AutoRefresh'
 import LivePanels from './LivePanels'
 import Elapsed from './Elapsed'
 import MicTranscriber from './MicTranscriber'
+import { usersByIds } from '@/lib/users-by-id'
 
 export default async function LivePage({ params }) {
   const { id } = await params
@@ -24,14 +25,14 @@ export default async function LivePage({ params }) {
     .eq('id', liveId).maybeSingle()
   if (!l) notFound()
 
-  const [{ data: ps }, { data: users }, { data: msgs }, { data: cards }, { data: segs }] = await Promise.all([
+  const [{ data: ps }, { data: msgs }, { data: cards }, { data: segs }] = await Promise.all([
     db.from('live_participants').select('user_id, role').eq('live_id', liveId),
-    db.from('users').select('id, display_name, department'),
     db.from('messages').select('id, user_id, body, is_agent, created_at').eq('live_id', liveId).order('id'),     // RLS: 参加者だけ
     db.from('knowledge_cards').select('id, headline, body, speaker_id, tag_id, tags(name, status)').eq('live_id', liveId).order('id'), // RLS: 正式タグ or 本人 or 管理者
     db.from('transcript_segments').select('id, user_id, seq, body, spoken_at').eq('live_id', liveId).order('seq'),   // RLS: 参加者だけ
   ])
-  const who = new Map((users ?? []).map(u => [u.id, u]))
+  // 画面に出てくる人（参加者・発言した人・カードの話し手）だけを読む
+  const who = await usersByIds(db, [...(ps ?? []).map(p => p.user_id), ...(msgs ?? []).map(m => m.user_id), ...(segs ?? []).map(s => s.user_id), ...(cards ?? []).map(c => c.speaker_id)])
   // 自分が話したカードのうち、育ちかけでタグ名が読めないものは名前だけ引く（自分の行の tag_id に限る）
   const ownMissing = (cards ?? []).filter(c => !c.tags && c.speaker_id === me.id).map(c => c.tag_id)
   if (ownMissing.length) {

@@ -75,7 +75,7 @@ export default function MicTranscriber({ liveId }) {
         <div className="note" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <span>・声はブラウザの音声認識サービス（Chrome なら Google、Edge なら Microsoft）で文字になります</span>
           <span>・まなびのわに届くのは確定した文字だけです。声は保存しません</span>
-          <span>・文字は参加者に見え、ライブ後にタグ付けエージェントが読みます（評価には使いません）</span>
+          <span>・文字は参加者に見え、ライブ後にタグ付けエージェントが読んで知見カードにします</span>
           <span style={{ display: 'flex', gap: 8 }}>
             <button className="btn btn-p btn-s" onClick={() => { setConsent(true); setAsking(false); start() }}>同意して話し始める</button>
             <button className="btn btn-s" onClick={() => setAsking(false)}>やめる</button>

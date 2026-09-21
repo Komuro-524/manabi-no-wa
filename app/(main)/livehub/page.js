@@ -3,19 +3,26 @@ import { supabaseServer, currentUser } from '@/lib/supabase/server'
 import Topbar from '@/components/Topbar'
 import { Icon } from '@/components/icons'
 import { fmtWhen, splitTitle } from '@/lib/format'
+import { usersByIds } from '@/lib/users-by-id'
 
 // まなびのライブ（最初に開く画面）。読むのは全部 anon キー＋本人のセッション（RLS がそのまま効く）
 export default async function LiveHub() {
   const me = await currentUser()
   const db = await supabaseServer()
 
-  const [{ data: lives }, { data: parts }, { data: users }] = await Promise.all([
-    db.from('lives').select('id, title, status, scheduled_start, started_at, ended_at, ingest_status, topic_tag_id, tags(name)')
-      .neq('status', 'cancelled').order('id', { ascending: false }),
-    db.from('live_participants').select('live_id, user_id, role'),
-    db.from('users').select('id, display_name'),
+  // ★ 年月がたつとライブも参加記録も増え続ける。画面に出す分（配信中・予定・最近の過去12件）だけを読む
+  const base = () => db.from('lives').select('id, title, status, scheduled_start, started_at, ended_at, ingest_status, topic_tag_id, tags(name)')
+  const [{ data: l1 }, { data: l2 }, { data: l3 }] = await Promise.all([
+    base().eq('status', 'live').order('id', { ascending: false }).limit(50),
+    base().eq('status', 'scheduled').order('scheduled_start').limit(100),
+    base().eq('status', 'ended').order('id', { ascending: false }).limit(12),
   ])
-  const nameOf = new Map((users ?? []).map(u => [u.id, u.display_name]))
+  const lives = [...(l1 ?? []), ...(l2 ?? []), ...(l3 ?? [])]
+  const { data: parts } = lives.length
+    ? await db.from('live_participants').select('live_id, user_id, role').in('live_id', lives.map(l => l.id))
+    : { data: [] }
+  const users = await usersByIds(db, (parts ?? []).map(p => p.user_id), 'id, display_name')
+  const nameOf = new Map([...users.values()].map(u => [u.id, u.display_name]))
   const byLive = new Map()
   for (const p of parts ?? []) {
     if (!byLive.has(p.live_id)) byLive.set(p.live_id, [])
