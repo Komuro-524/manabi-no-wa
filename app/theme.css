@@ -1,23 +1,25 @@
 /* 色・フォントはここに集約（モック repos/mock/mock_new/index.html の stage の中身から写した） */
 :root{
-  --ai:#2B3A52;        /* 藍：左メニュー */
-  --ai-hover:#33435F; --ai-on:#3E5170; --ai-text:#C2CBDB; --ai-label:#7C8AA3;
-  --bg:#F6F3EE; --card:#FFFFFF; --line:#E6E0D6; --line-soft:#F1ECE4;
-  --ink:#1E2634; --sub:#6F7886; --ink2:#46505F;
-  --shu:#D9533C; --shu-hover:#B8402C;   /* 朱：主ボタン */
-  --live:#CE5288;
-  --teal-bg:#E0F2F1; --teal:#0A6266;
-  --blue-bg:#E8EEFA; --blue:#2A4F8E;
-  --amber-bg:#F8EEDC; --amber:#8A5208;
-  --sand:#F1ECE4;
+  /* 9/21 夕方 小室さんの更新（和風の配色）に合わせた */
+  --ai:#1C2B3D;        /* 紺：左メニュー */
+  --ai-hover:#24374F; --ai-on:#8B6914; --ai-text:#C7BFA0; --ai-label:#A88F55; --ai-sub:#A79877;
+  --bg:#F7F3E8; --card:#FFFFFF; --line:#D8BE7C; --line-soft:#F3E3B0;
+  --ink:#1C2B3D; --sub:#6B6459; --ink2:#4A4438;
+  --shu:#A83B2E; --shu-hover:#8B2F22; --shu-bg:#F5E4E1;   /* 朱：主ボタン */
+  --live:#B85C82;
+  --teal-bg:#E6EDDC; --teal:#3C5C34;    /* 若草（旧・青緑の置き換え） */
+  --blue-bg:#E2E9F0; --blue:#1B3A5C;
+  --amber-bg:#F3E8CE; --amber:#8C6A0C;
+  --purple-bg:#EDE6F2; --purple:#55407A;
+  --sand:#F3E3B0; --bar:#EAE2CC; --off:#CFC3A6;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;font-family:"Noto Sans JP",sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
 h1,h2,h3,h4,p,ul,ol{margin:0}
 ul{padding:0;list-style:none}
-a{color:#A33724;text-decoration:none}
-a:hover{color:#7E2519}
+a{color:#A83B2E;text-decoration:none}
+a:hover{color:#6B241C}
 .wa{font-family:"Zen Maru Gothic",sans-serif}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px}
 .sh{box-shadow:0 1px 2px rgba(30,38,52,.05)}
@@ -26,7 +28,7 @@ a:hover{color:#7E2519}
 .mut{color:var(--sub)}
 .chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:600;line-height:1.2;white-space:nowrap}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:600 13px "Noto Sans JP",sans-serif;padding:11px 14px;min-height:44px;cursor:pointer;white-space:nowrap}
-.btn:hover{background:#FBF9F6;color:var(--ink)}
+.btn:hover{background:#F8F3E8;color:var(--ink)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .btn-p{background:var(--shu);border-color:var(--shu);color:#FFFFFF}
 .btn-p:hover{background:var(--shu-hover);color:#FFFFFF}
@@ -59,4 +61,4 @@ input,select,textarea{font-family:"Noto Sans JP",sans-serif}
 .sec{font-size:22px;font-weight:700;color:var(--ink);padding-top:6px}
 .empty{padding:22px;text-align:center;color:var(--sub);font-size:13px}
 .note{font-size:12px;color:var(--sub);background:var(--sand);border-radius:10px;padding:10px 12px}
-.err{font-size:13px;color:#A33724;background:#FBEAE6;border-radius:10px;padding:10px 12px}
+.err{font-size:13px;color:var(--shu);background:var(--shu-bg);border-radius:10px;padding:10px 12px}

@@ -27,16 +27,8 @@ export function Icon({ name, size = 17 }) {
   )
 }
 
+// ロゴは小室さんのデザイン（public/logo.png）
 export function Logo({ size = 26 }) {
-  return (
-    <svg width={size} height={size * 124 / 120} viewBox="0 0 120 124" fill="none" aria-hidden="true" style={{ flexShrink: 0, overflow: 'visible' }}>
-      <path d="M99.1 43.7A40 40 0 1 1 78.8 16.7" stroke="#F3EFE7" strokeWidth="10.5" strokeLinecap="round"/>
-      <path d="M78.8 16.7 99.1 43.7" stroke="#F3EFE7" strokeWidth="7" strokeLinecap="round"/>
-      <rect x="81" y="23.2" width="16" height="14" rx="4.5" fill="#F3EFE7" transform="rotate(53.1 89 30.2)"/>
-      <g transform="translate(47.6 90.0) rotate(8)"><circle r="4.2" fill="none" stroke="#F3EFE7" strokeWidth="2.2"/><path d="M0 3.4 8.6 12.4V33a3.6 3.6 0 0 1-3.6 3.6h-10A3.6 3.6 0 0 1-8.6 33V12.4z" fill="#D9533C"/><circle cy="12.6" r="2.1" fill="#2B3A52"/></g>
-      <g transform="translate(33.2 81.7) rotate(-9)"><circle r="4.2" fill="none" stroke="#F3EFE7" strokeWidth="2.2"/><path d="M0 3.4 8.6 12.4V33a3.6 3.6 0 0 1-3.6 3.6h-10A3.6 3.6 0 0 1-8.6 33V12.4z" fill="#C8780C"/><circle cy="12.6" r="2.1" fill="#2B3A52"/></g>
-      <g transform="translate(23.4 68.3) rotate(-23)"><circle r="4.2" fill="none" stroke="#F3EFE7" strokeWidth="2.2"/><path d="M0 3.4 8.6 12.4V33a3.6 3.6 0 0 1-3.6 3.6h-10A3.6 3.6 0 0 1-8.6 33V12.4z" fill="#0E9AA0"/><circle cy="12.6" r="2.1" fill="#2B3A52"/></g>
-      <text x="60" y="53" textAnchor="middle" dominantBaseline="central" fontFamily="Zen Maru Gothic, sans-serif" fontSize="42" fontWeight="700" fill="#FFFFFF">わ</text>
-    </svg>
-  )
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src="/logo.png" width={size} height={size} alt="" style={{ flexShrink: 0, borderRadius: 4 }} />
 }

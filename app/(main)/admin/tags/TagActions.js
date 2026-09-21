@@ -23,7 +23,7 @@ export default function TagActions({ id, status, meId }) {
         <button className="btn btn-s btn-p" disabled={busy} onClick={() => update({ status: 'official', promoted_at: new Date().toISOString() })}>正式にする</button>}
       {status !== 'banned' && status !== 'rejected' &&
         <button className="btn btn-s" disabled={busy} onClick={() => update({ status: 'banned' })}>禁止する</button>}
-      {err && <span className="sub" style={{ color: '#A33724' }}>{err}</span>}
+      {err && <span className="sub" style={{ color: 'var(--shu)' }}>{err}</span>}
     </span>
   )
 }

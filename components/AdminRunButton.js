@@ -22,7 +22,7 @@ export default function AdminRunButton({ url, body, label, busyLabel = '動か�
       <button className={'btn' + (primary ? ' btn-p' : '')} disabled={busy} onClick={run} style={{ alignSelf: 'flex-start' }}>{busy ? busyLabel : label}</button>
       {res?.error && <div className="err">{res.error}</div>}
       {res?.message && <div className="note">{res.message}</div>}
-      {res?.log && <pre className="mono" style={{ background: '#1E2634', color: '#E7EBF2', padding: 12, borderRadius: 10, maxHeight: 320, overflow: 'auto', whiteSpace: 'pre-wrap', margin: 0 }}>{res.log}</pre>}
+      {res?.log && <pre className="mono" style={{ background: 'var(--ai)', color: '#EDE4D0', padding: 12, borderRadius: 10, maxHeight: 320, overflow: 'auto', whiteSpace: 'pre-wrap', margin: 0 }}>{res.log}</pre>}
     </div>
   )
 }

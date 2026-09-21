@@ -25,7 +25,7 @@ export default function Sidebar({ me, liveCount, inviteCount }) {
       <Link href="/livehub" style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '2px 8px 10px' }}>
         <Logo /><span className="wa" style={{ fontSize: 23, fontWeight: 700, color: '#FFFFFF' }}>まなびのわ</span>
       </Link>
-      <div style={{ fontSize: 10, color: '#7C8AA3', padding: '0 8px 6px', letterSpacing: '.06em' }}>{COMPANY_NAME}</div>
+      <div style={{ fontSize: 10, color: 'var(--ai-label)', padding: '0 8px 6px', letterSpacing: '.06em' }}>{COMPANY_NAME}</div>
 
       <div className="navlbl">まなぶ</div>
       <NavLink href="/livehub" icon="live" label="まなびのライブ" badge={liveCount} />
@@ -47,7 +47,7 @@ export default function Sidebar({ me, liveCount, inviteCount }) {
         <span className="avt" style={{ width: 30, height: 30, fontSize: 15 }}>{me.display_name.slice(0, 1)}</span>
         <span style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
           <span style={{ fontSize: 12, fontWeight: 600, color: '#FFFFFF' }}>{me.display_name}</span>
-          <span style={{ fontSize: 10, color: '#9AA6BC' }}>{me.department ?? ''}・{me.role === 'admin' ? '管理者' : '一般'}</span>
+          <span style={{ fontSize: 10, color: 'var(--ai-sub)' }}>{me.department ?? ''}・{me.role === 'admin' ? '管理者' : '一般'}</span>
         </span>
         <LogoutButton />
       </div>

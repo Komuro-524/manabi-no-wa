@@ -1,6 +1,6 @@
 import 'server-only'
 import { NextResponse } from 'next/server'
-import { currentUser } from '@/lib/supabase/server'
+import { verifiedUser } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { runScript } from '@/lib/run-script'
 
@@ -8,7 +8,7 @@ import { runScript } from '@/lib/run-script'
 // lives にはブラウザ向けの update ポリシーが無い設計なので、管理者か確かめてから service_role で書く。
 // 終えたら、タグ付けエージェント（scripts/recorder.mjs と同じもの）をその場で動かす
 export async function POST(req) {
-  const me = await currentUser()
+  const me = await verifiedUser()
   if (!me || me.role !== 'admin') return NextResponse.json({ error: '管理者だけが操作できます' }, { status: 403 })
 
   const { liveId, action } = await req.json()

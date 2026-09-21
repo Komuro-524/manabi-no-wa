@@ -43,7 +43,7 @@ export default async function AdminQuests({ searchParams }) {
               <thead><tr><th>#</th><th>タグ</th><th>状態</th><th>打診先</th><th>次に動く日</th></tr></thead>
               <tbody>
                 {sorted.map(q => (
-                  <tr key={q.id} style={{ background: q.id === selId ? '#F6F3EE' : undefined }}>
+                  <tr key={q.id} style={{ background: q.id === selId ? 'var(--bg)' : undefined }}>
                     <td className="mono"><Link href={`/admin/quests?id=${q.id}`}>#{q.id}</Link></td>
                     <td><Link href={`/admin/quests?id=${q.id}`} style={{ color: 'var(--ink)', fontWeight: 700 }}>{q.tags?.name ?? '?'}</Link></td>
                     <td>{STATUS[q.status] ?? q.status}</td>

@@ -66,7 +66,7 @@ export default async function AdminHome() {
             {TAG_STATUS.map(([s, name]) => (
               <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{ width: 90, fontSize: 13 }}>{name}</span>
-                <div style={{ flexGrow: 1, height: 8, borderRadius: 999, background: '#EFEAE1', overflow: 'hidden' }}>
+                <div style={{ flexGrow: 1, height: 8, borderRadius: 999, background: 'var(--bar)', overflow: 'hidden' }}>
                   <div style={{ width: `${Math.min(100, tg(s) / Math.max(1, (tags.data ?? []).length) * 100)}%`, height: '100%', background: 'var(--ai)' }} />
                 </div>
                 <span className="num" style={{ width: 30, textAlign: 'right' }}>{tg(s)}</span>
