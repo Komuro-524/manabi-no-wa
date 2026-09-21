@@ -138,7 +138,7 @@ try {
     .select('id,title,ingest_status').eq('id', LIVE_ID).maybeSingle()
   if (liveErr) throw new Error(`ライブを読めません: ${liveErr.message}`)
   if (!live)   throw new Error(`ライブ #${LIVE_ID} がありません。先に open-live.mjs で開いてください`)
-  if (live.ingest_status === 'done') {
+  if (live.ingest_status === 'done' && !DRY_RUN) {
     console.log(`\n🔁 ライブ #${LIVE_ID} は取り込み済みです。二重取り込みを弾きました\n`)
     process.exit(0)
   }
