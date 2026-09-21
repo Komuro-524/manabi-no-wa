@@ -102,7 +102,8 @@ export function ScanBanner() {
   const mm = String(Math.floor(s.left / 60)).padStart(2, '0'), ss = String(s.left % 60).padStart(2, '0')
   const go = path !== '/selfscan' ? <Link className="btn btn-s" href="/selfscan">自己分析を開く</Link> : null
   return (
-    <div style={{ padding: '10px 24px 0' }}>
+    // 画面の流れに入れず、右上に浮かせる（ほかの表示を押し下げない）
+    <div style={{ position: 'fixed', top: 72, right: 20, width: 'min(520px, calc(100vw - 40px))', zIndex: 60, boxShadow: '0 10px 28px rgba(28,43,61,.22)', borderRadius: 12 }}>
       {s.phase === 'running' && <StatusBar tone="info" title={`自己分析 撮影中 ${mm}:${ss}`} text={`撮った静止画 ${s.count}枚。ほかの画面に移っても続きます（再読み込みすると止まります）`}>
         <button className="btn btn-s" onClick={() => s.finish('途中で終えた')}>ここで終えて分析する</button>{go}</StatusBar>}
       {s.phase === 'sending' && <StatusBar spinning title="自己分析エージェントが分析中です" text="1枚ずつ見て、何枚に映ったかを数えています（数十秒）">{go}</StatusBar>}

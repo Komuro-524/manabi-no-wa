@@ -26,8 +26,18 @@ export default function ScanClient() {
       <span className="sub">ボタンを押すとブラウザが「どの画面を共有するか」を聞きます。ウィンドウ1つだけを選ぶのがおすすめです。始めたら、ほかの画面に移って作業して大丈夫です</span>
       <button className="btn btn-p" disabled={busy} onClick={() => s.start(minutes, every)} style={{ alignSelf: 'flex-start' }}><Icon name="scan" /> {busy ? '自己分析の途中です' : '画面を選んで始める'}</button>
       {s.phase === 'idle' && s.err && <div className="err">{s.err}</div>}
-      {s.res?.log && <details><summary className="sub" style={{ cursor: 'pointer' }}>エージェントの作業ログを見る</summary>
-        <pre className="mono" style={{ background: 'var(--ai)', color: '#EDE4D0', padding: 12, borderRadius: 10, maxHeight: 360, overflow: 'auto', whiteSpace: 'pre-wrap', margin: '8px 0 0' }}>{s.res.log}</pre></details>}
     </div>
+  )
+}
+
+// 右の「これまでの自己分析」に出す、いちばん新しい分析の作業ログ
+export function ScanLog() {
+  const s = useScan()
+  if (!s?.res?.log) return null
+  return (
+    <details open>
+      <summary className="sub" style={{ cursor: 'pointer', fontWeight: 700 }}>いまの分析の作業ログ</summary>
+      <pre className="mono" style={{ background: 'var(--ai)', color: '#EDE4D0', padding: 10, borderRadius: 10, maxHeight: 300, overflow: 'auto', whiteSpace: 'pre-wrap', margin: '8px 0 0', fontSize: 11 }}>{s.res.log}</pre>
+    </details>
   )
 }

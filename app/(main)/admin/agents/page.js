@@ -19,9 +19,9 @@ export default async function AdminAgents() {
 
   return (
     <>
-      <Topbar me={me} title="エージェント運用" sub="3体のエージェントの実行記録（agent_runs）。モデルはコードに書かず、OrcaRouter のルーターに選ばせている" />
-      <div className="body">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+      <Topbar me={me} title="エージェント" sub="3体それぞれに別の鍵と予算を持たせています" />
+      <div className="body" style={{ overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
           {AGENTS.map(a => {
             const rs = by(a.id)
             const ok = rs.filter(r => r.status === 'succeeded').length
@@ -30,8 +30,6 @@ export default async function AdminAgents() {
               <div key={a.id} className="card sh" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div className="ttl">{a.name}</div>
                 <span className="sub">{a.can}</span>
-                <span className="mono">{a.router}</span>
-                <span className="sub">専用のキー（{a.key}）。3体で鍵と予算を分けている</span>
                 <div style={{ display: 'flex', gap: 10, paddingTop: 6 }}>
                   <Mini n={rs.length} l="実行" /><Mini n={rs.length ? `${Math.round(ok / rs.length * 100)}%` : '—'} l="成功率" /><Mini n={`$${cost.toFixed(4)}`} l="費用の合計" />
                 </div>
@@ -39,23 +37,17 @@ export default async function AdminAgents() {
             )
           })}
         </div>
-        <div className="note">費用は OrcaRouter が返した額（インライン）。確定額との突き合わせは scripts/reconcile-costs.mjs で行い、差は $0 だった（docs/evidence/20260921-055030-cost-reconcile.md）</div>
-        <div className="card sh" style={{ padding: 16 }}>
-          <div className="ttl" style={{ paddingBottom: 10 }}>実行記録</div>
+        <div className="card sh" style={{ padding: 16, flexGrow: 1, minHeight: 0, overflowY: 'auto' }}>
+          <div className="ttl" style={{ paddingBottom: 8 }}>最近の実行</div>
           <table>
-            <thead><tr><th>#</th><th>エージェント</th><th>きっかけ</th><th>対象</th><th>結果</th><th>費用</th><th>呼び出し</th><th>いつ</th><th>メモ</th></tr></thead>
+            <thead><tr><th>エージェント</th><th>結果</th><th>費用</th><th>いつ</th></tr></thead>
             <tbody>
-              {(runs ?? []).slice(0, 60).map(r => (
+              {(runs ?? []).slice(0, 20).map(r => (
                 <tr key={r.id}>
-                  <td className="mono">{r.id}</td>
                   <td>{AGENTS.find(a => a.id === r.agent)?.name}</td>
-                  <td className="sub">{r.trigger}</td>
-                  <td className="mono">{r.ref_id?.startsWith('live:') ? r.ref_id : r.agent === 'C' ? '（本人）' : (r.ref_id ?? '')}</td>
-                  <td>{r.status === 'succeeded' ? '✅' : r.status === 'failed' ? '🛑' : '⏳'}</td>
+                  <td title={r.error ?? r.note ?? ''}>{r.status === 'succeeded' ? '✅ 成功' : r.status === 'failed' ? '🛑 失敗' : '⏳ 実行中'}</td>
                   <td className="mono">{r.cost_usd != null ? `$${Number(r.cost_usd).toFixed(6)}` : '—'}</td>
-                  <td className="mono">{r.request_ids?.length ?? 0}回</td>
                   <td className="sub">{fmtWhen(r.started_at)}</td>
-                  <td className="sub" style={{ maxWidth: 280 }}>{r.error ?? r.note ?? ''}</td>
                 </tr>
               ))}
             </tbody>

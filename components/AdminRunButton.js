@@ -2,8 +2,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-// 管理者用のボタン：API を呼び、エージェントの実行ログをその場に出す
-export default function AdminRunButton({ url, body, label, busyLabel = '動かしています…', primary = true, confirmText }) {
+// 管理者用のボタン：API を呼び、結果をボタンの横に短く出す
+export default function AdminRunButton({ url, body, label, busyLabel = '動かしています…', primary = true, confirmText, small }) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const [res, setRes] = useState(null)
@@ -12,17 +12,15 @@ export default function AdminRunButton({ url, body, label, busyLabel = '動か�
     setBusy(true); setRes(null)
     try {
       const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body ?? {}) })
-      const j = await r.json()
-      setRes(j)
+      setRes(await r.json())
     } catch (e) { setRes({ error: String(e) }) }
     setBusy(false); router.refresh()
   }
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <button className={'btn' + (primary ? ' btn-p' : '')} disabled={busy} onClick={run} style={{ alignSelf: 'flex-start' }}>{busy ? busyLabel : label}</button>
-      {res?.error && <div className="err">{res.error}</div>}
-      {res?.message && <div className="note">{res.message}</div>}
-      {res?.log && <pre className="mono" style={{ background: 'var(--ai)', color: '#EDE4D0', padding: 12, borderRadius: 10, maxHeight: 320, overflow: 'auto', whiteSpace: 'pre-wrap', margin: 0 }}>{res.log}</pre>}
-    </div>
+    <span style={{ display: 'inline-flex', flexDirection: small ? 'row' : 'column', alignItems: small ? 'center' : 'flex-start', gap: 8, flexWrap: 'wrap' }}>
+      <button className={'btn' + (primary ? ' btn-p' : '') + (small ? ' btn-s' : '')} disabled={busy} onClick={run}>{busy ? busyLabel : label}</button>
+      {res?.error && <span className="err" style={{ padding: '6px 10px' }}>{res.error}</span>}
+      {res?.message && <span className="sub">{res.message}</span>}
+    </span>
   )
 }

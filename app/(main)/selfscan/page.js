@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { supabaseServer, currentUser } from '@/lib/supabase/server'
 import Topbar from '@/components/Topbar'
 import { fmtWhen } from '@/lib/format'
-import ScanClient from './ScanClient'
+import ScanClient, { ScanLog } from './ScanClient'
 
 // 自己分析。自分の記録（self_analysis_sessions）と、自己分析から付いたタグは本人にだけ見える（RLS）
 export default async function SelfScan() {
@@ -37,6 +37,7 @@ export default async function SelfScan() {
                 <span>{fmtWhen(s.finished_at ?? s.started_at)}</span><span className="sub">{s.frame_count}枚</span>
               </div>
             ))}
+            <ScanLog />
             {waiting > 0 && <Link className="btn btn-s btn-p" href="/profile?tab=knowledge" style={{ alignSelf: 'flex-start' }}>採用を待っているタグ {waiting}件</Link>}
           </div>
         </div>

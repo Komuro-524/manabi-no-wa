@@ -63,7 +63,7 @@ export default async function InvitePage() {
                 <span className="avt" style={{ width: 36, height: 36, background: 'var(--amber-bg)', color: 'var(--amber)' }}><Icon name="robot" size={18} /></span>
                 <span style={{ display: 'flex', flexDirection: 'column' }}>
                   <b>場づくりエージェント</b>
-                  <span className="sub">{fmtWhen(i.sent_at)} ／ 企て #{i.quest_id}</span>
+                  <span className="sub">{fmtWhen(i.sent_at)}</span>
                 </span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>

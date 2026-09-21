@@ -5,7 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 import { runDetached } from '@/lib/run-script'
 
 // 場づくりエージェントを1周動かす（管理者だけ）。scripts/organizer.mjs と同じもの。停止条件と予算上限はそちらで効く。
-// 裏で動かし、進み具合は agent_runs と quests / quest_steps で「企ての進み具合」画面に出す
+// 裏で動かし、進み具合は agent_runs と quests / quest_steps で「ライブのタネ」画面に出す
 export async function POST() {
   const me = await verifiedUser()
   if (!me || me.role !== 'admin') return NextResponse.json({ error: '管理者だけが操作できます' }, { status: 403 })

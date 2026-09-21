@@ -80,7 +80,9 @@ export default async function Profile({ searchParams }) {
                 return (
                   <div key={t.id} className="card sh" style={{ padding: 15, display: 'flex', flexDirection: 'column', gap: 10 }}>
                     <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      <h3 style={{ fontSize: 24, fontWeight: 700, padding: '8px 0' }}>{t.tags?.name ?? '（育ちかけ）'}</h3>
+                      {official
+                        ? <Link href={`/cards?tag=${t.tag_id}`} style={{ fontSize: 24, fontWeight: 700, padding: '8px 0', color: 'var(--ink)' }} title="このタグの知見カードを見る">{t.tags.name}</Link>
+                        : <h3 style={{ fontSize: 24, fontWeight: 700, padding: '8px 0' }}>{t.tags?.name ?? '（育ちかけ）'}</h3>}
                       {!official && <span className="chip" style={{ alignSelf: 'center', background: 'var(--amber-bg)', color: 'var(--amber)' }}>育ちかけ（管理者の承認待ち）</span>}
                       <span className="sub">同じ知見を持つ人 {peers.get(t.tag_id)?.size ?? 0}人 ・ 出典カード {cs.length}枚 ・ {SOURCE[t.source] ?? t.source}</span>
                     </div>
@@ -123,8 +125,9 @@ export default async function Profile({ searchParams }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {intr.map(t => (
                 <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', borderBottom: '1px solid var(--line-soft)', paddingBottom: 8 }}>
-                  <span className="chip" style={{ background: t.tags?.status === 'official' ? 'var(--blue-bg)' : 'var(--amber-bg)', color: t.tags?.status === 'official' ? 'var(--blue)' : 'var(--amber)' }}>
-                    <Icon name="tag" size={13} />{t.tags?.name ?? '育ちかけのタグ'}</span>
+                  {t.tags?.status === 'official'
+                    ? <Link href={`/cards?tag=${t.tag_id}`} className="chip" style={{ background: 'var(--blue-bg)', color: 'var(--blue)' }} title="このタグの知見カードを見る"><Icon name="tag" size={13} />{t.tags.name}</Link>
+                    : <span className="chip" style={{ background: 'var(--amber-bg)', color: 'var(--amber)' }} title="管理者が正式にすると、カードが見られるようになります"><Icon name="tag" size={13} />{t.tags?.name ?? '育ちかけのタグ'}</span>}
                   <span className="sub" style={{ flexGrow: 1 }}>{SOURCE[t.source] ?? t.source} ・ {fmtWhen(t.updated_at)}</span>
                   <VisibilityToggle tagId={t.tag_id} kind="interest" visibility={t.visibility} adopt={t.source === 'self' && t.visibility === 'private'} compact />
                 </div>
