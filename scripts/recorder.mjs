@@ -62,7 +62,9 @@ const APP_FALLBACK_MODEL = 'google/gemini-2.5-flash-lite'
 //   ORCA_FORCE_FALLBACK=orca … 存在しないモデルを第1候補、実在モデルを第2候補にして OrcaRouter の fallback ルーティングを試す
 //   ORCA_FORCE_FALLBACK=app  … 存在しないモデルを呼ぶ → 失敗 → アプリ側の受け皿が拾う
 //   （1 は orca と同じ扱い）
-const FORCE_RAW = (process.env.ORCA_FORCE_FALLBACK ?? '').split('#')[0].trim()
+//   PowerShell でも打ちやすいように、引数 --force-fallback app / orca でも同じことができる
+const FORCE_ARG = argv.includes('--force-fallback') ? (argv[argv.indexOf('--force-fallback') + 1] ?? '') : ''
+const FORCE_RAW = (FORCE_ARG || (process.env.ORCA_FORCE_FALLBACK ?? '').split('#')[0]).trim()
 const FORCE_FALLBACK = FORCE_RAW === '1' ? 'orca' : (['orca', 'app'].includes(FORCE_RAW) ? FORCE_RAW : null)
 const BROKEN_MODEL = 'openai/this-model-does-not-exist'
 
@@ -256,6 +258,12 @@ try {
   console.log(`   発言 ${segments.length}行 / チャット ${chats.length}件 / 参加者 ${new Set(segments.map(s => s.user_id)).size}人`)
 
   if (!DRY_RUN) await db.from('lives').update({ ingest_status: 'running' }).eq('id', LIVE_ID)
+  // ★実演用: --pause <秒> で「取り込み中」の状態のまま待つ。この間に Ctrl+C で本当に落とせる（F8 の動画用）
+  const PAUSE_SEC = argv.includes('--pause') ? Number(argv[argv.indexOf('--pause') + 1]) || 0 : 0
+  if (PAUSE_SEC > 0 && !DRY_RUN) {
+    console.log(`\n⏸️  取り込み中（ingest_status=running）のまま ${PAUSE_SEC}秒 待ちます。いま Ctrl+C で落とせます`)
+    await new Promise(r => setTimeout(r, PAUSE_SEC * 1000))
+  }
   if (FORCE_FALLBACK) console.log(`\n🧨 ORCA_FORCE_FALLBACK=${FORCE_FALLBACK}: 1回目を存在しないモデル（${BROKEN_MODEL}）にして呼びます\n`)
 
   // --- 1.5 タグ辞書を読む（★抽出の前。既存の語と表記を揃えるための参考として渡す）
