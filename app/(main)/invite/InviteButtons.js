@@ -18,7 +18,7 @@ export default function InviteButtons({ id }) {
   return (
     <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
       <button className="btn btn-p" disabled={busy} onClick={() => answer(true)}>引き受ける</button>
-      <button className="btn" disabled={busy} onClick={() => answer(false)}>いまは難しい</button>
+      <button className="btn" disabled={busy} onClick={() => answer(false)}>今は難しい</button>
       {msg && <span className="sub">{msg}</span>}
     </div>
   )
