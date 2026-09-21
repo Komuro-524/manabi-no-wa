@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 const ITEMS = [
   { href: '/admin', label: 'ダッシュボード' },
   { href: '/admin/tags', label: 'タグ辞書' },
+  { href: '/admin/progress', label: '企ての進み具合' },
   { href: '/admin/quests', label: '企ての一覧' },
   { href: '/admin/agents', label: 'エージェント運用' },
   { href: '/admin/security', label: 'セキュリティ' },

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { supabaseServer, currentUser } from '@/lib/supabase/server'
 import Sidebar from '@/components/Sidebar'
+import ScanProvider, { ScanBanner } from '@/components/ScanProvider'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,9 +14,14 @@ export default async function MainLayout({ children }) {
     db.from('invitations').select('id', { count: 'exact', head: true }).eq('status', 'sent'),   // RLS: 自分宛だけ
   ])
   return (
-    <div className="shell">
-      <Sidebar me={me} liveCount={liveCount ?? 0} inviteCount={inviteCount ?? 0} />
-      <div className="main">{children}</div>
-    </div>
+    <ScanProvider>
+      <div className="shell">
+        <Sidebar me={me} liveCount={liveCount ?? 0} inviteCount={inviteCount ?? 0} />
+        <div className="main">
+          <ScanBanner />
+          {children}
+        </div>
+      </div>
+    </ScanProvider>
   )
 }

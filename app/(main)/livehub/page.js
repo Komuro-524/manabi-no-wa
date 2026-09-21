@@ -10,7 +10,7 @@ export default async function LiveHub() {
   const db = await supabaseServer()
 
   const [{ data: lives }, { data: parts }, { data: users }] = await Promise.all([
-    db.from('lives').select('id, title, status, scheduled_start, started_at, ended_at, topic_tag_id, tags(name)')
+    db.from('lives').select('id, title, status, scheduled_start, started_at, ended_at, ingest_status, topic_tag_id, tags(name)')
       .neq('status', 'cancelled').order('id', { ascending: false }),
     db.from('live_participants').select('live_id, user_id, role'),
     db.from('users').select('id, display_name'),
@@ -62,6 +62,8 @@ function LiveRow({ l, ps = [], nameOf, me, kind }) {
             {kind === 'live' && <span className="chip" style={{ background: 'var(--live)', color: '#FFF' }}><span className="dot" style={{ background: '#FFF' }} />いま配信中</span>}
             {kind === 'scheduled' && <span className="chip" style={{ background: 'var(--sand)', color: 'var(--ink2)' }}><Icon name="clock" size={13} />{fmtWhen(l.scheduled_start)}</span>}
             {kind === 'ended' && <span className="chip" style={{ background: 'var(--sand)', color: 'var(--ink2)' }}>{fmtWhen(l.ended_at ?? l.started_at)} 終了</span>}
+            {kind === 'ended' && l.ingest_status === 'running' && <span className="chip" style={{ background: 'var(--amber-bg)', color: 'var(--amber)' }}><span className="spin" style={{ width: 10, height: 10, borderRadius: 999, border: '2px solid var(--amber)', borderTopColor: 'transparent' }} />タグ付け中</span>}
+            {kind === 'ended' && l.ingest_status === 'needs_review' && <span className="chip" style={{ background: 'var(--shu-bg)', color: 'var(--shu)' }}>人の確認待ち</span>}
             {mine && <span className="chip" style={{ background: 'var(--teal-bg)', color: 'var(--teal)' }}>あなたも参加</span>}
           </span>
           <span style={{ fontSize: 22, fontWeight: 700 }}>＃{main}</span>

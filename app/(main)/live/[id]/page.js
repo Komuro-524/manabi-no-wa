@@ -6,6 +6,8 @@ import { Icon } from '@/components/icons'
 import { fmtWhen, splitTitle } from '@/lib/format'
 import LiveActions from './LiveActions'
 import AdminRunButton from '@/components/AdminRunButton'
+import StatusBar from '@/components/StatusBar'
+import AutoRefresh from '@/components/AutoRefresh'
 
 export default async function LivePage({ params }) {
   const { id } = await params
@@ -38,6 +40,17 @@ export default async function LivePage({ params }) {
   }
 
   const { main, sub } = splitTitle(l.title)
+
+  // タグ付けエージェントの進み具合（ライブを終えた直後だけ数秒おきに読み直す）
+  const endedRecently = l.status === 'ended' && l.ended_at && Date.now() - new Date(l.ended_at).getTime() < 15 * 60 * 1000
+  const working = endedRecently && ['pending', 'running'].includes(l.ingest_status)
+  const ingestBar = l.status !== 'ended' ? null
+    : l.ingest_status === 'running' ? <StatusBar spinning title="タグ付けエージェントが取り込み中です" text="チャットと発言を読んで、知見カードとタグの候補を作っています（数十秒）" />
+    : l.ingest_status === 'pending' && endedRecently ? <StatusBar spinning title="タグ付けの順番待ちです" text="まもなくタグ付けエージェントが取り込みを始めます" />
+    : l.ingest_status === 'needs_review' ? <StatusBar tone="warn" title="人の確認待ちです" text="取り込みが途中で止まったか、確かめが必要な行がありました。二重に書かないよう、エージェントは自分でやり直しません" />
+    : l.ingest_status === 'failed' ? <StatusBar tone="warn" title="取り込みに失敗しました" text="管理者ビューのセキュリティ画面で理由を確かめられます" />
+    : l.ingest_status === 'done' && endedRecently ? <StatusBar tone="ok" title="タグ付けが終わりました" text="このライブから生まれた知見カードが右に出ています" />
+    : null
   const statusText = l.status === 'live' ? 'いま配信中' : l.status === 'scheduled' ? `${fmtWhen(l.scheduled_start)} から` : `${fmtWhen(l.ended_at ?? l.started_at)} に終了`
 
   return (
@@ -45,6 +58,8 @@ export default async function LivePage({ params }) {
       <Topbar me={me} title={`＃${main}`} sub={`${sub ? sub + ' ・ ' : ''}${statusText}`}>
         <Link className="btn btn-s" href="/livehub"><Icon name="back" size={14} /> 一覧へ</Link>
       </Topbar>
+      {ingestBar && <div style={{ padding: '14px 24px 0' }}>{ingestBar}</div>}
+      <AutoRefresh active={working} />
       <div className="body" style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 16 }}>
         {/* 左: 会話 */}
         <div style={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>

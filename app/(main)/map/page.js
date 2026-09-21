@@ -21,13 +21,18 @@ export default async function MapPage() {
   const nodes = (tags ?? []).map(t => ({ ...t, cards: cardN.get(t.id) ?? 0, people: people.get(t.id)?.size ?? 0 }))
     .sort((a, b) => b.cards - a.cards)
   const W = 900, H = 600, cx = W / 2, cy = H / 2
+  // 置き方: いちばんカードの多いタグを真ん中、次の6つを内側の輪、残りを外側の輪に等間隔
+  const inner = nodes.slice(1, 7), outer = nodes.slice(7)
   nodes.forEach((n, i) => {
-    const ring = i === 0 ? 0 : i < 7 ? 1 : 2
-    const idxInRing = ring === 0 ? 0 : ring === 1 ? i - 1 : i - 7
-    const cnt = ring === 1 ? Math.min(6, nodes.length - 1) : Math.max(1, nodes.length - 7)
-    const rad = [0, 170, 270][ring]
-    const ang = (idxInRing / cnt) * Math.PI * 2 + ring * 0.4
-    n.x = cx + rad * Math.cos(ang); n.y = cy + rad * 0.78 * Math.sin(ang)
+    let x = cx, y = cy
+    if (i > 0) {
+      const ring = i < 7 ? inner : outer
+      const idx = ring.indexOf(n), cnt = Math.max(1, ring.length)
+      const rad = i < 7 ? 170 : 270
+      const ang = (idx / cnt) * Math.PI * 2 + (i < 7 ? 0 : 0.4)
+      x = cx + rad * Math.cos(ang); y = cy + rad * 0.78 * Math.sin(ang)
+    }
+    n.x = Math.round(x); n.y = Math.round(y)
     n.r = 18 + Math.min(40, n.cards * 6)
   })
   const edges = []
