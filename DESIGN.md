@@ -785,7 +785,8 @@ base_url = https://api.orcarouter.ai/v1
 | `manabi-mirror` | バランス | `openai/gpt-5-nano` `google/gemma-4-26b-a4b-it` `qwen/qwen3.8-flash`（すべて画像対応） | `google/gemini-2.5-flash-lite` |
 
 - A は高難度でも **フロンティア級（$10/$50）に上がらない**。量が多いエージェントに天井を付けた
-- B に最上位モデルは置かない。候補選びはコードがやっていて、LLMは選ぶだけだから（1回 $0.09 → $0.018）
+- B に最上位モデルは置かない。候補選びはコードがやっていて、LLMは選ぶだけだから
+  （実測: 判断1回分で `anthropic/claude-fable-5.1` 直指定 $0.023770 → Named Router $0.000206、約115倍。`docs/evidence/cost-summary.md`）
 - フォールバック欄は、この画面では **デフォルトモデルと同じ1欄**
 
 **ガードレール `manabi-pii`**（3本のキーにだけ明示的に紐づけ。アカウント既定にはしない）

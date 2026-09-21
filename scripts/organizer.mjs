@@ -46,7 +46,14 @@ if (missing.length) {
 // 設定
 // ---------------------------------------------------------------------
 const DRY_RUN = process.argv.includes('--dry')
-const MODEL = 'orcarouter/manabi-organizer'          // ★ モデル名を書かない。ルーターに選ばせる
+// ★F13: 費用比較のためだけに、ルーターの代わりに特定のモデルを直接指定できる（--dry のときだけ）
+//   例: ORCA_MODEL_OVERRIDE=anthropic/claude-opus-5 node scripts/organizer.mjs ... --dry
+const MODEL_OVERRIDE = (process.env.ORCA_MODEL_OVERRIDE ?? '').split('#')[0].trim()
+if (MODEL_OVERRIDE && !DRY_RUN) {
+  console.error('ORCA_MODEL_OVERRIDE は --dry と一緒のときだけ使えます（本番の書き込みはルーター経由に限る）')
+  process.exit(1)
+}
+const MODEL = MODEL_OVERRIDE || 'orcarouter/manabi-organizer'   // ★ モデル名を書かない。ルーターに選ばせる
 const DAY_MS = 24 * 60 * 60 * 1000
 
 // ★ 停止条件はここに定数として持つ。LLMの出力では絶対に上書きしない
