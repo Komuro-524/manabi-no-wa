@@ -59,7 +59,9 @@ export default async function LivePage({ params }) {
     : l.ingest_status === 'pending' && endedRecently ? <StatusBar spinning title="タグ付けの順番待ちです" text="まもなくタグ付けエージェントが取り込みを始めます" />
     : l.ingest_status === 'needs_review' ? <StatusBar tone="warn" title="人の確認待ちです" text="取り込みが途中で止まったか、確かめが必要な行がありました。二重に書かないよう、エージェントは自分でやり直しません" />
     : l.ingest_status === 'failed' ? <StatusBar tone="warn" title="取り込みに失敗しました" text="管理者ビューのセキュリティ画面で理由を確かめられます" />
-    : l.ingest_status === 'done' && endedRecently ? <StatusBar tone="ok" title="タグ付けが終わりました" text="このライブから生まれた知見カードが右に出ています" />
+    : l.ingest_status === 'done' && endedRecently ? (groups.size
+      ? <StatusBar tone="ok" title="タグ付けが終わりました" text={`このライブから知見カードが生まれました。右の「生まれたタグ」で見られます`} />
+      : <StatusBar tone="info" title="タグ付けが終わりました" text="今回は知見カードになる話はありませんでした（あいさつや雑談だけのときは作りません）" />)
     : null
   const statusText = l.status === 'live' ? 'いま配信中' : l.status === 'scheduled' ? `${fmtWhen(l.scheduled_start)} から` : `${fmtWhen(l.ended_at ?? l.started_at)} に終了`
 
