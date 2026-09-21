@@ -365,10 +365,14 @@ try {
 
   const resolve = g => g.tag ?? tagByName.get(g.newName)
   const usable  = t => t && ['official', 'proposed', 'candidate'].includes(t.status)
-  const mentions = new Map()          // tag_id → 今回 語られた回数
+  const mentions = new Map()          // tag_id → 今回 語られた回数（累計表示用。カード単位でそのまま数える）
   const mentionLog = []               // tag_mentions に書く行（いつ・誰が・どのタグを）
+  const mentionLogged = new Set()     // ★F2: 同じライブで同じ人+タグは1回と数える（(tag_id,user_id,live_id)の重複を落とす）
   const bump = (id, uid, kind) => {
     mentions.set(id, (mentions.get(id) ?? 0) + 1)
+    const key = `${id}:${uid}`
+    if (mentionLogged.has(key)) return   // このライブで既に記録済み。格上げ判定は「延べ何回のライブで語られたか」なので二重に数えない
+    mentionLogged.add(key)
     mentionLog.push({ tag_id: id, user_id: uid, live_id: LIVE_ID, kind })
   }
 
