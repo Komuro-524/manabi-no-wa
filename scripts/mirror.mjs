@@ -174,13 +174,15 @@ try {
       else dropped.push({ tag: t, why: `以前に弾いた語（${known.rejected_reason ?? ''}）` })
       continue
     }
-    if (known) { dropped.push({ tag: t, why: `まだ候補（${known.status}）` }); continue }
+    // ★ 候補・格上げ候補も貼る（recorder.mjs と同じ。状態で絞らない。見え方は tags.status と RLS が制御する）
+    if (known) { passed.push({ ...c, tag_id: known.id, tag_name: known.name, note: `「${known.name}」は${known.status === 'proposed' ? '格上げ候補' : '候補'}のまま貼る` }); continue }
 
     const bad = shapeOk(t)
     if (bad) { dropped.push({ tag: t, why: `形の検査で落ちた: ${bad}` }); continue }
 
+    // 辞書に無い新語 → 候補として辞書に入れてから本人に貼る
     seenNew.set(t, (seenNew.get(t) ?? 0) + 1)
-    dropped.push({ tag: t, why: '辞書に無いので候補として登録', candidate: t })
+    passed.push({ ...c, tag_id: null, tag_name: t, note: `「${t}」は新しい候補として辞書に入れて貼る` })
   }
 
   console.log('🚪 門1の結果')
@@ -196,18 +198,29 @@ try {
   }
 
   // --- 4. 辞書に無い新語を候補タグとして登録（recorder.mjs と同じ扱い） ------
-  for (const [name, count] of seenNew) {
+  //   ★ 自己分析は会話ではないので mention_count は増やさない（格上げの判定材料は会話だけ）
+  for (const [name] of seenNew) {
     const { error } = await db.from('tags').upsert(
-      { name, kind: '分野', status: 'candidate', mention_count: count, last_mentioned_at: new Date() },
+      { name, kind: '分野', status: 'candidate', mention_count: 0 },
       { onConflict: 'name', ignoreDuplicates: true },
     )
     if (error) throw new Error(`候補タグを登録できません: ${error.message}`)
   }
-  if (seenNew.size) console.log(`🌱 候補タグを${seenNew.size}件 登録した（まだ本人には貼らない）`)
+  if (seenNew.size) {
+    const { data: fresh } = await db.from('tags').select('id,name,status').in('name', [...seenNew.keys()])
+    const byNew = new Map((fresh ?? []).map(t => [t.name, t]))
+    for (const p of passed) {
+      if (p.tag_id) continue
+      const t = byNew.get(p.tag_name)
+      p.tag_id = t && ['candidate', 'proposed', 'official'].includes(t.status) ? t.id : null
+    }
+    console.log(`🌱 新しい候補を${seenNew.size}件 辞書に入れた（本人にだけ見える形で貼る）`)
+  }
 
   // --- 5. 通ったタグだけ user_tags へ。★ 必ず private / source='self' ------
   let written = 0
   for (const p of passed) {
+    if (!p.tag_id) continue      // 同名が禁止・弾いた語として先にあった
     const { data: existing } = await db.from('user_tags')
       .select('id,strength').eq('user_id', USER_ID).eq('tag_id', p.tag_id).eq('kind', 'knowledge').maybeSingle()
 
