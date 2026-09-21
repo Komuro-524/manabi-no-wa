@@ -1,0 +1,3 @@
+Production build smoke test using next start --hostname 127.0.0.1
+/api/cron/organizer: 401 Unauthorized; no login redirect
+/api/cron/recorder: 401 Unauthorized; no login redirect

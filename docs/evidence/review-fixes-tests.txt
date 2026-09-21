@@ -1,0 +1,29 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> manabi-no-wa@0.1.0 test
+> node --test tests/*.test.mjs
+
+✔ organizer shared entry rejects an occupied DB lock before calling LLM (1.757716ms)
+✔ organizer budget reserves the next call and unknown cost stops later calls (2.494081ms)
+✔ recorder uses trusted line identity and one atomic commit, excluding agent chat (2.170696ms)
+✔ invalid recorder output releases owned claim without committing partial data (0.466811ms)
+✔ mirror enforces shared rate gate before any LLM call (0.938207ms)
+▶ database migration and safety invariants
+  ✔ live creation rolls back when speaker insertion fails (9.768994ms)
+  ✔ organizer singleton, completed duplicate Cron day and browser permissions (10.787323ms)
+  ✔ mirror concurrency, cooldown and rolling daily quota (5.715204ms)
+  ✔ recorder only one claim, atomic rollback, retry and commit idempotency (29.340094ms)
+  ✔ expired recorder can recover; old worker cannot commit; attempt limit stops retry (12.913392ms)
+✔ database migration and safety invariants (2631.733273ms)
+✔ Cron rejects absent, short and wrong secrets (0.931818ms)
+✔ body size enforced while streaming even without Content-Length (9.454542ms)
+✔ images: real decoding, dimensions, MIME, Base64, bytes and count (25.59997ms)
+✔ metadata and invalid budget config fail closed (0.519249ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2775.377068

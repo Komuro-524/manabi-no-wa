@@ -8,7 +8,7 @@
 //
 //  なぜ:
 //    本番は Vercel Cron で「1日1回、自分で起動」する設計（DESIGN §3.2）。
-//    今回はデプロイしないので Cron が無い。その代わりに手元で間隔を縮めて自動で回し、
+//    手元でのデモでは日次Cronの代わりに間隔を縮めて自動で回し、
 //    人が何も押さなくても企て（quests）が進んでいく様子を見せる。
 //
 //  止まる条件（★コードで保証）
@@ -51,7 +51,7 @@ function runOnce() {
     child.stderr.on('data', d => { out += d; process.stderr.write(d) })
     child.on('close', code => {
       const m = out.match(/費用 \$([0-9.]+)/)
-      resolve({ ok: code === 0, cost: m ? Number(m[1]) : 0 })
+      resolve({ ok: code === 0, cost: m ? Number(m[1]) : Infinity })
     })
   })
 }

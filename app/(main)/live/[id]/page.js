@@ -58,7 +58,7 @@ export default async function LivePage({ params }) {
   const working = endedRecently && ['pending', 'running'].includes(l.ingest_status)
   const ingestBar = l.status !== 'ended' ? null
     : l.ingest_status === 'running' ? <StatusBar spinning title="タグ付けエージェントが取り込み中です" text="チャットと発言を読んで、知見カードとタグの候補を作っています（数十秒）" />
-    : l.ingest_status === 'pending' && endedRecently ? <StatusBar spinning title="タグ付けの順番待ちです" text="まもなくタグ付けエージェントが取り込みを始めます" />
+    : l.ingest_status === 'pending' && endedRecently ? <StatusBar spinning title="タグ付けの順番待ちです" text="自動で順番に再処理します。話し手または管理者は取り込みを再実行できます" />
     : l.ingest_status === 'needs_review' ? <StatusBar tone="warn" title="人の確認待ちです" text="取り込みが途中で止まったか、確かめが必要な行がありました。二重に書かないよう、エージェントは自分でやり直しません" />
     : l.ingest_status === 'failed' ? <StatusBar tone="warn" title="取り込みに失敗しました" text="管理者ビューのセキュリティ画面で理由を確かめられます" />
     : l.ingest_status === 'done' && endedRecently ? (groups.size
@@ -88,7 +88,7 @@ export default async function LivePage({ params }) {
     return (mine.find(t => t.tag_id === l.topic_tag_id) ?? mine[0])?.tags?.name ?? null
   }
   const isSpeaker = speakers.some(p => p.user_id === me.id)
-  const canRun = (me.role === 'admin' || isSpeaker) && (l.status === 'scheduled' || l.status === 'live')
+  const canRun = (me.role === 'admin' || isSpeaker) && (l.status === 'scheduled' || l.status === 'live' || (l.status === 'ended' && ['pending', 'running'].includes(l.ingest_status)))
 
   const commentPanel = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 9, flexGrow: 1, minHeight: 0 }}>
@@ -201,6 +201,7 @@ export default async function LivePage({ params }) {
               <b style={{ fontSize: 14 }}>{me.role === 'admin' ? '管理者の操作' : '話し手の操作'}</b>
               {l.status === 'scheduled'
                 ? <AdminRunButton url="/api/admin/live" body={{ liveId: l.id, action: 'start' }} label="ライブを始める" small />
+                : l.status === 'ended' ? <AdminRunButton url="/api/admin/live" body={{ liveId: l.id, action: 'end' }} label="取り込みを再実行" busyLabel="取り込んでいます…" small />
                 : <AdminRunButton url="/api/admin/live" body={{ liveId: l.id, action: 'end' }} label="ライブを終える" busyLabel="終えています…" confirmText="ライブを終えますか？終えたあとはコメントできません" small />}
             </div>
           )}

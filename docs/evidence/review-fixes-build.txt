@@ -1,0 +1,68 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> manabi-no-wa@0.1.0 prebuild
+> npm run prompts
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> manabi-no-wa@0.1.0 prompts
+> node scripts/build-prompts.mjs
+
+
+> manabi-no-wa@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.25
+
+   Creating an optimized production build ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (113kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (267kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled successfully in 4.3s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/10) ...
+   Generating static pages (2/10) 
+   Generating static pages (4/10) 
+   Generating static pages (7/10) 
+ ✓ Generating static pages (10/10)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                      147 B         103 kB
+├ ○ /_not-found                            994 B         104 kB
+├ ƒ /admin                               2.14 kB         108 kB
+├ ƒ /admin/agents                        2.14 kB         108 kB
+├ ƒ /admin/people                        2.14 kB         108 kB
+├ ƒ /admin/progress                      2.71 kB         109 kB
+├ ƒ /admin/quests                        2.14 kB         108 kB
+├ ƒ /admin/security                      2.14 kB         108 kB
+├ ƒ /admin/tags                          3.31 kB         177 kB
+├ ƒ /api/admin/live                        147 B         103 kB
+├ ƒ /api/admin/organizer                   147 B         103 kB
+├ ƒ /api/cron/organizer                    147 B         103 kB
+├ ƒ /api/cron/recorder                     147 B         103 kB
+├ ƒ /api/lives                             147 B         103 kB
+├ ƒ /api/lives/[id]/segments               147 B         103 kB
+├ ƒ /api/notifications                     147 B         103 kB
+├ ƒ /api/selfscan                          147 B         103 kB
+├ ƒ /calendar                            3.48 kB         109 kB
+├ ƒ /cards                               2.42 kB         108 kB
+├ ƒ /invite                              2.62 kB         176 kB
+├ ƒ /live/[id]                           5.24 kB         179 kB
+├ ƒ /livehub                             2.14 kB         108 kB
+├ ○ /login                               2.58 kB         173 kB
+├ ƒ /map                                 2.14 kB         108 kB
+├ ƒ /profile                             4.28 kB         178 kB
+└ ƒ /selfscan                             5.8 kB         112 kB
++ First Load JS shared by all             103 kB
+  ├ chunks/255-37e0f0325134c4d7.js       46.4 kB
+  ├ chunks/4bd1b696-c023c6e3521b1417.js  54.2 kB
+  └ other shared chunks (total)          1.92 kB
+
+
+ƒ Middleware                             93.6 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
