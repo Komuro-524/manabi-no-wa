@@ -113,11 +113,13 @@ export default async function CalendarPage({ searchParams }) {
                 <div>{Array.from({ length: 24 }, (_, h) => <div key={h} className="sub" style={{ height: HOUR, fontSize: 10, textAlign: 'right', paddingRight: 6, transform: 'translateY(-6px)' }}>{h ? `${h}:00` : ''}</div>)}</div>
                 {Array.from({ length: view === 'week' ? 7 : 1 }, (_, i) => addDays(from, i)).map(d => (
                   <div key={ymd(d)} style={{ position: 'relative', borderLeft: '1px solid var(--line-soft)', background: `repeating-linear-gradient(to bottom, transparent 0, transparent ${HOUR - 1}px, var(--line-soft) ${HOUR - 1}px, var(--line-soft) ${HOUR}px)` }}>
-                    {dayItems(d).map((it, k) => {
+                    {withLanes(dayItems(d)).map((it, k) => {
                       const top = (it.s.getUTCHours() + it.s.getUTCMinutes() / 60) * HOUR
                       const h = Math.max(22, (it.e - it.s) / 3600000 * HOUR - 2)
+                      // 重なっている予定は横に並べる（前は同じ場所に重なって下の予定が見えなかった）
+                      const w = 100 / it.lanes
                       return (
-                        <div key={k} style={{ position: 'absolute', top, left: 3, right: 3, height: h }}>
+                        <div key={k} style={{ position: 'absolute', top, left: `calc(${it.lane * w}% + 3px)`, width: `calc(${w}% - 6px)`, height: h }}>
                           <Chip it={it} tall />
                         </div>
                       )
@@ -132,6 +134,18 @@ export default async function CalendarPage({ searchParams }) {
       </div>
     </>
   )
+}
+
+// 同じ日の予定を、重なりに応じて横の列（lane）に振り分ける
+function withLanes(items) {
+  const ends = []   // 各列の最後の終わり時刻
+  const out = items.map(it => {
+    let lane = ends.findIndex(e => e <= it.s)
+    if (lane === -1) { lane = ends.length; ends.push(it.e) } else ends[lane] = it.e
+    return { ...it, lane }
+  })
+  const lanes = Math.max(1, ends.length)
+  return out.map(it => ({ ...it, lanes }))
 }
 
 function Chip({ it, tall }) {

@@ -287,6 +287,14 @@ try {
   const nameById = new Map((allUsers ?? []).map(u => [u.id, u.display_name]))
   const tagById  = new Map((tags ?? []).map(t => [t.id, t]))
 
+  // ★ 14日ルールの「前回のライブ」は、tags.last_live_at だけでなく、実際に終わったライブからも数える
+  //   （画面から始めて終えたライブや、人が立てた配信でも、同じ話題が続けて立たないように。動作確認で見つけた穴）
+  const { data: endedLives } = await db.from('lives').select('topic_tag_id, ended_at').eq('status', 'ended').not('topic_tag_id', 'is', null)
+  for (const l of endedLives ?? []) {
+    const t = tagById.get(l.topic_tag_id)
+    if (t && l.ended_at && (!t.last_live_at || new Date(l.ended_at) > new Date(t.last_live_at))) t.last_live_at = l.ended_at
+  }
+
   const interestByTag = new Map()
   const knowledgeByTag = new Map()
   for (const ut of allUserTags ?? []) {
@@ -491,6 +499,8 @@ try {
           outcome, closed_at: new Date().toISOString(),
         })
         await insertQuestStep({ quest_id: quest.id, kind: 'open', decision: 'open', reason: outcome })
+        // 14日ルールの起点を記録する（これが抜けていて、終わった直後に同じ話題でまた打診していた）
+        if (!DRY_RUN && live.ended_at) await db.from('tags').update({ last_live_at: live.ended_at }).eq('id', quest.tag_id)
         summary.closed++
       } else if (live.status === 'live') {
         const { count: msgCount } = await db.from('messages').select('*', { count: 'exact', head: true }).eq('live_id', live.id)

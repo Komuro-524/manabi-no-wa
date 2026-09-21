@@ -9,7 +9,10 @@ export default function AutoRefresh({ active, every = 4000 }) {
     if (!active) return
     // タブが裏にあるときは読み直さない（無駄な通信で重くしない）
     const t = setInterval(() => { if (document.visibilityState === 'visible') router.refresh() }, every)
-    return () => clearInterval(t)
+    // 裏にしていたタブに戻ってきたら、すぐに読み直す（戻ったのに古いまま、を防ぐ）
+    const onVis = () => { if (document.visibilityState === 'visible') router.refresh() }
+    document.addEventListener('visibilitychange', onVis)
+    return () => { clearInterval(t); document.removeEventListener('visibilitychange', onVis) }
   }, [active, every, router])
   return null
 }

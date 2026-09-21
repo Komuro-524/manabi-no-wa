@@ -19,9 +19,9 @@ export default async function InvitePage() {
   const info = new Map()
   if (questIds.length) {
     const admin = supabaseAdmin()
-    const [{ data: quests }, { data: steps }, { data: users }] = await Promise.all([
+    // ★ エージェントの判断メモ（quest_steps）は管理者向けの言葉なので、本人の画面には出さない。理由は数えた事実3つで示す
+    const [{ data: quests }, { data: users }] = await Promise.all([
       admin.from('quests').select('id, tag_id, interested_ids, live_id, tags(name)').in('id', questIds),
-      admin.from('quest_steps').select('quest_id, reason, created_at').in('quest_id', questIds).eq('kind', 'invite').order('id'),
       admin.from('users').select('id, department'),
     ])
     const dept = new Map((users ?? []).map(u => [u.id, u.department]))
@@ -41,10 +41,6 @@ export default async function InvitePage() {
         lives: new Set((myMents ?? []).filter(m => m.tag_id === q.tag_id).map(m => m.live_id)).size,
         holders: new Set((holders ?? []).filter(h => h.tag_id === q.tag_id).map(h => h.user_id)).size,
       })
-    }
-    for (const s of steps ?? []) {
-      const m = s.reason.match(/に打診した。(.*)$/s)   // 「○○ に打診した。<理由>」の理由の部分だけ
-      if (m && info.has(s.quest_id)) info.get(s.quest_id).reason = m[1].trim()
     }
   }
   const open = (invites ?? []).filter(i => i.status === 'sent')
@@ -79,12 +75,6 @@ export default async function InvitePage() {
                   <Fact h={`ライブで話した ${f.lives ?? 0}回`} t="この話題に触れたライブの数" />
                   <Fact h={`社内に${f.holders ?? 0}人`} t="この知見タグを持っている人の数" />
                 </div>
-                {f.reason && (
-                  <div style={{ display: 'flex', gap: 10, background: 'var(--amber-bg)', borderRadius: 10, padding: '10px 12px' }}>
-                    <span style={{ color: 'var(--amber)' }}><Icon name="robot" /></span>
-                    <span style={{ fontSize: 13, lineHeight: 1.6 }}><b>エージェントのひとこと：</b>{f.reason}</span>
-                  </div>
-                )}
               </div>
               <div className="topic" style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <Icon name="clock" />

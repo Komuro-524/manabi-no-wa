@@ -9,7 +9,13 @@ export default function CreateLive({ tags, defaultDate }) {
   const [title, setTitle] = useState('')
   const [tagId, setTagId] = useState('')
   const [date, setDate] = useState(defaultDate)
-  const [time, setTime] = useState('15:00')
+  // 初めの値は「次のちょうどの時刻」（過去の時刻を入れて作れない、を避ける）。今日を表示していないときは15:00
+  const [time, setTime] = useState(() => {
+    const now = new Date(Date.now() + 9 * 3600 * 1000)
+    const todayStr = now.toISOString().slice(0, 10)
+    if (defaultDate !== todayStr) return '15:00'
+    return `${String(Math.min(23, now.getUTCHours() + 1)).padStart(2, '0')}:00`
+  })
   const [minutes, setMinutes] = useState(60)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
