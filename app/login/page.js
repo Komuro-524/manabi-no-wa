@@ -34,7 +34,7 @@ export default function Login() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--ai)', padding: 16 }}>
+    <div className="shippo-ai" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div className="card" style={{ width: 440, maxWidth: '100%', padding: 28, display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ background: 'var(--ai)', borderRadius: 12, padding: 8, display: 'flex' }}><Logo size={30} /></span>

@@ -140,3 +140,20 @@ button.tab:disabled{opacity:.5;cursor:not-allowed}
   clip-path:polygon(0 0,100% 0,100% 100%,0 100%,0 51%,9px 52.5%,5px 50.5%,14px 51.5%,11px 49.5%,20px 50.5%,26px 50%,20px 49.5%,11px 48.5%,14px 47%,5px 48%,9px 46%,0 49%)}
 @keyframes deckTear{0%{transform:none}15%{transform:translateX(10px) rotate(-1deg)}25%{transform:translateX(4px)}100%{transform:translate(170px,300px) rotate(16deg);opacity:0}}
 @media (prefers-reduced-motion:reduce){.deck-flip,.deck-flip::after,.deck-tear,.deck-top,.deck-back{animation-duration:.01s}}
+
+/* ================= 七宝（しっぽう）模様 — LP（AIhack/docs/lp）と同じ柄を そっと敷く =================
+   円が四方に連なる吉祥文様。「輪がつながって広がる」＝まなびのわ。
+   主張させないよう、濃い藍の上は金を13%、生成り・白の上は金茶を10%前後に抑え、端からにじむように出す */
+:root{
+  --shippo-on-ai:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23D8BE7C' stroke-opacity='.13' stroke-width='1'%3E%3Ccircle cx='0' cy='0' r='28'/%3E%3Ccircle cx='56' cy='0' r='28'/%3E%3Ccircle cx='0' cy='56' r='28'/%3E%3Ccircle cx='56' cy='56' r='28'/%3E%3Ccircle cx='28' cy='28' r='28'/%3E%3C/g%3E%3C/svg%3E");
+  --shippo-on-paper:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23B8943F' stroke-opacity='.14' stroke-width='1'%3E%3Ccircle cx='0' cy='0' r='28'/%3E%3Ccircle cx='56' cy='0' r='28'/%3E%3Ccircle cx='0' cy='56' r='28'/%3E%3Ccircle cx='56' cy='56' r='28'/%3E%3Ccircle cx='28' cy='28' r='28'/%3E%3C/g%3E%3C/svg%3E");
+}
+/* 左メニュー: 下のほうから七宝が浮かぶ（上の項目の読みやすさは保つ） */
+.side{background-image:linear-gradient(180deg,var(--ai) 0%,var(--ai) 38%,rgba(28,43,61,.55) 70%,rgba(28,43,61,.15) 100%),var(--shippo-on-ai);background-attachment:local,local}
+/* 上のバー: 右端（検索・ベルのあたり）にだけ うっすら */
+.topbar{background-image:linear-gradient(90deg,#FFFFFF 0%,#FFFFFF 58%,rgba(255,255,255,.35) 100%),var(--shippo-on-paper)}
+/* 空っぽの表示にも少しだけ（寂しく見えないように） */
+.empty{background-image:radial-gradient(closest-side,rgba(255,255,255,.95),rgba(255,255,255,.55)),var(--shippo-on-paper);border-radius:14px}
+/* タグ帳の単語帳の暗転にも */
+.deck-back{background-image:var(--shippo-on-ai)}
+.shippo-ai{background-color:var(--ai);background-image:var(--shippo-on-ai)}
