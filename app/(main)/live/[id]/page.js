@@ -11,6 +11,7 @@ import StatusBar from '@/components/StatusBar'
 import AutoRefresh from '@/components/AutoRefresh'
 import LivePanels from './LivePanels'
 import Elapsed from './Elapsed'
+import MicTranscriber from './MicTranscriber'
 
 export default async function LivePage({ params }) {
   const { id } = await params
@@ -23,12 +24,12 @@ export default async function LivePage({ params }) {
     .eq('id', liveId).maybeSingle()
   if (!l) notFound()
 
-  const [{ data: ps }, { data: users }, { data: msgs }, { data: cards }, { data: lastSeg }] = await Promise.all([
+  const [{ data: ps }, { data: users }, { data: msgs }, { data: cards }, { data: segs }] = await Promise.all([
     db.from('live_participants').select('user_id, role').eq('live_id', liveId),
     db.from('users').select('id, display_name, department'),
     db.from('messages').select('id, user_id, body, is_agent, created_at').eq('live_id', liveId).order('id'),     // RLS: 参加者だけ
     db.from('knowledge_cards').select('id, headline, body, speaker_id, tag_id, tags(name, status)').eq('live_id', liveId).order('id'), // RLS: 正式タグ or 本人 or 管理者
-    db.from('transcript_segments').select('user_id, seq').eq('live_id', liveId).order('seq', { ascending: false }).limit(1),   // RLS: 参加者だけ
+    db.from('transcript_segments').select('id, user_id, seq, body, spoken_at').eq('live_id', liveId).order('seq'),   // RLS: 参加者だけ
   ])
   const who = new Map((users ?? []).map(u => [u.id, u]))
   // 自分が話したカードのうち、育ちかけでタグ名が読めないものは名前だけ引く（自分の行の tag_id に限る）
@@ -65,10 +66,16 @@ export default async function LivePage({ params }) {
     : null
   const statusText = l.status === 'live' ? 'いま配信中' : l.status === 'scheduled' ? `${fmtWhen(l.scheduled_start)} から` : `${fmtWhen(l.ended_at ?? l.started_at)} に終了`
 
-  // ★ 音声は今回の範囲外。「いま話している人」は、いちばん新しい発言（チャット、なければ文字起こし）の人で示す
-  const lastHuman = [...(msgs ?? [])].reverse().find(m => !m.is_agent)
-  const talkingId = lastHuman?.user_id ?? lastSeg?.[0]?.user_id ?? null
-  const talkingFresh = l.status === 'live' && lastHuman && Date.now() - new Date(lastHuman.created_at).getTime() < 3 * 60 * 1000
+  // コメントと「マイクで話した発言」（文字起こし）を時刻順に1本に並べる
+  // ★ 音声通話は今回の範囲外（DESIGN.md §11）。デモではブラウザの音声入力で文字だけを共有する
+  const timeline = [
+    ...(msgs ?? []).map(m => ({ kind: 'msg', key: `m${m.id}`, at: m.created_at, ...m })),
+    ...(segs ?? []).map(s => ({ kind: 'seg', key: `s${s.id}`, at: s.spoken_at ?? l.started_at, ...s })),
+  ].sort((a, b) => new Date(a.at ?? 0) - new Date(b.at ?? 0))
+  // 「いま話している人」は、いちばん新しい人の発言（コメントかマイク）の人で示す
+  const lastHuman = [...timeline].reverse().find(t => !t.is_agent)
+  const talkingId = lastHuman?.user_id ?? null
+  const talkingFresh = l.status === 'live' && lastHuman?.at && Date.now() - new Date(lastHuman.at).getTime() < 3 * 60 * 1000
 
   // 話し手ごとに添えるタグ（このライブの話題のタグを持っていればそれ、なければ公開している知見タグを1つ）
   const spIds = speakers.map(p => p.user_id)
@@ -86,9 +93,17 @@ export default async function LivePage({ params }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 9, flexGrow: 1, minHeight: 0 }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 9, overflowY: 'auto', flexGrow: 1, minHeight: 0 }}>
         {!amIn && <div className="note">コメントと元の発言は、このライブに参加した人だけが読めます（参加していない人にはデータベースが渡しません）</div>}
-        {amIn && (msgs ?? []).length === 0 && <div className="empty">まだコメントはありません</div>}
-        {(msgs ?? []).map(m => m.is_agent ? (
-          <div key={m.id} style={{ display: 'flex', gap: 10, padding: 12, background: 'var(--shu-bg)', borderRadius: 12 }}>
+        {amIn && timeline.length === 0 && <div className="empty">まだコメントはありません</div>}
+        {timeline.map(m => m.kind === 'seg' ? (
+          <div key={m.key} style={{ display: 'flex', gap: 10, padding: '8px 10px', background: 'var(--blue-bg)', borderRadius: 12 }}>
+            <span className="avt" style={{ width: 32, height: 32, fontSize: 15 }}>{who.get(m.user_id)?.display_name?.slice(0, 1) ?? '?'}</span>
+            <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}><b style={{ fontSize: 14 }}>{who.get(m.user_id)?.display_name ?? '?'}</b><span className="chip" style={{ background: '#FFF', color: 'var(--blue)', padding: '1px 7px', fontSize: 11 }}>🎙️ 話した言葉</span>{m.spoken_at && <span className="sub">{fmtWhen(m.spoken_at)}</span>}</span>
+              <span style={{ fontSize: 13, lineHeight: 1.6 }}>{m.body}</span>
+            </span>
+          </div>
+        ) : m.is_agent ? (
+          <div key={m.key} style={{ display: 'flex', gap: 10, padding: 12, background: 'var(--shu-bg)', borderRadius: 12 }}>
             <span className="avt" style={{ width: 32, height: 32, background: 'var(--shu)', color: '#FFF' }}><Icon name="robot" size={16} /></span>
             <span style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
@@ -99,7 +114,7 @@ export default async function LivePage({ params }) {
             </span>
           </div>
         ) : (
-          <div key={m.id} style={{ display: 'flex', gap: 10, padding: '6px 2px' }}>
+          <div key={m.key} style={{ display: 'flex', gap: 10, padding: '6px 2px' }}>
             <span className="avt" style={{ width: 32, height: 32, fontSize: 15 }}>{who.get(m.user_id)?.display_name?.slice(0, 1) ?? '?'}</span>
             <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><b style={{ fontSize: 14 }}>{who.get(m.user_id)?.display_name ?? '?'}</b><span className="sub">{fmtWhen(m.created_at)}</span></span>
@@ -177,8 +192,9 @@ export default async function LivePage({ params }) {
               {listeners.length > 6 && <span className="avt" style={{ width: 28, height: 28, fontSize: 11 }}>＋{listeners.length - 6}</span>}
             </span>}
             <span className="sub">聞くだけの参加も、正式な席です。</span>
-            <button className="btn btn-s" disabled title="音声は今回の範囲外" style={{ width: '100%' }}>スピーカーになる（音声は準備中）</button>
+            <button className="btn btn-s" disabled title="音声通話は将来構成（DESIGN.md §11）" style={{ width: '100%' }}>スピーカーになる（音声通話は準備中）</button>
           </div>
+          {l.status === 'live' && isSpeaker && <MicTranscriber liveId={liveId} />}
           {canRun && (
             <div className="card sh" style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 8, borderColor: 'var(--ai)' }}>
               <b style={{ fontSize: 14 }}>{me.role === 'admin' ? '管理者の操作' : '話し手の操作'}</b>
