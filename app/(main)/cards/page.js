@@ -36,15 +36,19 @@ export default async function Cards({ searchParams }) {
   const sel = (cards ?? []).find(c => c.id === selId) ?? (cards ?? [])[0]
 
   // 選んだカードの詳細（詳しい人・元の発言・元のライブ）
-  let experts = [], quotes = null, live = null
+  let experts = [], quotes = null, live = null, amIn = false
   if (sel) {
-    const [{ data: ut }, { data: segs }, { data: lv }] = await Promise.all([
+    const [{ data: ut }, { data: segs }, { data: lv }, { data: chats }, { data: part }] = await Promise.all([
       db.from('user_tags').select('user_id, kind').eq('tag_id', sel.tag_id).eq('kind', 'knowledge'),   // RLS: 公開かつ正式 or 本人 or 管理者
       db.from('transcript_segments').select('seq, body').eq('live_id', sel.live_id).eq('user_id', sel.speaker_id).order('seq').limit(3), // RLS: 参加者だけ
       db.from('lives').select('id, title, ended_at, started_at').eq('id', sel.live_id).maybeSingle(),
+      db.from('messages').select('id, body').eq('live_id', sel.live_id).eq('user_id', sel.speaker_id).eq('is_agent', false).order('id').limit(3), // RLS: 参加者だけ
+      db.from('live_participants').select('user_id').eq('live_id', sel.live_id).eq('user_id', me.id).maybeSingle(),
     ])
     experts = [...new Set((ut ?? []).map(r => r.user_id))].map(id => who.get(id)).filter(Boolean)
-    quotes = segs ?? []
+    // 画面から開いたライブは文字起こしが無く、コメントだけのこともある
+    quotes = (segs ?? []).length ? segs.map(x => ({ k: 's' + x.seq, body: x.body })) : (chats ?? []).map(x => ({ k: 'c' + x.id, body: x.body }))
+    amIn = !!part
     live = lv
   }
   const qs = (extra) => {
@@ -91,13 +95,13 @@ export default async function Cards({ searchParams }) {
               <div style={{ fontSize: 20, fontWeight: 700 }}>{sel.headline}</div>
               <div style={{ fontSize: 14, lineHeight: 1.7 }}>{sel.body}</div>
               <div className="sub">話した人: {who.get(sel.speaker_id)?.display_name ?? '?'}（{who.get(sel.speaker_id)?.department}）</div>
-              {live && <Link className="btn btn-s" style={{ alignSelf: 'flex-start' }} href={`/live/${live.id}`}><Icon name="live" size={14} /> 元のライブ：{splitTitle(live.title).main}</Link>}
+              {live && <Link className="btn btn-s" style={{ alignSelf: 'stretch', whiteSpace: 'normal', textAlign: 'left', justifyContent: 'flex-start', lineHeight: 1.5 }} href={`/live/${live.id}`}><Icon name="live" size={14} /> <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>元のライブ：{splitTitle(live.title).main}</span></Link>}
 
               <div style={{ borderTop: '1px solid var(--line)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <span className="ttl" style={{ fontSize: 15 }}>このカードの元になった発言</span>
                 {quotes && quotes.length > 0
-                  ? quotes.map(s => <div key={s.seq} className="sub" style={{ borderLeft: '3px solid var(--line)', paddingLeft: 8 }}>{s.body}</div>)
-                  : <div className="note">元の発言は、そのライブに参加した人だけが読めます</div>}
+                  ? quotes.map(s => <div key={s.k} className="sub" style={{ borderLeft: '3px solid var(--line)', paddingLeft: 8 }}>{s.body}</div>)
+                  : <div className="note">{amIn ? '元になった発言は見つかりませんでした' : '元の発言は、そのライブに参加した人だけが読めます'}</div>}
               </div>
               <div style={{ borderTop: '1px solid var(--line)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <span className="ttl" style={{ fontSize: 15 }}>この知見に詳しい人</span>
