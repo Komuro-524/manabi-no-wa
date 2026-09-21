@@ -1,0 +1,43 @@
+# DBの状態（tag-mentions）
+
+記録日時: 2026-09-21T03:36:01.202Z（2026/9/21 12:36:01）
+
+## 全テーブルの件数
+
+| テーブル | 件数 |
+|---|---|
+| users | 11 |
+| tags | 55 |
+| lives | 4 |
+| live_participants | 12 |
+| messages | 0 |
+| knowledge_cards | 6 |
+| user_tags | 30 |
+| quests | 7 |
+| quest_steps | 9 |
+| invitations | 2 |
+| calendar_events | 0 |
+| agent_runs | 16 |
+| self_analysis_sessions | 1 |
+| transcript_segments | 39 |
+| tag_mentions | 6 |
+
+## タグの status 内訳
+
+| status | 件数 |
+|---|---|
+| official | 12 |
+| proposed | 0 |
+| candidate | 36 |
+| rejected | 4 |
+| banned | 3 |
+
+## 直近の知見カード（最大5件）
+
+| id | タグ | 見出し | 話した人 | 作成日時 |
+|---|---|---|---|---|
+| 20 | 議事録の書き方 | 会議中リアルタイムで議事録を作成 | 松永 蒼 | 2026-09-21T02:56:37.738065+00:00 |
+| 19 | インデックス最適化 | 日付列にインデックス追加で高速化 | 神谷 美月 | 2026-09-21T02:55:49.730326+00:00 |
+| 18 | SQL | CTEで集計クエリを3分に短縮 | 神谷 美月 | 2026-09-21T02:55:49.393592+00:00 |
+| 17 | Power Automate | 大量データ処理の実行時間上限回避 | 綾瀬 大輝 | 2026-09-21T02:52:54.89743+00:00 |
+| 16 | Power Automate | 3日以上放置時の自動催促 | 綾瀬 大輝 | 2026-09-21T02:52:54.570737+00:00 |
