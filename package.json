@@ -7,7 +7,6 @@
     "dev": "next dev --turbopack -p 3030",
     "build": "next build",
     "start": "next start -p 3030",
-    "seed:users": "node scripts/seed-demo-users.mjs",
     "recorder": "node scripts/recorder.mjs",
     "evidence": "node scripts/evidence.mjs"
   },
