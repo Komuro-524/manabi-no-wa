@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation'
 
 const ITEMS = [
   { href: '/admin', label: 'ダッシュボード' },
-  { href: '/admin/tags', label: 'タグ辞書' },
+  { href: '/admin/tags', label: 'タグ帳' },
   { href: '/admin/progress', label: 'ライブのタネ', also: '/admin/quests' },
   { href: '/admin/agents', label: 'エージェント' },
   { href: '/admin/security', label: 'セキュリティ' },

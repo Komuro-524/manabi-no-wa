@@ -31,7 +31,7 @@ export default async function AdminSecurity() {
             <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {(banned ?? []).map(t => <span key={t.id} className="chip" style={{ background: 'var(--shu-bg)', color: 'var(--shu)' }}>{t.name}</span>)}
             </span>
-            <Link className="btn btn-s" href="/admin/tags?tab=banned" style={{ alignSelf: 'flex-start' }}>タグ辞書で見る</Link>
+            <Link className="btn btn-s" href="/admin/tags?tab=banned" style={{ alignSelf: 'flex-start' }}>タグ帳で見る</Link>
           </div>
         </div>
         <List title={`人に戻したライブ（needs_review） ${(review ?? []).length}件`} empty="ありません"

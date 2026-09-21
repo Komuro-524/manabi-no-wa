@@ -30,7 +30,7 @@ export default async function AdminTags({ searchParams }) {
 
   return (
     <>
-      <Topbar me={me} title="タグ辞書" sub="AIが見つけた言葉は候補止まり。正式にするのは管理者だけ" />
+      <Topbar me={me} title="タグ帳" sub="AIが見つけた言葉は候補止まり。正式にするのは管理者だけ" />
       <TagsBoard tags={all ?? []} stats={stats} requests={requests} meId={me.id} initialTab={sp.tab} />
     </>
   )

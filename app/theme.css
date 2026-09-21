@@ -109,3 +109,23 @@ button.tab:disabled{opacity:.5;cursor:not-allowed}
 .map-pulse{animation:mapPulse 1.4s ease-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes mapPulse{0%{opacity:1;transform:scale(.85)}100%{opacity:0;transform:scale(1.35)}}
 @media (prefers-reduced-motion:reduce){.map-pulse{animation:none}}
+/* タグ帳の単語帳（admin/tags/TagDeck.js） */
+.deck-back{position:fixed;inset:0;z-index:300;background:rgba(14,20,27,.74);display:flex;align-items:center;justify-content:center;padding:16px;animation:deckIn .35s ease-out}
+.deck-out{animation:deckOut .35s ease-in forwards}
+@keyframes deckIn{from{opacity:0}to{opacity:1}}
+@keyframes deckOut{to{opacity:0}}
+.deck-card{position:absolute;inset:0;background:#FFFDF6;border-radius:14px;border:1px solid var(--line);box-shadow:0 10px 24px rgba(0,0,0,.3);
+  background-image:linear-gradient(transparent 0 58px,var(--line-soft) 58px 59px,transparent 59px);background-size:100% 100%}
+.deck-card::before{content:"";position:absolute;left:30px;top:44px;width:18px;height:18px;border-radius:999px;background:rgba(14,20,27,.74);box-shadow:inset 0 1px 3px rgba(0,0,0,.5)}
+.deck-top{cursor:grab;touch-action:none;user-select:none;transition:transform .25s,box-shadow .25s;animation:deckRise .45s ease-out}
+.deck-top:focus-visible{outline:3px solid #E0B84A;outline-offset:3px}
+@keyframes deckRise{from{transform:translateY(14px) scale(.97);opacity:.4}to{transform:none;opacity:1}}
+.deck-ring{position:absolute;left:-2px;top:6px;pointer-events:none;z-index:5}
+.deck-flip{transform-origin:50% 0;animation:deckFlip .6s cubic-bezier(.5,0,.6,1) forwards}
+@keyframes deckFlip{0%{transform:perspective(900px) rotateX(0)}55%{transform:perspective(900px) rotateX(-95deg);opacity:1}100%{transform:perspective(900px) rotateX(-180deg) translateY(10px);opacity:0}}
+.deck-half{pointer-events:none}
+.deck-tear-l{clip-path:polygon(0 0,52% 0,47% 12%,55% 24%,46% 37%,54% 50%,45% 63%,53% 76%,47% 88%,52% 100%,0 100%);animation:tearL .6s ease-in forwards}
+.deck-tear-r{clip-path:polygon(52% 0,100% 0,100% 100%,52% 100%,47% 88%,53% 76%,45% 63%,54% 50%,46% 37%,55% 24%,47% 12%);animation:tearR .6s ease-in forwards}
+@keyframes tearL{0%{transform:none}20%{transform:translate(-6px,2px) rotate(-2deg)}100%{transform:translate(-120px,260px) rotate(-24deg);opacity:0}}
+@keyframes tearR{0%{transform:none}20%{transform:translate(6px,2px) rotate(2deg)}100%{transform:translate(120px,280px) rotate(22deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){.deck-flip,.deck-tear-l,.deck-tear-r,.deck-top,.deck-back{animation-duration:.01s}}
