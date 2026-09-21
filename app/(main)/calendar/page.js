@@ -1,52 +1,140 @@
 import Link from 'next/link'
 import { supabaseServer, currentUser } from '@/lib/supabase/server'
 import Topbar from '@/components/Topbar'
+import { Icon } from '@/components/icons'
 import { splitTitle } from '@/lib/format'
+import ScrollToHour from './ScrollToHour'
 
+// 日程カレンダー（自分の分だけ）。月・週・日で切り替え、前後にいくらでも移動できる。
+// 予定は「埋まり」だけでタイトルを持たない（ルール11）。場づくりエージェントが見るのもこの「空き／埋まり」だけ
 const W = ['日', '月', '火', '水', '木', '金', '土']
-const jst = d => new Date(new Date(d).toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }))
-const key = d => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+const JST = 9 * 3600 * 1000
+// 日本時間の「壁の時計」で扱うため、UTC の値に +9時間した Date を使い getUTC* で読む
+const wall = iso => new Date(new Date(iso).getTime() + JST)
+const todayWall = () => { const d = wall(new Date().toISOString()); d.setUTCHours(0, 0, 0, 0); return d }
+const ymd = d => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
+const addDays = (d, n) => { const x = new Date(d); x.setUTCDate(x.getUTCDate() + n); return x }
+const toIso = d => new Date(d.getTime() - JST).toISOString()   // 壁の時計 → 本当の時刻
+const hm = d => `${d.getUTCHours()}:${String(d.getUTCMinutes()).padStart(2, '0')}`
+const HOUR = 44
 
-// 日程カレンダー（自分の分だけ）。予定は「埋まり」だけでタイトルを持たない（ルール11）。
-// 場づくりエージェントが見るのもこの「空き／埋まり」だけ
-export default async function CalendarPage() {
+export default async function CalendarPage({ searchParams }) {
+  const sp = await searchParams
+  const view = ['month', 'week', 'day'].includes(sp.view) ? sp.view : 'week'
+  const base = /^\d{4}-\d{2}-\d{2}$/.test(sp.date ?? '') ? new Date(sp.date + 'T00:00:00Z') : todayWall()
   const me = await currentUser()
   const db = await supabaseServer()
-  const [{ data: busy }, { data: parts }] = await Promise.all([
-    db.from('calendar_events').select('starts_at, ends_at').eq('busy', true),   // RLS: 自分の予定だけ
-    db.from('live_participants').select('role, lives(id, title, status, scheduled_start, scheduled_end)').eq('user_id', me.id),
-  ])
-  const today = jst(new Date()); today.setHours(0, 0, 0, 0)
-  const days = Array.from({ length: 14 }, (_, i) => { const d = new Date(today); d.setDate(d.getDate() + i); return d })
-  const byDay = new Map(days.map(d => [key(d), []]))
-  for (const b of busy ?? []) { const s = jst(b.starts_at), e = jst(b.ends_at); byDay.get(key(s))?.push({ kind: 'busy', s, e }) }
-  for (const p of parts ?? []) {
-    const l = p.lives; if (!l || l.status !== 'scheduled' || !l.scheduled_start) continue
-    const s = jst(l.scheduled_start), e = jst(l.scheduled_end ?? l.scheduled_start)
-    byDay.get(key(s))?.push({ kind: 'live', s, e, id: l.id, title: splitTitle(l.title).main, role: p.role })
+
+  // 表示する範囲
+  let from, to, title, prev, next
+  if (view === 'month') {
+    const first = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth(), 1))
+    from = addDays(first, -first.getUTCDay()); to = addDays(from, 42)
+    title = `${base.getUTCFullYear()}年${base.getUTCMonth() + 1}月`
+    prev = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth() - 1, 1)); next = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth() + 1, 1))
+  } else if (view === 'week') {
+    from = addDays(base, -base.getUTCDay()); to = addDays(from, 7)
+    const last = addDays(to, -1)
+    title = `${from.getUTCMonth() + 1}/${from.getUTCDate()}（日）〜 ${last.getUTCMonth() + 1}/${last.getUTCDate()}（土）`
+    prev = addDays(base, -7); next = addDays(base, 7)
+  } else {
+    from = base; to = addDays(base, 1)
+    title = `${base.getUTCFullYear()}年${base.getUTCMonth() + 1}月${base.getUTCDate()}日（${W[base.getUTCDay()]}）`
+    prev = addDays(base, -1); next = addDays(base, 1)
   }
-  const hm = d => `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
+
+  const [{ data: busy }, { data: parts }] = await Promise.all([
+    db.from('calendar_events').select('starts_at, ends_at').eq('busy', true)   // RLS: 自分の予定だけ
+      .lt('starts_at', toIso(to)).gt('ends_at', toIso(from)),
+    db.from('live_participants').select('role, lives(id, title, status, scheduled_start, scheduled_end, started_at, ended_at)').eq('user_id', me.id),
+  ])
+  const items = []
+  for (const b of busy ?? []) items.push({ kind: 'busy', s: wall(b.starts_at), e: wall(b.ends_at) })
+  for (const p of parts ?? []) {
+    const l = p.lives; if (!l) continue
+    const st = l.scheduled_start ?? l.started_at; if (!st) continue
+    const en = l.scheduled_end ?? l.ended_at ?? st
+    const s = wall(st), e0 = wall(en), e = e0 - s < 30 * 60000 ? new Date(s.getTime() + 60 * 60000) : e0
+    if (e <= from || s >= to) continue
+    items.push({ kind: 'live', s, e, id: l.id, title: splitTitle(l.title).main, role: p.role, past: l.status === 'ended' })
+  }
+  const dayItems = d => items.filter(it => ymd(it.s) === ymd(d)).sort((a, b) => a.s - b.s)
+  const today = ymd(todayWall())
+  const link = (v, d) => `/calendar?view=${v}&date=${ymd(d)}`
 
   return (
     <>
-      <Topbar me={me} title="日程カレンダー" sub="これから2週間。灰色はあなたの予定（中身は持たず、埋まっていることだけ）" />
-      <div className="body">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
-          {days.map(d => {
-            const items = (byDay.get(key(d)) ?? []).sort((a, b) => a.s - b.s)
-            const wk = d.getDay()
-            return (
-              <div key={key(d)} className="card" style={{ padding: 10, minHeight: 120, display: 'flex', flexDirection: 'column', gap: 6, background: wk === 0 || wk === 6 ? 'var(--bg)' : undefined }}>
-                <span style={{ fontWeight: 700, fontSize: 13, color: wk === 0 ? 'var(--shu)' : wk === 6 ? 'var(--blue)' : undefined }}>{d.getMonth() + 1}/{d.getDate()}（{W[wk]}）</span>
-                {items.map((it, i) => it.kind === 'busy'
-                  ? <span key={i} style={{ fontSize: 11, background: 'var(--bar)', color: 'var(--ink2)', borderRadius: 6, padding: '3px 6px' }}>{hm(it.s)}–{hm(it.e)} 予定あり</span>
-                  : <Link key={i} href={`/live/${it.id}`} style={{ fontSize: 11, background: 'var(--shu)', color: '#FFF', borderRadius: 6, padding: '3px 6px' }}>{hm(it.s)} ＃{it.title}（{it.role === 'speaker' ? '話し手' : '参加'}）</Link>)}
-              </div>
-            )
-          })}
+      <Topbar me={me} title="日程カレンダー" sub="灰色はあなたの予定（中身は持たず、埋まっていることだけ）。朱色はライブ" />
+      <div className="body" style={{ overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <Link className="btn btn-s" href={link(view, prev)} aria-label="前へ"><Icon name="back" size={14} /></Link>
+          <Link className="btn btn-s" href={link(view, todayWall())}>今日</Link>
+          <Link className="btn btn-s" href={link(view, next)} aria-label="次へ"><span style={{ display: 'inline-flex', transform: 'rotate(180deg)' }}><Icon name="back" size={14} /></span></Link>
+          <b style={{ fontSize: 18, marginLeft: 6 }}>{title}</b>
+          <span style={{ flexGrow: 1 }} />
+          {[['month', '月'], ['week', '週'], ['day', '日']].map(([v, l]) => (
+            <Link key={v} className={'tab' + (view === v ? ' tabon' : '')} href={link(v, base)}>{l}</Link>
+          ))}
         </div>
+
+        {view === 'month' && (
+          <div className="card" style={{ flexGrow: 1, minHeight: 0, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gridTemplateRows: 'auto repeat(6, 1fr)', overflow: 'hidden' }}>
+            {W.map((w, i) => <div key={w} className="sub" style={{ padding: '6px 8px', fontWeight: 700, color: i === 0 ? 'var(--shu)' : i === 6 ? 'var(--blue)' : undefined, borderBottom: '1px solid var(--line)' }}>{w}</div>)}
+            {Array.from({ length: 42 }, (_, i) => addDays(from, i)).map(d => {
+              const its = dayItems(d), other = d.getUTCMonth() !== base.getUTCMonth()
+              return (
+                <div key={ymd(d)} style={{ padding: 6, borderRight: '1px solid var(--line-soft)', borderBottom: '1px solid var(--line-soft)', display: 'flex', flexDirection: 'column', gap: 3, minHeight: 0, overflow: 'hidden', color: 'var(--ink)', background: other ? 'var(--bg)' : undefined }}>
+                  <Link href={link('day', d)} style={{ fontSize: 12, fontWeight: 700, alignSelf: 'flex-start', padding: '1px 6px', borderRadius: 999, background: ymd(d) === today ? 'var(--shu)' : undefined, color: ymd(d) === today ? '#FFF' : other ? 'var(--sub)' : 'var(--ink)' }}>{d.getUTCDate()}</Link>
+                  {its.slice(0, 3).map((it, k) => <Chip key={k} it={it} />)}
+                  {its.length > 3 && <Link href={link('day', d)} className="sub" style={{ fontSize: 10 }}>ほか{its.length - 3}件</Link>}
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {view !== 'month' && (
+          <div className="card" style={{ flexGrow: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: `52px repeat(${view === 'week' ? 7 : 1}, 1fr)`, borderBottom: '1px solid var(--line)' }}>
+              <span />
+              {Array.from({ length: view === 'week' ? 7 : 1 }, (_, i) => addDays(from, i)).map(d => (
+                <Link key={ymd(d)} href={link('day', d)} style={{ padding: '6px 8px', textAlign: 'center', color: d.getUTCDay() === 0 ? 'var(--shu)' : d.getUTCDay() === 6 ? 'var(--blue)' : 'var(--ink)', fontWeight: 700, fontSize: 13 }}>
+                  <span style={{ padding: '2px 8px', borderRadius: 999, background: ymd(d) === today ? 'var(--shu)' : undefined, color: ymd(d) === today ? '#FFF' : undefined }}>{d.getUTCMonth() + 1}/{d.getUTCDate()}（{W[d.getUTCDay()]}）</span>
+                </Link>
+              ))}
+            </div>
+            <ScrollToHour hour={8} unit={HOUR}>
+              <div style={{ display: 'grid', gridTemplateColumns: `52px repeat(${view === 'week' ? 7 : 1}, 1fr)`, position: 'relative', height: HOUR * 24 }}>
+                <div>{Array.from({ length: 24 }, (_, h) => <div key={h} className="sub" style={{ height: HOUR, fontSize: 10, textAlign: 'right', paddingRight: 6, transform: 'translateY(-6px)' }}>{h ? `${h}:00` : ''}</div>)}</div>
+                {Array.from({ length: view === 'week' ? 7 : 1 }, (_, i) => addDays(from, i)).map(d => (
+                  <div key={ymd(d)} style={{ position: 'relative', borderLeft: '1px solid var(--line-soft)', background: `repeating-linear-gradient(to bottom, transparent 0, transparent ${HOUR - 1}px, var(--line-soft) ${HOUR - 1}px, var(--line-soft) ${HOUR}px)` }}>
+                    {dayItems(d).map((it, k) => {
+                      const top = (it.s.getUTCHours() + it.s.getUTCMinutes() / 60) * HOUR
+                      const h = Math.max(22, (it.e - it.s) / 3600000 * HOUR - 2)
+                      return (
+                        <div key={k} style={{ position: 'absolute', top, left: 3, right: 3, height: h }}>
+                          <Chip it={it} tall />
+                        </div>
+                      )
+                    })}
+                  </div>
+                ))}
+              </div>
+            </ScrollToHour>
+          </div>
+        )}
         <div className="note">打診を引き受けると、場づくりエージェントがここの「空き」だけを見て、15:00〜16:00の枠から予約します。予定の中身や相手は見ません</div>
       </div>
     </>
+  )
+}
+
+function Chip({ it, tall }) {
+  const style = { fontSize: 11, borderRadius: 6, padding: '3px 6px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', display: 'block', height: tall ? '100%' : undefined }
+  if (it.kind === 'busy') return <span style={{ ...style, background: 'var(--bar)', color: 'var(--ink2)' }}>{hm(it.s)}–{hm(it.e)} 予定あり</span>
+  return (
+    <Link href={`/live/${it.id}`} style={{ ...style, background: it.past ? 'var(--shu-bg)' : 'var(--shu)', color: it.past ? 'var(--shu)' : '#FFF' }}>
+      {hm(it.s)} ＃{it.title}（{it.role === 'speaker' ? '話し手' : '参加'}）
+    </Link>
   )
 }

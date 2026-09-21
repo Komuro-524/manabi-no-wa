@@ -20,20 +20,20 @@ export default async function MapPage() {
   const mine = new Set((ut ?? []).filter(u => u.user_id === me.id).map(u => u.tag_id))
   const nodes = (tags ?? []).map(t => ({ ...t, cards: cardN.get(t.id) ?? 0, people: people.get(t.id)?.size ?? 0 }))
     .sort((a, b) => b.cards - a.cards)
-  const W = 900, H = 600, cx = W / 2, cy = H / 2
-  // 置き方: いちばんカードの多いタグを真ん中、次の6つを内側の輪、残りを外側の輪に等間隔
+  // 画面にぴったり収まるよう、横長の座標で描いて SVG を枠いっぱいに縮める（スクロールさせない）
+  const W = 1000, H = 560, cx = W / 2, cy = H / 2 - 10
   const inner = nodes.slice(1, 7), outer = nodes.slice(7)
   nodes.forEach((n, i) => {
     let x = cx, y = cy
     if (i > 0) {
       const ring = i < 7 ? inner : outer
       const idx = ring.indexOf(n), cnt = Math.max(1, ring.length)
-      const rad = i < 7 ? 170 : 270
-      const ang = (idx / cnt) * Math.PI * 2 + (i < 7 ? 0 : 0.4)
-      x = cx + rad * Math.cos(ang); y = cy + rad * 0.78 * Math.sin(ang)
+      const [rx, ry] = i < 7 ? [230, 150] : [430, 225]
+      const ang = (idx / cnt) * Math.PI * 2 + (i < 7 ? -Math.PI / 2 : -Math.PI / 2 + Math.PI / cnt)
+      x = cx + rx * Math.cos(ang); y = cy + ry * Math.sin(ang)
     }
     n.x = Math.round(x); n.y = Math.round(y)
-    n.r = 18 + Math.min(40, n.cards * 6)
+    n.r = 12 + Math.min(26, n.cards * 4)   // 円は小さめ。文字は円の下に出す
   })
   const edges = []
   for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
@@ -47,18 +47,20 @@ export default async function MapPage() {
   return (
     <>
       <Topbar me={me} title="知識地図" sub="円が大きいほど知見カードが多い。線は同じライブで一緒に語られたタグ" />
-      <div className="body">
-        <div className="card sh" style={{ padding: 12 }}>
+      <div className="body" style={{ overflow: 'hidden' }}>
+        <div className="card sh" style={{ padding: 8, flexGrow: 1, minHeight: 0, display: 'flex' }}>
           {nodes.length === 0 ? <div className="empty">まだ正式なタグがありません</div> : (
-            <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto' }} role="img" aria-label="タグのつながり">
+            <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" style={{ width: '100%', height: '100%', display: 'block' }} role="img" aria-label="タグのつながり">
               {edges.map((e, i) => <line key={i} x1={e.a.x} y1={e.a.y} x2={e.b.x} y2={e.b.y} stroke="#D8BE7C" strokeWidth={1 + e.w} opacity=".7" />)}
               {nodes.map(n => {
                 const [bg, fg] = COLOR[n.kind] ?? COLOR['分野']
                 return (
                   <a key={n.id} href={`/cards?tag=${n.id}`}>
-                    <circle cx={n.x} cy={n.y} r={n.r} fill={bg} stroke={mine.has(n.id) ? '#A83B2E' : fg} strokeWidth={mine.has(n.id) ? 3 : 1.2} />
-                    <text x={n.x} y={n.y - 2} textAnchor="middle" fontSize="13" fontWeight="700" fill={fg}>{n.name}</text>
-                    <text x={n.x} y={n.y + 14} textAnchor="middle" fontSize="10" fill="#6B6459">{n.cards}枚・{n.people}人</text>
+                    <title>{`${n.name}：知見カード${n.cards}枚・${n.people}人`}</title>
+                    <circle cx={n.x} cy={n.y} r={n.r} fill={bg} stroke={mine.has(n.id) ? '#A83B2E' : fg} strokeWidth={mine.has(n.id) ? 3 : 1.5} />
+                    <text x={n.x} y={n.y + 4} textAnchor="middle" fontSize="11" fontWeight="700" fill={fg}>{n.cards}</text>
+                    <text x={n.x} y={n.y + n.r + 16} textAnchor="middle" fontSize="14" fontWeight="700" fill="#1C2B3D"
+                      stroke="#FFFFFF" strokeWidth="4" strokeLinejoin="round" style={{ paintOrder: 'stroke' }}>{n.name}</text>
                   </a>
                 )
               })}
@@ -68,7 +70,7 @@ export default async function MapPage() {
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           {Object.entries(COLOR).map(([k, [bg, fg]]) => <span key={k} className="chip" style={{ background: bg, color: fg }}>{k}</span>)}
           <span className="chip" style={{ background: '#FFF', color: 'var(--shu)', border: '2px solid var(--shu)' }}>あなたのタグ</span>
-          <span className="sub">円を押すと、そのタグの知見カードへ</span>
+          <span className="sub">円の中の数字＝知見カードの枚数。円を押すと、そのタグのカードへ</span>
         </div>
       </div>
     </>
