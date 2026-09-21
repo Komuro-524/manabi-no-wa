@@ -45,7 +45,7 @@ export default function TagDeck({ deck, meId, onClose }) {
       : { status: 'rejected', rejected_reason: '管理者が見送り（タグ帳）' }
     const [{ error }] = await Promise.all([
       supabaseBrowser().from('tags').update({ ...patch, reviewed_by: meId, reviewed_at: now }).eq('id', t.id),
-      new Promise(r => setTimeout(r, 650)),   // 演出が終わるのを待つ
+      new Promise(r => setTimeout(r, 750)),   // 演出が終わるのを待つ
     ])
     setAnim(null)
     if (error) { setErr(`「${t.name}」を${adopt ? '採用' : '却下'}できませんでした: ${error.message}`); return }
