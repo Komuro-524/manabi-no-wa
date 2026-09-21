@@ -4,6 +4,7 @@ import Topbar from '@/components/Topbar'
 import { Icon } from '@/components/icons'
 import { splitTitle } from '@/lib/format'
 import ScrollToHour from './ScrollToHour'
+import CreateLive from './CreateLive'
 
 // 日程カレンダー（自分の分だけ）。月・週・日で切り替え、前後にいくらでも移動できる。
 // 予定は「埋まり」だけでタイトルを持たない（ルール11）。場づくりエージェントが見るのもこの「空き／埋まり」だけ
@@ -43,10 +44,11 @@ export default async function CalendarPage({ searchParams }) {
     prev = addDays(base, -1); next = addDays(base, 1)
   }
 
-  const [{ data: busy }, { data: parts }] = await Promise.all([
+  const [{ data: busy }, { data: parts }, { data: officialTags }] = await Promise.all([
     db.from('calendar_events').select('starts_at, ends_at').eq('busy', true)   // RLS: 自分の予定だけ
       .lt('starts_at', toIso(to)).gt('ends_at', toIso(from)),
     db.from('live_participants').select('role, lives(id, title, status, scheduled_start, scheduled_end, started_at, ended_at)').eq('user_id', me.id),
+    db.from('tags').select('id, name').eq('status', 'official').order('name'),
   ])
   const items = []
   for (const b of busy ?? []) items.push({ kind: 'busy', s: wall(b.starts_at), e: wall(b.ends_at) })
@@ -71,10 +73,13 @@ export default async function CalendarPage({ searchParams }) {
           <Link className="btn btn-s" href={link(view, todayWall())}>今日</Link>
           <Link className="btn btn-s" href={link(view, next)} aria-label="次へ"><span style={{ display: 'inline-flex', transform: 'rotate(180deg)' }}><Icon name="back" size={14} /></span></Link>
           <b style={{ fontSize: 18, marginLeft: 6 }}>{title}</b>
+          <span style={{ display: 'inline-flex', gap: 4, marginLeft: 6 }}>
+            {[['month', '月'], ['week', '週'], ['day', '日']].map(([v, l]) => (
+              <Link key={v} className={'tab' + (view === v ? ' tabon' : '')} style={{ minHeight: 34, padding: '6px 12px' }} href={link(v, base)}>{l}</Link>
+            ))}
+          </span>
           <span style={{ flexGrow: 1 }} />
-          {[['month', '月'], ['week', '週'], ['day', '日']].map(([v, l]) => (
-            <Link key={v} className={'tab' + (view === v ? ' tabon' : '')} href={link(v, base)}>{l}</Link>
-          ))}
+          <CreateLive tags={officialTags ?? []} defaultDate={ymd(view === 'month' && ymd(base) < ymd(todayWall()) ? todayWall() : (ymd(base) < ymd(todayWall()) ? todayWall() : base))} />
         </div>
 
         {view === 'month' && (

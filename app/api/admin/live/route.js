@@ -4,13 +4,13 @@ import { verifiedUser } from '@/lib/supabase/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { runDetached } from '@/lib/run-script'
 
-// ライブを始める／終える（管理者だけ）。
+// ライブを始める／終える（管理者 か そのライブの話し手）。
 // lives にはブラウザ向けの update ポリシーが無い設計なので、管理者か確かめてから service_role で書く。
 // 終えたら、タグ付けエージェント（scripts/recorder.mjs と同じもの）を裏で動かす。
 // 進み具合は lives.ingest_status（pending → running → done / needs_review）で画面に出す
 export async function POST(req) {
   const me = await verifiedUser()
-  if (!me || me.role !== 'admin') return NextResponse.json({ error: '管理者だけが操作できます' }, { status: 403 })
+  if (!me) return NextResponse.json({ error: 'ログインしてください' }, { status: 401 })
 
   const { liveId, action } = await req.json()
   const id = Number(liveId)
@@ -20,6 +20,11 @@ export async function POST(req) {
   const db = supabaseAdmin()
   const { data: live } = await db.from('lives').select('id, status').eq('id', id).maybeSingle()
   if (!live) return NextResponse.json({ error: 'ライブがありません' }, { status: 404 })
+  // 始める・終えるは 管理者 か そのライブの話し手 だけ
+  if (me.role !== 'admin') {
+    const { data: sp } = await db.from('live_participants').select('user_id').eq('live_id', id).eq('user_id', me.id).eq('role', 'speaker').maybeSingle()
+    if (!sp) return NextResponse.json({ error: '管理者か このライブの話し手だけが操作できます' }, { status: 403 })
+  }
 
   if (action === 'start') {
     if (live.status !== 'scheduled') return NextResponse.json({ error: '予定のライブだけ始められます' }, { status: 409 })

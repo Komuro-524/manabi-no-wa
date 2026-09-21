@@ -84,9 +84,9 @@ export default async function LivePage({ params }) {
 
         {/* 右: 参加者と、このライブから生まれたもの */}
         <div style={{ width: 360, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {me.role === 'admin' && (l.status === 'scheduled' || l.status === 'live') && (
+          {(me.role === 'admin' || speakers.some(p => p.user_id === me.id)) && (l.status === 'scheduled' || l.status === 'live') && (
             <div className="card sh" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8, borderColor: 'var(--ai)' }}>
-              <div className="ttl">管理者の操作</div>
+              <div className="ttl">{me.role === 'admin' ? '管理者の操作' : '話し手の操作'}</div>
               {l.status === 'scheduled'
                 ? <><span className="sub">始めると、参加とチャットができるようになります</span>
                     <AdminRunButton url="/api/admin/live" body={{ liveId: l.id, action: 'start' }} label="ライブを始める" /></>
