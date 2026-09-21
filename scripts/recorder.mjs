@@ -166,6 +166,20 @@ try {
     console.log(`\n🔁 ライブ #${LIVE_ID} は取り込み済みです。二重取り込みを弾きました\n`)
     process.exit(0)
   }
+  // --- ★F8: 前回が途中で止まった（ingest_status='running'のまま）なら、やり直さず人に返す ---
+  //   やり直すと、前回すでに書けていたかもしれない知見カードの上に また書いてしまい二重にできる。
+  //   「③の再開」は本人の判断が要るので、ここは人（needs_review）に返すだけにする
+  if (live.ingest_status === 'running') {
+    const note = '前回の取り込みが途中で止まった（ingest_status=running のまま開始された）。二重書き込みを避けるためやり直さず人に返す'
+    console.log(`\n🛑 ライブ #${LIVE_ID} は前回 途中で止まっていました（ingest_status=running）`)
+    console.log(`   ${note}\n`)
+    if (!DRY_RUN) {
+      await db.from('lives').update({ ingest_status: 'needs_review' }).eq('id', LIVE_ID)
+      if (runId) await db.from('agent_runs')
+        .update({ status: 'failed', error: note, note, finished_at: new Date() }).eq('id', runId)
+    }
+    process.exit(1)
+  }
 
   const { data: segments, error: segErr } = await db.from('transcript_segments')
     .select('seq,user_id,body').eq('live_id', LIVE_ID).order('seq')
