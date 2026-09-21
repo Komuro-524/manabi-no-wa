@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>スマートフォン｜まなびのわ</title>
+
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"Noto Sans JP",sans-serif;color:#1E2634;background:#F6F3EE;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,p,ul,ol{margin:0}
+ul{padding:0;list-style:none}
+a{color:#A33724;text-decoration:none}
+a:hover{color:#7E2519}
+.wa{font-family:"Zen Maru Gothic",sans-serif}
+.card{background:#FFFFFF;border:1px solid #E6E0D6;border-radius:14px}
+.sh{box-shadow:0 1px 2px rgba(30,38,52,.05)}
+.ttl{font-size:14px;font-weight:700;letter-spacing:.01em}
+.sub{font-size:12px;color:#6F7886;line-height:1.5}
+.mut{color:#6F7886}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:600;line-height:1.2;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:10px;border:1px solid #E6E0D6;background:#FFFFFF;color:#1E2634;font:600 13px "Noto Sans JP",sans-serif;padding:11px 14px;min-height:44px;cursor:pointer;white-space:nowrap}
+.btn:hover{background:#FBF9F6}
+.btn-p{background:#D9533C;border-color:#D9533C;color:#FFFFFF}
+.btn-p:hover{background:#B8402C}
+.btn-s{padding:7px 11px;min-height:34px;font-size:12px;border-radius:8px}
+.nav{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:10px;color:#C2CBDB;font-size:13px;font-weight:500;min-height:42px}
+.nav:hover{background:#33435F;color:#FFFFFF}
+.navon{background:#3E5170;color:#FFFFFF}
+.navlbl{font-size:10px;font-weight:700;letter-spacing:.14em;color:#7C8AA3;padding:14px 12px 5px}
+.num{font-variant-numeric:tabular-nums}
+.mono{font-family:Consolas,"Liberation Mono",monospace;font-variant-numeric:tabular-nums;font-size:12px}
+table{border-collapse:collapse;width:100%}
+th{text-align:left;font-size:11px;font-weight:700;color:#6F7886;padding:0 10px 9px;border-bottom:1px solid #E6E0D6;white-space:nowrap}
+td{padding:11px 10px;border-bottom:1px solid #F1ECE4;font-size:13px;vertical-align:middle}
+input,select{font-family:"Noto Sans JP",sans-serif}
+.inp{border:1px solid #E6E0D6;border-radius:10px;padding:10px 12px;font-size:13px;background:#FFFFFF;color:#1E2634;min-height:42px;width:100%}
+.sw{width:40px;height:23px;border-radius:999px;position:relative;border:none;cursor:pointer;padding:0;flex-shrink:0}
+.knob{position:absolute;top:3px;width:17px;height:17px;border-radius:999px;background:#FFFFFF}
+.bar{height:8px;border-radius:999px;background:#EFEAE1;overflow:hidden}
+.avt{border-radius:999px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+.tab{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border-radius:9px;font-size:13px;font-weight:600;color:#46505F;min-height:40px;white-space:nowrap}
+.tabon{background:#2B3A52;color:#FFFFFF}
+.kpi{font-family:"Zen Maru Gothic",sans-serif;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.dot{width:8px;height:8px;border-radius:999px;flex-shrink:0}
+</style>
+</helmet>
+<div style="width:390px;height:844px;background:#F6F3EE;display:flex;flex-direction:column;overflow:hidden"><div style="background:#2B3A52;padding:16px 16px 14px;display:flex;align-items:center;gap:8px"><svg width="24" height="24.8" viewBox="0 0 120 124" fill="none" aria-hidden="true" style="flex-shrink:0;overflow:visible"><path d="M99.1 43.7A40 40 0 1 1 78.8 16.7" stroke="#F3EFE7" stroke-width="10.5" stroke-linecap="round"/><path d="M78.8 16.7 99.1 43.7" stroke="#F3EFE7" stroke-width="7" stroke-linecap="round"/><rect x="81" y="23.2" width="16" height="14" rx="4.5" fill="#F3EFE7" transform="rotate(53.1 89 30.2)"/><g transform="translate(47.6 90.0) rotate(8)"><circle cx="0" cy="0" r="4.2" fill="none" stroke="#F3EFE7" stroke-width="2.2"/><path d="M0 3.4 8.6 12.4V33a3.6 3.6 0 0 1-3.6 3.6h-10A3.6 3.6 0 0 1-8.6 33V12.4z" fill="#D9533C"/><circle cx="0" cy="12.6" r="2.1" fill="#2B3A52"/></g><g transform="translate(33.2 81.7) rotate(-9)"><circle cx="0" cy="0" r="4.2" fill="none" stroke="#F3EFE7" stroke-width="2.2"/><path d="M0 3.4 8.6 12.4V33a3.6 3.6 0 0 1-3.6 3.6h-10A3.6 3.6 0 0 1-8.6 33V12.4z" fill="#C8780C"/><circle cx="0" cy="12.6" r="2.1" fill="#2B3A52"/></g><g transform="translate(23.4 68.3) rotate(-23)"><circle cx="0" cy="0" r="4.2" fill="none" stroke="#F3EFE7" stroke-width="2.2"/><path d="M0 3.4 8.6 12.4V33a3.6 3.6 0 0 1-3.6 3.6h-10A3.6 3.6 0 0 1-8.6 33V12.4z" fill="#0E9AA0"/><circle cx="0" cy="12.6" r="2.1" fill="#2B3A52"/></g><text x="60" y="53" text-anchor="middle" dominant-baseline="central" font-family="Zen Maru Gothic, sans-serif" font-size="42" font-weight="700" fill="#FFFFFF">わ</text></svg><span class="wa" style="font-size:17px;font-weight:700;color:#FFFFFF">まなびのわ</span><span style="flex-grow:1"></span><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6.5 9.5a5.5 5.5 0 0 1 11 0v4.5l1.8 2.8H4.7l1.8-2.8z"/><path d="M10 19.5a2 2 0 0 0 4 0"/></svg><span class="avt" style="width:28px;height:28px;background:#E0F2F1;color:#0A6266;font-size:11px">岩</span></div><div style="flex-grow:1;padding:14px;display:flex;flex-direction:column;gap:12px;overflow:hidden"><div class="card" style="border-color:#FBEAE6;background:#FFFCFB;padding:14px;display:flex;flex-direction:column;gap:9px"><span style="display:flex"><span class="chip" style="background:#FBEAE6;color:#A33724"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3.5" y="5.5" width="17" height="15" rx="2.5"/><path d="M8 3.5v4M16 3.5v4M3.5 10.5h17"/></svg> エージェントB・幹事</span></span><span style="font-size:14px;font-weight:700;line-height:1.5">「SAP連携」の相談役になってもらえませんか？</span><span class="sub">興味のある人が5人たまりました。9/25（木）16:00 なら4人が空いています。</span><div style="display:flex;gap:7px"><a class="btn btn-p btn-s" style="flex-grow:1" href="Invite.dc.html">引き受ける</a><a class="btn btn-s" style="flex-grow:1" href="Invite.dc.html">いまは難しい</a></div></div><div class="card" style="padding:14px;display:flex;flex-direction:column;gap:9px"><div style="display:flex;align-items:center;gap:8px"><span class="chip" style="background:#CE5288;color:#FFFFFF"><span class="dot" style="background:#FFFFFF"></span>いま配信中</span><span class="sub">リスナー11</span></div><span style="font-size:14px;font-weight:700">＃Power Apps を触ってみる回</span><div style="display:flex;gap:5px"><span class="avt" style="width:26px;height:26px;background:#FAE8EF;color:#94355F;font-size:11px">西</span><span class="avt" style="width:26px;height:26px;background:#E0F2F1;color:#0A6266;font-size:11px">立</span><span class="avt" style="width:26px;height:26px;background:#E8EEFA;color:#2A4F8E;font-size:11px">岩</span><span class="avt" style="width:26px;height:26px;background:#F8EEDC;color:#8A5208;font-size:11px">＋11</span></div><a class="btn btn-s" href="Live.dc.html" style="margin-top:2px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M8 5.2 19 12 8 18.8z"/></svg> 聞くだけで入る</a></div><div class="card" style="padding:14px;display:flex;flex-direction:column;gap:9px"><span class="ttl">今週あなたに付いたタグ</span><div style="display:flex;flex-wrap:wrap;gap:6px"><span class="chip" style="background:#E0F2F1;color:#0A6266"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3.5 12.5V5a1.5 1.5 0 0 1 1.5-1.5h7.5l8 8-9 9z"/><circle cx="7.8" cy="7.8" r="1.4"/></svg>要件定義</span><span class="chip" style="background:#E0F2F1;color:#0A6266"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3.5 12.5V5a1.5 1.5 0 0 1 1.5-1.5h7.5l8 8-9 9z"/><circle cx="7.8" cy="7.8" r="1.4"/></svg>SAP連携</span><span class="chip" style="background:#F8EEDC;color:#8A5208"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="m12 4 2.4 5 5.6.8-4 3.9 1 5.5-5-2.6-5 2.6 1-5.5-4-3.9 5.6-.8z"/></svg>興味：Git</span></div><span class="sub">公開・非公開はプロフィールで切り替えられます。</span></div><div class="card" style="border-color:#F8EEDC;background:#FFFDF8;padding:13px 14px;display:flex;flex-direction:column;gap:7px"><span style="display:flex"><span class="chip" style="background:#F8EEDC;color:#8A5208"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="m12 4 2.4 5 5.6.8-4 3.9 1 5.5-5-2.6-5 2.6 1-5.5-4-3.9 5.6-.8z"/></svg>興味タグの棚卸し</span></span><span style="font-size:13px;font-weight:700">「Power BI」は、いまも興味がありますか？</span><div style="display:flex;gap:7px"><button class="btn btn-s" style="flex-grow:1">まだある</button><button class="btn btn-s" style="flex-grow:1">もう外す</button></div></div></div><div style="background:#FFFFFF;border-top:1px solid #E6E0D6;display:flex;padding:2px 6px 8px"><a href="Home.dc.html" style="flex-grow:1;flex-basis:0;display:flex;flex-direction:column;align-items:center;gap:3px;color:#D9533C;padding:8px 0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D9533C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M3 11 12 3l9 8"/><path d="M5.5 9.5V20h13V9.5"/></svg><span style="font-size:10px;font-weight:700">ホーム</span></a><a href="Home.dc.html" style="flex-grow:1;flex-basis:0;display:flex;flex-direction:column;align-items:center;gap:3px;color:#6F7886;padding:8px 0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6F7886" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3"/></svg><span style="font-size:10px;font-weight:500">ライブ</span></a><a href="Home.dc.html" style="flex-grow:1;flex-basis:0;display:flex;flex-direction:column;align-items:center;gap:3px;color:#6F7886;padding:8px 0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6F7886" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="6" width="14" height="14" rx="2.5"/><path d="M7.5 3.5H19a2 2 0 0 1 2 2v11"/></svg><span style="font-size:10px;font-weight:500">知見</span></a><a href="Home.dc.html" style="flex-grow:1;flex-basis:0;display:flex;flex-direction:column;align-items:center;gap:3px;color:#6F7886;padding:8px 0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6F7886" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5c1-4 4-6 7.5-6s6.5 2 7.5 6"/></svg><span style="font-size:10px;font-weight:500">じぶん</span></a></div></div></x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
