@@ -52,34 +52,49 @@ export default async function InvitePage() {
         {open.length === 0 && <div className="card empty">いま届いている打診はありません</div>}
         {open.map(i => {
           const f = info.get(i.quest_id) ?? {}
+          const n = f.interested ?? 0
           return (
-            <div key={i.id} className="card sh" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span className="avt" style={{ width: 36, height: 36, background: 'var(--amber-bg)', color: 'var(--amber)' }}><Icon name="robot" size={18} /></span>
-                <span style={{ display: 'flex', flexDirection: 'column' }}>
-                  <b>場づくりエージェント</b>
-                  <span className="sub">{fmtWhen(i.sent_at)}</span>
-                </span>
+            // 見た目は repos/mock/mock_new/index.html の「AIからの打診」に合わせる（左に話題と理由、右に日程と返事）
+            <div key={i.id} className="card sh" style={{ borderColor: 'var(--shu-bg)', padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <span className="chip" style={{ background: 'var(--shu-bg)', color: 'var(--shu)' }}><Icon name="robot" size={13} />場づくりエージェント・幹事</span>
+                <span className="sub">{fmtWhen(i.sent_at)} ／ ライブのタネ #{i.quest_id}</span>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div className="topic"><span className="sub">話題</span><span style={{ fontSize: 22, fontWeight: 700 }}>＃{f.tag}</span></div>
-                <div className="topic"><span className="sub">興味を持っている人</span>
-                  <span style={{ fontSize: 18, fontWeight: 700 }}>{f.interested ?? 0}人</span>
-                  <span className="sub">{(f.depts ?? []).join('・') || '—'}</span></div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <span className="sub" style={{ fontWeight: 700 }}>依頼理由</span>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-                  <Fact h={`知見カード ${f.cards ?? 0}枚`} t="この話題で、あなたの発言から生まれたカード" />
-                  <Fact h={`ライブで話した ${f.lives ?? 0}回`} t="この話題に触れたライブの数" />
-                  <Fact h={`社内に${f.holders ?? 0}人`} t="この知見タグを持っている人の数" />
+              <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, flexGrow: 1.5, flexBasis: 360, minWidth: 0 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <span className="navlbl" style={{ color: 'var(--sub)', padding: 0 }}>話題</span>
+                    <h2 className="wa" style={{ fontSize: 30, fontWeight: 700 }}>＃{f.tag}</h2>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <span className="navlbl" style={{ color: 'var(--sub)', padding: 0 }}>興味を持っている人</span>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                      {/* ★ 非公開の興味タグから集まった人もいるので、名前も頭文字も出さない。人数ぶんの丸だけ */}
+                      {Array.from({ length: Math.min(n, 6) }, (_, k) => (
+                        <span key={k} className="avt" aria-hidden="true" style={{ width: 30, height: 30, background: AVT[k % AVT.length][0], color: AVT[k % AVT.length][1] }}><Icon name="profile" size={15} /></span>
+                      ))}
+                      {n > 6 && <span className="sub">＋{n - 6}</span>}
+                      <span className="sub">{(f.depts ?? []).length ? `${f.depts.join('・')}の${n}人` : `${n}人`}</span>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <span className="navlbl" style={{ color: 'var(--sub)', padding: 0 }}>依頼理由</span>
+                    <Fact icon="cards" h={`知見カード ${f.cards ?? 0}枚`} t="この話題で、あなたの発言から生まれたカード" />
+                    <Fact icon="live" h={`ライブでの発言 ${f.lives ?? 0}回`} t="この話題に触れたライブの数" />
+                    <Fact icon="tag" h={`社内に${f.holders ?? 0}人`} t="この知見タグを持っている人の数" />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: 260, flexShrink: 0 }}>
+                  <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <span className="navlbl" style={{ color: 'var(--sub)', padding: 0 }}>日程</span>
+                    <span className="wa" style={{ fontSize: 22, fontWeight: 700 }}>引き受けたあとに</span>
+                    <span className="wa" style={{ fontSize: 22, fontWeight: 700 }}>エージェントが決めます</span>
+                  </span>
+                  <span className="sub" style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}><Icon name="clock" size={15} />あなたと興味のある人の予定の<b>空いているかどうかだけ</b>を見て枠を決めます（予定の中身は見ません）</span>
+                  <span style={{ flexGrow: 1 }} />
+                  <InviteButtons id={i.id} />
                 </div>
               </div>
-              <div className="topic" style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <Icon name="clock" />
-                <span style={{ fontSize: 13 }}><b>日程</b>：引き受けると、あなたの予定の<b>空いているかどうかだけ</b>を見て、エージェントが枠を決めて予約します（予定の中身は見ません）</span>
-              </div>
-              <InviteButtons id={i.id} />
             </div>
           )
         })}
@@ -99,10 +114,16 @@ export default async function InvitePage() {
   )
 }
 
-function Fact({ h, t }) {
+const AVT = [['var(--amber-bg)', 'var(--amber)'], ['var(--purple-bg)', 'var(--purple)'], ['var(--teal-bg)', 'var(--teal)'], ['var(--blue-bg)', 'var(--blue)'], ['var(--shu-bg)', 'var(--shu)']]
+
+function Fact({ icon, h, t }) {
   return (
-    <div className="card" style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <b style={{ fontSize: 16 }}>{h}</b><span className="sub">{t}</span>
+    <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
+      <span style={{ color: 'var(--shu)', paddingTop: 2 }}><Icon name={icon} size={16} /></span>
+      <span style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
+        <span style={{ fontSize: 13, fontWeight: 700 }}>{h}</span>
+        <span className="sub" style={{ fontSize: 11 }}>{t}</span>
+      </span>
     </div>
   )
 }

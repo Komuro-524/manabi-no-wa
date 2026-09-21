@@ -16,9 +16,11 @@ export default function InviteButtons({ id }) {
     else { setMsg(accept ? '引き受けました。場づくりエージェントが次に動いたときに日程を決めます' : '見送りました'); router.refresh() }
   }
   return (
-    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-      <button className="btn btn-p" disabled={busy} onClick={() => answer(true)}>引き受ける</button>
-      <button className="btn" disabled={busy} onClick={() => answer(false)}>今は難しい</button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button className="btn btn-p" style={{ flexGrow: 1 }} disabled={busy} onClick={() => answer(true)}>引き受ける</button>
+        <button className="btn" style={{ flexGrow: 1 }} disabled={busy} onClick={() => answer(false)}>今は難しい</button>
+      </div>
       {msg && <span className="sub">{msg}</span>}
     </div>
   )
