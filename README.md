@@ -1,4 +1,4 @@
-# 学びの輪
+# まなびのわ
 
 > 社内の会話から「いま誰が何を知りたがっていて 誰がそれを知っているか」を読み取り、
 > **場を立てる価値があるとAIが自分で判断したときだけ** 人に声をかけて学びの場を立ち上げるプラットフォーム。
@@ -7,6 +7,7 @@
 人材育成担当に残るのは「やるよ」と言うことだけ。参加者に残るのは「出ます」の返事だけ。
 
 - 📘 設計の正は [`DESIGN.md`](DESIGN.md)
+- 🎙️ 声の設計（今回のデモと将来の音声通話）は [`docs/VOICE-DESIGN.md`](docs/VOICE-DESIGN.md)
 - 🏆 AI HACK 2026（テーマ「業務を自律化するAIエージェント」）
 - 🐋 推論はすべて [OrcaRouter](https://www.orcarouter.ai/) を通す
 
@@ -27,7 +28,7 @@
 
 そして**社員が何を知りたがっているかは見えていません**。だから打ち手が出てこない。
 
-学びの輪は、この**入り口の判断ごと**AIに移します。
+まなびのわは、この**入り口の判断ごと**AIに移します。
 既存のナレッジ管理が「書いたものを人が探しに行く」のに対して、これは **「喋ったことが人を呼び集めに行く」**。
 
 ---
@@ -45,6 +46,9 @@
 「喋らないと気まずい」がなくなると、知識はあるのに前に出にくい人の話が出てきます。
 
 ライブには必ず**始まりと終わり**があります。終わった瞬間がエージェントの出番です。
+
+> 🎙️ **今回のデモでは** 話し手がマイクで話すと、ブラウザの音声認識で**文字になって参加者に共有**されます（声そのものは届きません）。
+> 誰の発言かはサーバーが**ログイン中の本人のID**で決めます。声を届ける音声通話は、セキュリティとネットワークの壁の越え方まで [`docs/VOICE-DESIGN.md`](docs/VOICE-DESIGN.md) に設計してあります。
 
 ---
 
@@ -93,7 +97,7 @@ B は**閾値で動きません**。毎回こう判断します。
 判断の材料は数だけではありません。前回からの間隔／顔ぶれの入れ替わり／前回の反応／**前回のライブで「またやりたい」と言われたか**／相談役の負担。
 
 そして **1回で終わりません。** 打診して、断られて、探し直して、日程を決めて、やっと立って、沈黙したら呼び水を投げる。
-**日をまたいで1つのゴールを追い続けます。** その進行状態を「企て」として持っています。
+**日をまたいで1つのゴールを追い続けます。** その進行状態を **「ライブのタネ」** として持っています（育ち待ち → 話し手に相談中 → 日程を決め中 → ライブ予約済み → 開催済み）。
 
 ---
 
@@ -174,9 +178,11 @@ A が乗っ取られても、**外に出ていくものがありません**。�
 | レイヤー | 採用 |
 |---|---|
 | フロント | Next.js |
-| ホスティング | Vercel |
+| 画面 | Next.js App Router（和風の配色・スマホ幅にも対応） |
+| ホスティング | 想定は Vercel。**今回はデプロイせず手元で動かす** |
 | DB / 認証 | Supabase（Postgres ＋ RLS） |
 | 推論 | **OrcaRouter**（OpenAI互換ゲートウェイ） |
+| 音声入力（デモ） | ブラウザの Web Speech API（Chrome／Edge）。確定した文字だけをサーバーへ |
 
 **モデル名はコードに書きません。** OrcaRouter の Named Router をエージェントごとに1本ずつ作り、振り分けを任せています。
 
@@ -194,8 +200,6 @@ A が乗っ取られても、**外に出ていくものがありません**。�
 
 ## 🚀 動かし方
 
-エージェントは今のところ **コマンドラインから動かします**（画面は [`repos/mock/`](repos/mock/) にモックがあります）。
-
 ```bash
 git clone https://github.com/Komuro-524/manabi-no-wa.git
 cd manabi-no-wa
@@ -203,14 +207,35 @@ npm install
 cp .env.example .env.local   # 値を入れる
 ```
 
-1. Supabase の SQL Editor で [`supabase/migrations/`](supabase/migrations/) の `0001` 〜 `0009` を番号順に流す
-2. ライブを開いて、タグ付けエージェントに取り込ませる
+1. Supabase の SQL Editor で [`supabase/migrations/`](supabase/migrations/) の `0001` 〜 `0014` を番号順に流す（`0006` `0012` `0013` は架空社員とデモ用の予定）
+2. 画面を立ち上げる
 
 ```bash
-node scripts/open-live.mjs docs/demo-transcripts/01-power-automate.txt   # ライブ本体の代わり
+npm run build
+npm run start        # → http://localhost:3030
+```
+
+ログイン画面に **架空社員のデモ用ボタン** が出ます（`localhost` で開いたときだけ）。管理者は「松永 蒼」です。
+
+### 🖥️ 画面
+
+| 誰が | 画面 |
+|---|---|
+| 社員 | ライブ一覧・ライブ（コメント／🎙️マイクで話す／生まれたタグ）・カレンダー（月・週・日、配信予定の作成）・知見カード・プロフィール（知見タグと興味タグ、公開／非公開をドラッグで切り替え）・打診への返事・知識地図・自己分析 |
+| 管理者 | ダッシュボード・タグ辞書（格上げの承認／禁止）・ライブのタネ（進み具合）・エージェント（いま1周回す）・セキュリティ・メンバー |
+
+### 🤖 エージェントをコマンドから動かす
+
+画面のボタンからも起こせますが、証拠を撮るときはコマンドで動かします。
+
+```bash
+node scripts/open-live.mjs docs/demo-transcripts/01-power-automate.txt   # 文字起こしファイルからライブを作る
 node scripts/recorder.mjs --live <番号> --dry                            # 🎙️ A（まず --dry で）
 node scripts/recorder.mjs --live <番号>
-node scripts/organizer.mjs --dry                                         # 🎪 B
+node scripts/organizer.mjs --dry                                         # 🎪 B を1周
+node scripts/organizer-loop.mjs --every 1 --max 3                        # 🎪 B が自分で回る様子
+node scripts/answer-invite.mjs <架空社員のメール> <打診番号> yes          # 打診に答える（人の操作の代わり）
+node scripts/mirror.mjs --user <uuid> --dry 画像1.png                    # 🔍 C（画面の自己分析は画面から）
 node scripts/approve-tag.mjs "タグ名"                                    # 管理者の承認（人の操作の代わり）
 npm run evidence                                                         # DBの状態を docs/evidence/ に書き出す
 ```
@@ -218,7 +243,7 @@ npm run evidence                                                         # DBの
 必要な環境変数は [`.env.example`](.env.example) にすべて名前だけ書いてあります。
 DB のスキーマと RLS は [`DESIGN.md`](DESIGN.md) の §6・§7 にあります。
 
-**本番URL**：準備中
+**本番URL**：今回はデプロイしません（審査用のデモは手元の `localhost:3030`）。
 
 ---
 
@@ -228,10 +253,13 @@ DB のスキーマと RLS は [`DESIGN.md`](DESIGN.md) の §6・§7 にあり�
 manabi-no-wa/
 ├── DESIGN.md                設計の正（用語・エージェント・DDL・RLS・守るべきルール）
 ├── .env.example             環境変数のひな形
+├── app/                     画面と API（Next.js App Router）
+├── components/ lib/         部品・Supabase の接続・エージェントの起動
 ├── scripts/                 エージェント3体と、人の操作を代行する小道具
 ├── lib/agents/prompts/      エージェントのシステムプロンプト
-├── supabase/migrations/     スキーマ・RLS・シード（0001〜0009）
+├── supabase/migrations/     スキーマ・RLS・シード（0001〜0014）
 ├── docs/demo-transcripts/   デモ用の文字起こし（話者は user_id）
+├── docs/VOICE-DESIGN.md     声の設計（デモと将来の音声通話・提供形態）
 ├── docs/evidence/           動作と安全性の記録
 └── repos/mock/              画面モック
 ```
@@ -244,7 +272,9 @@ manabi-no-wa/
 |---|---|
 | [`DESIGN.md`](DESIGN.md) | **設計の正。** 実装前に必ず読む |
 | [`DESIGN.md` §8](DESIGN.md) | **絶対に壊してはいけないルール。** PR を出す前に読み直す |
+| [`docs/VOICE-DESIGN.md`](docs/VOICE-DESIGN.md) | 声の設計。今回のデモ／将来の音声通話／セキュリティとネットワークの壁／提供形態（🅰️標準・🅱️専用環境） |
 | [`docs/evidence/`](docs/evidence/) | 安全性と堅牢性の確認記録 |
+| [`docs/evidence/cost-summary.md`](docs/evidence/cost-summary.md) | コストの比較（最上位モデルで回した場合との差） |
 
 ---
 
@@ -254,6 +284,9 @@ manabi-no-wa/
 
 - **マルチテナント分離** — 1社前提。複数社なら全テーブルに `org_id` を足して RLS の条件に入れる
 - **キーの完全分離** — A と B のキーは分けたが同じプロセスにある。防いでいるのは事故であって攻撃ではない
-- **カレンダー実連携** — 本番は Outlook の FreeBusy を叩く。予定のタイトルは最初から取りに行かない設計
+- **カレンダー実連携** — 本番は Microsoft Graph の `getSchedule`（空き／埋まりだけ）。予定のタイトルは最初から取りに行かない設計
+- **音声通話** — デモは文字だけの共有。声を届ける構成（SFU・入場券・文字起こし係）と セキュリティ・ネットワークの壁の越え方は [`docs/VOICE-DESIGN.md`](docs/VOICE-DESIGN.md)
+- **提供形態** — 🅰️ 標準プラン（開発元が国内クラウドで運用・契約日から使える）と 🅱️ 専用環境プラン（導入企業のテナントに構築）。コードは同じ（[`DESIGN.md` §11.3](DESIGN.md)）
+- **本番デプロイと定期実行** — 今回は手元で動かす。場づくりの自走は `organizer-loop.mjs` で見せる
 - **ライブ中のリアルタイム解析** — コストと、雑談が部屋の外に漏れる懸念のため見送り
 - **定期開催の設定画面** — 作りません。**興味が溜まれば 結果としてまた開かれます**
