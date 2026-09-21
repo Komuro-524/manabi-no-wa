@@ -11,7 +11,8 @@ import TagSelect from './TagSelect'
 export default async function Cards({ searchParams }) {
   const sp = await searchParams
   const q = (sp.q ?? '').trim()
-  const tagId = sp.tag ? Number(sp.tag) : null
+  // ?tag=3,7 のように複数選べる（どれかに当てはまるカード）
+  const tagIds = String(sp.tag ?? '').split(',').map(Number).filter(n => Number.isInteger(n) && n > 0).slice(0, 30)
   const selId = sp.id ? Number(sp.id) : null
   const me = await currentUser()
   const db = await supabaseServer()
@@ -20,7 +21,7 @@ export default async function Cards({ searchParams }) {
     .select('id, live_id, tag_id, speaker_id, headline, body, created_at, tags(name, status)')
     .order('id', { ascending: false }).limit(60)
   if (q) query = query.or(`headline.ilike.%${q.replace(/[%,()]/g, '')}%,body.ilike.%${q.replace(/[%,()]/g, '')}%`)
-  if (tagId) query = query.eq('tag_id', tagId)
+  if (tagIds.length) query = query.in('tag_id', tagIds)
 
   const [{ data: cards }, { data: officialTags }] = await Promise.all([
     query,
@@ -55,24 +56,24 @@ export default async function Cards({ searchParams }) {
   experts = [...new Set((ut ?? []).map(r => r.user_id))].map(id => who.get(id)).filter(Boolean)
   const qs = (extra) => {
     const p = new URLSearchParams()
-    if (q) p.set('q', q); if (tagId) p.set('tag', tagId)
+    if (q) p.set('q', q); if (tagIds.length) p.set('tag', tagIds.join(','))
     for (const [k, v] of Object.entries(extra)) v == null ? p.delete(k) : p.set(k, v)
     return '/cards?' + p.toString()
   }
 
   return (
     <>
-      <Topbar hideSearch me={me} title="知見カード" sub={`${(cards ?? []).length}件${q ? `（「${q}」で検索）` : ''}`}>
-        <form action="/cards" style={{ display: 'flex', gap: 6 }}>
-          {tagId && <input type="hidden" name="tag" value={tagId} />}
-          <input className="inp" name="q" defaultValue={q} placeholder="見出し・本文を探す" style={{ width: 240, minHeight: 40 }} />
-          <button className="btn btn-s" style={{ minHeight: 40 }}><Icon name="search" size={15} /></button>
-        </form>
-      </Topbar>
+      <Topbar me={me} title="知見カード" sub={`${(cards ?? []).length}件${q ? `（「${q}」で検索）` : ''}`} />
       <div className="body">
+        {/* 知見カード専用の検索窓（右上はすべてを探す横断検索） */}
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-          <TagSelect tags={officialTags ?? []} value={tagId ?? ''} q={q} />
-          {(q || tagId) && <Link className="btn btn-s" href="/cards">絞り込みを外す</Link>}
+          <form action="/cards" style={{ display: 'flex', gap: 6 }}>
+            {tagIds.length > 0 && <input type="hidden" name="tag" value={tagIds.join(',')} />}
+            <input className="inp" name="q" defaultValue={q} placeholder="知見カードの見出し・本文を探す" aria-label="知見カードを探す" style={{ width: 280, minHeight: 40 }} />
+            <button className="btn btn-s" style={{ minHeight: 40 }} aria-label="探す"><Icon name="search" size={15} /></button>
+          </form>
+          <TagSelect tags={officialTags ?? []} value={tagIds} q={q} />
+          {(q || tagIds.length > 0) && <Link className="btn btn-s" href="/cards">絞り込みを外す</Link>}
         </div>
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
           {/* 左: 一覧 */}

@@ -99,3 +99,9 @@ button.tab:disabled{opacity:.5;cursor:not-allowed}
   [style*="position: sticky"]{position:static !important}
   .card[style*="flex-grow: 1"][style*="min-height: 0"]{min-height:60vh}
 }
+/* スクロールはできるがバーは見せない（はみ出しで「続きがある」と分かるため） */
+.noscrollbar{scrollbar-width:none}
+.noscrollbar::-webkit-scrollbar{display:none}
+/* 押せる行・カード: ホバーで色が変わって「押せそう」に見せる */
+.hoverable{transition:background .15s,border-color .15s,transform .15s}
+.hoverable:hover{background:var(--sand);border-color:var(--line)}
