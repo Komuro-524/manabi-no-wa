@@ -213,7 +213,7 @@ async function pickFreeSlot(userId) {
 
   // ★ starts_at だけで絞ると「跨いでいる予定」を取りこぼす。区間の重なりで絞る
   //   （starts_at < to かつ ends_at > from）
-  const { data: busy, error } = await db
+  const { data: busyRows, error } = await db
     .from('calendar_events')
     .select('starts_at, ends_at')
     .eq('user_id', userId)
@@ -221,13 +221,30 @@ async function pickFreeSlot(userId) {
     .lt('starts_at', to.toISOString())
     .gt('ends_at', from.toISOString())
   if (error) throw new Error(`予定を読めません: ${error.message}`)
+  const busy = [...(busyRows ?? [])]
+
+  // ★ ダブルブッキング防止: この人が話し手として すでに予約済みのライブも「埋まり」として扱う
+  //   （カレンダーには まだ書いていないので、calendar_events だけ見ると同じ枠に2本入ってしまう。動画撮影中に発見）
+  const { data: myQuests, error: qErr } = await db
+    .from('quests').select('live_id').eq('current_invitee', userId).eq('status', 'opened').not('live_id', 'is', null)
+  if (qErr) throw new Error(`予約済みのライブを読めません: ${qErr.message}`)
+  const liveIds = (myQuests ?? []).map(q => q.live_id)
+  if (liveIds.length) {
+    const { data: booked, error: lErr } = await db
+      .from('lives').select('scheduled_start, scheduled_end')
+      .in('id', liveIds).eq('status', 'scheduled')
+    if (lErr) throw new Error(`予約済みのライブを読めません: ${lErr.message}`)
+    for (const l of booked ?? []) {
+      if (l.scheduled_start && l.scheduled_end) busy.push({ starts_at: l.scheduled_start, ends_at: l.scheduled_end })
+    }
+  }
 
   for (let d = 0; d < 14; d++) {
     const day = new Date(from)
     day.setDate(day.getDate() + d)
     const start = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 15, 0, 0)
     const end   = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 16, 0, 0)
-    const overlaps = (busy ?? []).some(b => new Date(b.starts_at) < end && new Date(b.ends_at) > start)
+    const overlaps = busy.some(b => new Date(b.starts_at) < end && new Date(b.ends_at) > start)
     if (!overlaps) return { start, end }
   }
   // 14日以内に空きが見つからない場合でも 15日後の同じ枠で仮予約する（デモ用フォールバック）
