@@ -3,17 +3,17 @@ import { supabaseServer, currentUser } from '@/lib/supabase/server'
 import Topbar from '@/components/Topbar'
 import { Icon } from '@/components/icons'
 import { fmtWhen, splitTitle } from '@/lib/format'
-import VisibilityToggle from './VisibilityToggle'
 import ClientTabs from '@/components/ClientTabs'
+import TagBoard from './TagBoard'
 
 const SOURCE = { live: 'ライブから', self: '自己分析から', manual: '手で追加' }
-const TABS = [['knowledge', '知見タグ'], ['skill', '勝手に育つスキルシート'], ['interest', '興味タグ'], ['lives', '参加したライブ']]
+const TABS = [['tags', 'タグ'], ['knowledge', '知見タグの話題'], ['skill', '勝手に育つスキルシート'], ['lives', '参加したライブ']]
 
 // 自分のプロフィール。自分の user_tags は公開・非公開に関係なく本人に見える（RLS）
 // ★ モックの「閲覧回数」「スキルの点数」は元データが無いので出さない。数えられるもの（カード枚数・人数・回数）だけ
 export default async function Profile({ searchParams }) {
   const sp = await searchParams
-  const tab = TABS.some(([k]) => k === sp.tab) ? sp.tab : 'knowledge'
+  const tab = TABS.some(([k]) => k === sp.tab) ? sp.tab : 'tags'
   const me = await currentUser()
   const db = await supabaseServer()
 
@@ -69,6 +69,7 @@ export default async function Profile({ searchParams }) {
         </div>
 
         <ClientTabs basePath="/profile" initial={tab} tabs={TABS} panels={{
+          tags: <TagBoard tags={(mine ?? []).map(t => ({ id: t.id, tag_id: t.tag_id, kind: t.kind, source: t.source, visibility: t.visibility, name: t.tags?.name ?? null, status: t.tags?.status ?? null, cards: t.kind === 'knowledge' ? (cardsByTag.get(t.tag_id) ?? []).length : 0 }))} />,
           knowledge: (know.length === 0
           ? <div className="card empty">まだありません。ライブで話すと、ここに育っていきます</div>
           : <div className="grid3">
@@ -76,22 +77,19 @@ export default async function Profile({ searchParams }) {
                 const cs = cardsByTag.get(t.tag_id) ?? []
                 const official = t.tags?.status === 'official'
                 return (
-                  <div key={t.id} className="card sh" style={{ padding: 15, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div key={t.id} className="card sh" style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 4 }}>
                       {official
-                        ? <Link href={`/cards?tag=${t.tag_id}`} style={{ fontSize: 24, fontWeight: 700, padding: '8px 0', color: 'var(--ink)' }} title="このタグの知見カードを見る">{t.tags.name}</Link>
-                        : <h3 style={{ fontSize: 24, fontWeight: 700, padding: '8px 0' }}>{t.tags?.name ?? '（育ちかけ）'}</h3>}
+                        ? <Link href={`/cards?tag=${t.tag_id}`} style={{ fontSize: 17, fontWeight: 700, padding: '2px 0', color: 'var(--ink)' }} title="このタグの知見カードを見る">{t.tags.name}</Link>
+                        : <h3 style={{ fontSize: 17, fontWeight: 700, padding: '2px 0' }}>{t.tags?.name ?? '（育ちかけ）'}</h3>}
                       {!official && <span className="chip" style={{ alignSelf: 'center', background: 'var(--amber-bg)', color: 'var(--amber)' }}>育ちかけ（管理者の承認待ち）</span>}
                       <span className="sub">同じ知見を持つ人 {peers.get(t.tag_id)?.size ?? 0}人 ・ 出典カード {cs.length}枚 ・ {SOURCE[t.source] ?? t.source}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'center' }}>
-                      <VisibilityToggle tagId={t.tag_id} kind="knowledge" visibility={t.visibility} adopt={t.source === 'self' && t.visibility === 'private'} />
                     </div>
                     {cs.length > 0 && <>
                       <span className="sub" style={{ fontWeight: 700 }}>話題（{cs.length}件）</span>
                       {cs.slice(0, 3).map(c => (
                         <Link key={c.id} href={`/cards?id=${c.id}`} className="topic" style={{ color: 'var(--ink)' }}>
-                          <span style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.45 }}>{c.headline}</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.45 }}>{c.headline}</span>
                           <span className="sub" style={{ fontSize: 10 }}>{fmtWhen(c.created_at)} のライブ</span>
                         </Link>
                       ))}
@@ -112,24 +110,6 @@ export default async function Profile({ searchParams }) {
                 <span className="sub">{g.tags.join('・')}</span>
               </div>
             ))}
-          </div>
-        ),
-          interest: (
-          <div className="card sh" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div className="ttl">興味タグ ── あなたが知りたいこと</div>
-            {intr.length === 0 && <div className="empty">まだありません。ライブで「聞きたい」と言うと増えます</div>}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {intr.map(t => (
-                <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', borderBottom: '1px solid var(--line-soft)', paddingBottom: 8 }}>
-                  {t.tags?.status === 'official'
-                    ? <Link href={`/cards?tag=${t.tag_id}`} className="chip" style={{ background: 'var(--blue-bg)', color: 'var(--blue)' }} title="このタグの知見カードを見る"><Icon name="tag" size={13} />{t.tags.name}</Link>
-                    : <span className="chip" style={{ background: 'var(--amber-bg)', color: 'var(--amber)' }} title="管理者が正式にすると、カードが見られるようになります"><Icon name="tag" size={13} />{t.tags?.name ?? '育ちかけのタグ'}</span>}
-                  <span className="sub" style={{ flexGrow: 1 }}>{SOURCE[t.source] ?? t.source} ・ {fmtWhen(t.updated_at)}</span>
-                  <VisibilityToggle tagId={t.tag_id} kind="interest" visibility={t.visibility} adopt={t.source === 'self' && t.visibility === 'private'} compact />
-                </div>
-              ))}
-            </div>
-            <div className="note">同じ話題に興味のある人が増えると、場づくりエージェントが話せる人を探して場を立てます。非公開にしたタグは、あなた以外には見えません</div>
           </div>
         ),
           lives: (

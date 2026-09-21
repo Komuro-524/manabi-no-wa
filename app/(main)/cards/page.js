@@ -3,6 +3,7 @@ import { supabaseServer, currentUser } from '@/lib/supabase/server'
 import Topbar from '@/components/Topbar'
 import { Icon } from '@/components/icons'
 import { fmtWhen, splitTitle } from '@/lib/format'
+import TagSelect from './TagSelect'
 
 // 知見カード。全部 本人のセッションで読む（RLS: 正式タグのカードは全員、育ちかけは話した本人と管理者だけ）
 export default async function Cards({ searchParams }) {
@@ -56,11 +57,9 @@ export default async function Cards({ searchParams }) {
         </form>
       </Topbar>
       <div className="body">
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          <Link className={'tab' + (!tagId ? ' tabon' : '')} href={qs({ tag: null, id: null })}>すべて</Link>
-          {(officialTags ?? []).map(t => (
-            <Link key={t.id} className={'tab' + (tagId === t.id ? ' tabon' : '')} href={qs({ tag: t.id, id: null })}>{t.name}</Link>
-          ))}
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <TagSelect tags={officialTags ?? []} value={tagId ?? ''} q={q} />
+          {(q || tagId) && <Link className="btn btn-s" href="/cards">絞り込みを外す</Link>}
         </div>
         <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
           {/* 左: 一覧 */}
