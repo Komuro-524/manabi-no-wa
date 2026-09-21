@@ -10,11 +10,11 @@ import Planter from '@/components/Planter'
 
 // ライブのタネ（DB上は quests）。場づくりエージェントが育てている「ライブになる前のタネ」を段階ごとに並べる。
 // quests / quest_steps / agent_runs はブラウザから読めない設計 → 管理者と確かめてから service_role で読む
-// 進み具合ごとに植物が育つ（種 → 芽 → 若葉 → つぼみ → 花）。同じ段階の中では需要（直近30日に語られた回数）が多いほど大きく描く
+// 進み具合ごとに植物が育つ（種 → 芽 → 葉 → つぼみ → 花）。同じ段階の中では需要（直近30日に語られた回数）が多いほど大きく描く
 const COLS = [
   ['scouting', '育ち待ち', 'タネ'],
   ['inviting', '話し手に相談中', '芽'],
-  ['scheduling', '日程を決め中', '若葉'],
+  ['scheduling', '日程を決め中', '葉'],
   ['opened', 'ライブ予約済み', 'つぼみ'],
   ['done', '開催済み', '花'],
 ]
@@ -63,9 +63,10 @@ export default async function Seeds() {
               .sort((a, b) => (demand.get(b.tag_id) ?? 0) - (demand.get(a.tag_id) ?? 0))
             const top = Math.max(1, ...qs.map(q => demand.get(q.tag_id) ?? 0))
             return (
-              <div key={st} style={{ background: 'var(--bar)', borderRadius: 12, padding: 10, display: 'flex', flexDirection: 'column', gap: 8, minHeight: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Planter stage={stage} size={30} title={plant} /><b>{name}</b><span className="kpi" style={{ fontSize: 16 }}>{qs.length}</span></div>
-                <div className="noscrollbar" style={{ display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto', minHeight: 0 }}>
+              // 列＝プランターを真上から見た形（縁が素焼き・中は土）。タネのカードは土に挿した札
+              <div key={st} className="planter">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 4px' }}><Planter stage={stage} size={30} title={plant} /><b className="planter-name">{name}</b><span className="kpi planter-name" style={{ fontSize: 16 }}>{qs.length}</span></div>
+                <div className="noscrollbar planter-soil" style={{ display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto', minHeight: 0, flexGrow: 1 }}>
                   {qs.map(q => {
                     const s = last.get(q.id)
                     const d = demand.get(q.tag_id) ?? 0
