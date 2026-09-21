@@ -370,6 +370,14 @@ try {
       ingest_status: 'pending',
     })
     await updateQuest(quest.id, { status: 'opened', live_id: live.id, next_action_at: start.toISOString() })
+    // ★ 引き受けた人を話し手として参加者に入れる。
+    //   入れないと「最初の一言」（messages は参加者だけが読める）が誰にも見えず、画面にも話し手が出ない
+    if (!DRY_RUN) {
+      const { error: pErr } = await db.from('live_participants').insert({
+        live_id: live.id, user_id: quest.current_invitee, role: 'speaker', invited_at: new Date(),
+      })
+      if (pErr) throw new Error(`話し手を参加者に入れられません: ${pErr.message}`)
+    }
     // ★ DESIGN §3.2 手順7: 予約した直後に「最初の一言」を書く（is_agent=true）
     await insertMessage({
       live_id: live.id, user_id: null, is_agent: true,
