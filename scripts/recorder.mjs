@@ -44,6 +44,13 @@ const CHUNK_CHARS = 6000          // 1回のLLM呼び出しに渡す文字数
 const MODEL = 'orcarouter/manabi-recorder'   // ★ モデル名を書かない。ルーターに選ばせる
 const MAX_TAG_LEN = 20
 
+// ★F9: フォールバックを わざと起こすスイッチ（③堅牢性の実演用）
+//   ORCA_FORCE_FALLBACK=1 のときだけ、存在しないモデルを第1候補にして呼ぶ。
+//   OrcaRouter が第1候補の失敗を受けて 第2候補（本来のルーター）に切り替えれば成功する。
+//   普段は使わない。.env.local には書かず、コマンドの前に付けて1回だけ使う
+const FORCE_FALLBACK = (process.env.ORCA_FORCE_FALLBACK ?? '').split('#')[0].trim() === '1'
+const BROKEN_MODEL = 'openai/this-model-does-not-exist'
+
 // 格上げ候補の条件。会社の規模やアクティブな人数に合わせて .env.local で変えられる
 //   （本番では管理者が画面から設定する想定。今回は画面が無いので環境変数。DESIGN §5.4 / §10）
 const envInt = (k, d) => {
@@ -101,7 +108,9 @@ function shapeOk(tag) {
 async function extract(chunk, index) {
   const { data, response } = await ai.chat.completions
     .create({
-      model: MODEL,
+      model: FORCE_FALLBACK ? BROKEN_MODEL : MODEL,
+      // ★F9: 第1候補が落ちたら 次の候補へ（OrcaRouter の fallback ルーティング）
+      ...(FORCE_FALLBACK ? { models: [BROKEN_MODEL, MODEL], route: 'fallback' } : {}),
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: SYSTEM },
@@ -128,6 +137,7 @@ async function extract(chunk, index) {
   const model     = response.headers.get('x-orca-resolved-model')
   const fb        = response.headers.get('x-orca-fallback-level')
   const requestId = response.headers.get('x-orca-request-id')   // ★F7: あとで確定額と突き合わせる
+  const fbModel   = response.headers.get('x-orca-fallback-model') // ★F9: 受け皿になったモデル
 
   let parsed = { cards: [], interests: [], encore: 0 }
   try {
@@ -138,9 +148,10 @@ async function extract(chunk, index) {
 
   console.log(
     `  塊${index}: ${model ?? '?'} / $${cost ?? '?'}` +
-    (fb && fb !== '0' ? ` / フォールバック段=${fb}` : ''),
+    (fb && fb !== '0' ? ` / フォールバック段=${fb}（受け皿: ${fbModel ?? '?'}）` : ''),
   )
-  return { ...parsed, cost, model, requestId }
+  const fallback = fb && fb !== '0' ? `塊${index}: 段=${fb} 受け皿=${fbModel ?? '?'} 実際=${model ?? '?'}` : null
+  return { ...parsed, cost, model, requestId, fallback }
 }
 
 // ---------------------------------------------------------------------
@@ -204,6 +215,7 @@ try {
   console.log(`   発言 ${segments.length}行 / チャット ${chats.length}件 / 参加者 ${new Set(segments.map(s => s.user_id)).size}人`)
 
   if (!DRY_RUN) await db.from('lives').update({ ingest_status: 'running' }).eq('id', LIVE_ID)
+  if (FORCE_FALLBACK) console.log(`\n🧨 ORCA_FORCE_FALLBACK=1: 第1候補を存在しないモデル（${BROKEN_MODEL}）にして呼びます\n`)
 
   // --- 1.5 タグ辞書を読む（★抽出の前。既存の語と表記を揃えるための参考として渡す）
   const { data: allTags, error: tagErr } = await db.from('tags').select('id,name,status,alias_of')
@@ -229,7 +241,7 @@ try {
   console.log(`   ${chunks.length}個の塊に分割\n`)
   console.log('🧠 抽出中...')
 
-  const cards = [], interests = [], requestIds = []
+  const cards = [], interests = [], requestIds = [], fallbacks = []
   let encore = 0, totalCost = 0
   for (let i = 0; i < chunks.length; i++) {
     const r = await extract(chunks[i], i + 1)
@@ -238,6 +250,7 @@ try {
     encore += r.encore ?? 0
     totalCost += r.cost ?? 0
     if (r.requestId) requestIds.push(r.requestId)
+    if (r.fallback) fallbacks.push(r.fallback)   // ★F9
   }
   console.log(`\n   カード候補 ${cards.length}件 / 興味 ${interests.length}件 / アンコール ${encore}回`)
   console.log(`   ここまでの費用 $${totalCost.toFixed(6)}\n`)
@@ -487,7 +500,10 @@ try {
     status: 'succeeded',
     cost_usd: totalCost,
     request_ids: requestIds,   // ★F7
-    note: needsReview ? `渡していない行番号を指した: ${badRefs.join(' / ')}` : null,
+    note: [
+      needsReview ? `渡していない行番号を指した: ${badRefs.join(' / ')}` : null,
+      fallbacks.length ? `フォールバックが発動した: ${fallbacks.join(' / ')}` : null,   // ★F9
+    ].filter(Boolean).join('\n') || null,
     finished_at: new Date(),
   }).eq('id', runId)
 
