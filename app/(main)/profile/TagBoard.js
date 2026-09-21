@@ -3,12 +3,12 @@ import { useState } from 'react'
 import Link from '@/components/Link'
 import { supabaseBrowser } from '@/lib/supabase/browser'
 
-// 知見タグと興味タグを1画面に。「公開」「非公開」のエリアのあいだをドラッグ＆ドロップで動かす。
+// 知見タグ・興味タグの公開／非公開。「公開」「非公開」のエリアのあいだをドラッグ＆ドロップで動かす。
 // 動かすと set_tag_visibility()（自分の行しか変えられない関数）を本人のセッションで呼ぶ。
 // ★ ドラッグできない環境のために、カードの ⇄ を押しても移せる
 const KIND = { knowledge: ['知見タグ', '話せること'], interest: ['興味タグ', '聞きたいこと'] }
 
-export default function TagBoard({ tags }) {
+export default function TagBoard({ tags, kinds = ['knowledge', 'interest'] }) {
   const [items, setItems] = useState(tags)   // 押した瞬間に動かし、失敗したら戻す
   const [over, setOver] = useState(null)
   const [err, setErr] = useState('')
@@ -23,7 +23,7 @@ export default function TagBoard({ tags }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {Object.entries(KIND).map(([kind, [title, sub]]) => (
+      {Object.entries(KIND).filter(([k]) => kinds.includes(k)).map(([kind, [title, sub]]) => (
         <div key={kind} className="card sh" style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}><b style={{ fontSize: 16 }}>{title}</b><span className="sub">{sub}</span></div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>

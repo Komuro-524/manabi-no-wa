@@ -2,6 +2,7 @@ import Link from '@/components/Link'
 import { notFound } from 'next/navigation'
 import { supabaseServer, currentUser } from '@/lib/supabase/server'
 import Topbar from '@/components/Topbar'
+import { ownTagNames } from '@/lib/own-tag-names'
 import { Icon } from '@/components/icons'
 import { fmtWhen, splitTitle } from '@/lib/format'
 import LiveActions from './LiveActions'
@@ -30,6 +31,12 @@ export default async function LivePage({ params }) {
     db.from('transcript_segments').select('user_id, seq').eq('live_id', liveId).order('seq', { ascending: false }).limit(1),   // RLS: 参加者だけ
   ])
   const who = new Map((users ?? []).map(u => [u.id, u]))
+  // 自分が話したカードのうち、育ちかけでタグ名が読めないものは名前だけ引く（自分の行の tag_id に限る）
+  const ownMissing = (cards ?? []).filter(c => !c.tags && c.speaker_id === me.id).map(c => c.tag_id)
+  if (ownMissing.length) {
+    const names = await ownTagNames(ownMissing)
+    for (const c of cards ?? []) if (!c.tags && c.speaker_id === me.id && names.has(c.tag_id)) c.tags = names.get(c.tag_id)
+  }
   const amIn = (ps ?? []).some(p => p.user_id === me.id)
   const speakers  = (ps ?? []).filter(p => p.role === 'speaker')
   const listeners = (ps ?? []).filter(p => p.role !== 'speaker')
@@ -37,7 +44,7 @@ export default async function LivePage({ params }) {
   // 生まれたタグごとにカードをまとめる。タグ名が読めない＝まだ育ちかけ（候補）のタグ
   const groups = new Map()
   for (const c of cards ?? []) {
-    const key = c.tags?.name ?? '（育ちかけのタグ）'
+    const key = !c.tags ? '（育ちかけのタグ）' : c.tags.status === 'official' ? c.tags.name : `${c.tags.name}（育ちかけ）`
     if (!groups.has(key)) groups.set(key, [])
     groups.get(key).push(c)
   }

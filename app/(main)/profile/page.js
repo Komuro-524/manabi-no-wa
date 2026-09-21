@@ -5,15 +5,16 @@ import { Icon } from '@/components/icons'
 import { fmtWhen, splitTitle } from '@/lib/format'
 import ClientTabs from '@/components/ClientTabs'
 import TagBoard from './TagBoard'
+import { ownTagNames } from '@/lib/own-tag-names'
 
 const SOURCE = { live: 'ライブから', self: '自己分析から', manual: '手で追加' }
-const TABS = [['tags', 'タグ'], ['knowledge', '知見タグの話題'], ['skill', '勝手に育つスキルシート'], ['lives', '参加したライブ']]
+const TABS = [['knowledge', '知見タグ'], ['interest', '興味タグ'], ['skill', '勝手に育つスキルシート'], ['lives', '参加したライブ']]
 
 // 自分のプロフィール。自分の user_tags は公開・非公開に関係なく本人に見える（RLS）
 // ★ モックの「閲覧回数」「スキルの点数」は元データが無いので出さない。数えられるもの（カード枚数・人数・回数）だけ
 export default async function Profile({ searchParams }) {
   const sp = await searchParams
-  const tab = TABS.some(([k]) => k === sp.tab) ? sp.tab : 'tags'
+  const tab = TABS.some(([k]) => k === sp.tab) ? sp.tab : 'knowledge'
   const me = await currentUser()
   const db = await supabaseServer()
 
@@ -25,6 +26,12 @@ export default async function Profile({ searchParams }) {
     db.from('transcript_segments').select('seq', { count: 'exact', head: true }).eq('user_id', me.id),
     db.from('invitations').select('status'),   // RLS: 自分宛だけ
   ])
+  // 自分の育ちかけのタグは RLS で名前が読めないので、自分の行の tag_id だけを使って名前を引く
+  const missing = (mine ?? []).filter(t => !t.tags).map(t => t.tag_id)
+  if (missing.length) {
+    const names = await ownTagNames(missing)
+    for (const t of mine ?? []) if (!t.tags && names.has(t.tag_id)) t.tags = names.get(t.tag_id)
+  }
   const know = (mine ?? []).filter(t => t.kind === 'knowledge')
   const intr = (mine ?? []).filter(t => t.kind === 'interest')
   const lives = (myParts ?? []).filter(p => p.lives).sort((a, b) => b.live_id - a.live_id)
@@ -69,8 +76,11 @@ export default async function Profile({ searchParams }) {
         </div>
 
         <ClientTabs basePath="/profile" initial={tab} tabs={TABS} panels={{
-          tags: <TagBoard tags={(mine ?? []).map(t => ({ id: t.id, tag_id: t.tag_id, kind: t.kind, source: t.source, visibility: t.visibility, name: t.tags?.name ?? null, status: t.tags?.status ?? null, cards: t.kind === 'knowledge' ? (cardsByTag.get(t.tag_id) ?? []).length : 0 }))} />,
-          knowledge: (know.length === 0
+          interest: <TagBoard kinds={['interest']} tags={(mine ?? []).map(t => ({ id: t.id, tag_id: t.tag_id, kind: t.kind, source: t.source, visibility: t.visibility, name: t.tags?.name ?? null, status: t.tags?.status ?? null, cards: t.kind === 'knowledge' ? (cardsByTag.get(t.tag_id) ?? []).length : 0 }))} />,
+          knowledge: <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <TagBoard kinds={['knowledge']} tags={(mine ?? []).map(t => ({ id: t.id, tag_id: t.tag_id, kind: t.kind, source: t.source, visibility: t.visibility, name: t.tags?.name ?? null, status: t.tags?.status ?? null, cards: t.kind === 'knowledge' ? (cardsByTag.get(t.tag_id) ?? []).length : 0 }))} />
+            <b style={{ fontSize: 15, paddingTop: 4 }}>知見タグごとの話題</b>
+            {(know.length === 0
           ? <div className="card empty">まだありません。ライブで話すと、ここに育っていきます</div>
           : <div className="grid3">
               {know.map(t => {
@@ -97,7 +107,8 @@ export default async function Profile({ searchParams }) {
                   </div>
                 )
               })}
-            </div>),
+            </div>)}
+          </div>,
           skill: (
           <div className="card sh" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div><div className="ttl">勝手に育つスキルシート</div>
