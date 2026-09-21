@@ -48,7 +48,7 @@ export default async function Cards({ searchParams }) {
 
   return (
     <>
-      <Topbar me={me} title="知見カード" sub={`${(cards ?? []).length}件${q ? `（「${q}」で検索）` : ''}`}>
+      <Topbar hideSearch me={me} title="知見カード" sub={`${(cards ?? []).length}件${q ? `（「${q}」で検索）` : ''}`}>
         <form action="/cards" style={{ display: 'flex', gap: 6 }}>
           {tagId && <input type="hidden" name="tag" value={tagId} />}
           <input className="inp" name="q" defaultValue={q} placeholder="見出し・本文を探す" style={{ width: 240, minHeight: 40 }} />

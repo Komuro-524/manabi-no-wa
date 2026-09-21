@@ -1,6 +1,8 @@
+import Link from 'next/link'
 import { Icon } from './icons'
+import Bell from './Bell'
 
-export default function Topbar({ title, sub, me, children }) {
+export default function Topbar({ title, sub, me, children, hideSearch }) {
   return (
     <header className="topbar">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
@@ -9,7 +11,12 @@ export default function Topbar({ title, sub, me, children }) {
       </div>
       <span style={{ flexGrow: 1 }} />
       {children}
-      <span className="avt" style={{ width: 32, height: 32, fontSize: 15 }} title={me.display_name}>{me.display_name.slice(0, 1)}</span>
+      {!hideSearch && <form action="/cards" style={{ display: 'flex', alignItems: 'center', gap: 7, border: '1px solid var(--line)', borderRadius: 10, padding: '0 12px', height: 40, background: 'var(--bg)' }}>
+        <span style={{ color: 'var(--sub)' }}><Icon name="search" size={15} /></span>
+        <input name="q" placeholder="知見カードを探す" style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 12, width: 150 }} />
+      </form>}
+      <Bell />
+      <Link href="/profile" className="avt" style={{ width: 32, height: 32, fontSize: 15 }} title={me.display_name}>{me.display_name.slice(0, 1)}</Link>
     </header>
   )
 }

@@ -35,7 +35,7 @@ export default function Sidebar({ me, liveCount, inviteCount }) {
       <div className="navlbl">じぶん</div>
       <NavLink href="/profile" icon="profile" label="プロフィール" />
       <NavLink href="/invite" icon="invite" label="AIからの打診" badge={inviteCount} />
-      <NavLink href="/selfscan" icon="scan" label="自己分析" soon />
+      <NavLink href="/selfscan" icon="scan" label="自己分析" />
 
       <span style={{ flexGrow: 1 }} />
       {me.role === 'admin' && (
