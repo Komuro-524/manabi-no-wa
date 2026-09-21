@@ -300,6 +300,37 @@ try {
   }
 
   if (DRY_RUN) {
+    // ★ 格上げの見込みも出す（tag_mentions を読むだけ。書き込みはしない）
+    const sinceP = PROPOSE_WINDOW_DAYS > 0 ? new Date(Date.now() - PROPOSE_WINDOW_DAYS * 86400_000) : null
+    const labelP = sinceP ? `直近${PROPOSE_WINDOW_DAYS}日` : '全期間'
+    console.log(`📣 格上げの条件: ${labelP}に 延べ${PROPOSE_MIN_MENTIONS}回 または ${PROPOSE_MIN_SPEAKERS}人以上`)
+    const now = new Map()          // key → { name, status, tagId, users:Set, n }
+    for (const x of [...passed, ...interestPassed]) {
+      const name = x.g.newName ?? x.g.tag.name
+      const cur = now.get(name) ?? { name, status: x.g.newName ? 'new' : x.g.tag.status, tagId: x.g.tag?.id, users: new Set(), n: 0 }
+      cur.users.add(x.user_id); cur.n++
+      now.set(name, cur)
+    }
+    let shown = 0
+    for (const c of now.values()) {
+      if (c.status !== 'candidate' && c.status !== 'new') continue
+      let pastUsers = new Set(), pastN = 0
+      if (c.tagId) {
+        let q = db.from('tag_mentions').select('user_id').eq('tag_id', c.tagId)
+        if (sinceP) q = q.gte('created_at', sinceP.toISOString())
+        const { data: rows } = await q
+        pastN = rows?.length ?? 0
+        pastUsers = new Set((rows ?? []).map(r => r.user_id))
+      }
+      const users = new Set([...pastUsers, ...c.users])
+      const total = pastN + c.n
+      const hit = total >= PROPOSE_MIN_MENTIONS || users.size >= PROPOSE_MIN_SPEAKERS
+      console.log(`   ${hit ? '📣 格上げ候補になる' : '🌱 候補のまま'}  ${c.name}  （これまで延べ${pastN}回／${pastUsers.size}人 ＋ 今回${c.n}回 → 延べ${total}回／${users.size}人）`)
+      shown++
+    }
+    if (!shown) console.log('   （今回、候補のタグは出ていない）')
+    console.log()
+
     console.log('🧪 --dry なのでDBには書きません\n')
     const show = x => ({ tag: x.g.newName ?? x.g.tag.name, 状態: label(x.g), user_id: x.user_id, headline: x.headline })
     console.log(JSON.stringify({ cards: passed.map(show), interests: interestPassed.map(show), dropped, encore, badRefs }, null, 2))
