@@ -30,14 +30,43 @@ export default function ScanClient() {
   )
 }
 
-// 右の「これまでの自己分析」に出す、いちばん新しい分析の作業ログ
+// 右の「これまでの自己分析」に出す、いちばん新しい分析の結果。
+// 「何が映っていたから、どのタグを候補にしたか」を説明する（モデル名や費用などの作業ログは出さない）
+const STATUS = { official: '正式なタグ', proposed: '格上げ候補のタグ', candidate: '育ちかけのタグ', new: '新しい言葉' }
 export function ScanLog() {
   const s = useScan()
-  if (!s?.res?.log) return null
+  const r = s?.res?.result
+  if (!r) return null
   return (
-    <details open>
-      <summary className="sub" style={{ cursor: 'pointer', fontWeight: 700 }}>いまの分析の作業ログ</summary>
-      <pre className="mono" style={{ background: 'var(--ai)', color: '#EDE4D0', padding: 10, borderRadius: 10, maxHeight: 300, overflow: 'auto', whiteSpace: 'pre-wrap', margin: '8px 0 0', fontSize: 11 }}>{s.res.log}</pre>
-    </details>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid var(--line-soft)', paddingTop: 10 }}>
+      <b style={{ fontSize: 14 }}>いまの分析でわかったこと</b>
+      <span className="sub">{r.frames}枚の静止画を1枚ずつ見て、{r.minFrames}枚以上に映っていたものだけを候補にしました</span>
+      {r.passed.length === 0 && <span className="sub">今回は候補にできるものがありませんでした</span>}
+      {r.passed.map(p => (
+        <div key={p.tag} className="topic" style={{ gap: 4 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            <b style={{ fontSize: 14 }}>{p.tag}</b>
+            <span className="chip" style={{ padding: '2px 8px', fontSize: 10, background: 'var(--teal-bg)', color: 'var(--teal)' }}>{r.frames}枚中{p.frameCount}枚</span>
+            <span className="sub" style={{ fontSize: 10 }}>{STATUS[p.status] ?? ''}</span>
+          </span>
+          {p.reasons.map((t, i) => <span key={i} style={{ fontSize: 12, lineHeight: 1.6 }}>・{t}</span>)}
+          {p.note && <span className="sub" style={{ fontSize: 11 }}>{p.note}</span>}
+        </div>
+      ))}
+      {r.droppedByFrames.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <span className="sub" style={{ fontWeight: 700 }}>候補にしなかったもの</span>
+          {r.droppedByFrames.map(d => (
+            <span key={d.tag} className="sub" style={{ fontSize: 12, lineHeight: 1.6 }}>
+              <b>{d.tag}</b>：{d.frameCount}枚にしか映っていなかった（たまたま開いた画面かもしれないため）{d.reasons[0] ? `。${d.reasons[0]}` : ''}
+            </span>
+          ))}
+          {r.droppedByGate.map((d, i) => (
+            <span key={i} className="sub" style={{ fontSize: 12 }}><b>{d.tag}</b>：タグにできない言葉だった（{d.why}）</span>
+          ))}
+        </div>
+      )}
+      <span className="sub" style={{ fontSize: 11 }}>候補にしたタグは非公開で付いています。公開するかはプロフィールで決められます</span>
+    </div>
   )
 }

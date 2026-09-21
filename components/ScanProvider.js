@@ -21,6 +21,7 @@ export default function ScanProvider({ children }) {
   const [left, setLeft] = useState(0)
   const [res, setRes] = useState(null)
   const [err, setErr] = useState('')
+  const [dismissed, setDismissed] = useState(false)   // 帯を閉じても結果は消さない
   const r = useRef({ stream: null, video: null, frames: [], timer: null, tick: null, endsAt: 0, startedAt: null, granularity: 'window', finishing: false })
 
   useEffect(() => () => stopStream(), [])
@@ -45,7 +46,7 @@ export default function ScanProvider({ children }) {
   }
 
   async function start(minutes, every) {
-    setErr(''); setRes(null)
+    setErr(''); setRes(null); setDismissed(false)
     try { if ('Notification' in window && Notification.permission === 'default') await Notification.requestPermission() } catch {}
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false })
@@ -90,15 +91,15 @@ export default function ScanProvider({ children }) {
     setPhase('done'); router.refresh()
   }
 
-  const reset = () => { setPhase('idle'); setRes(null); setErr('') }
-  return <Ctx.Provider value={{ phase, count, left, res, err, start, finish, reset, MAX_FRAMES }}>{children}</Ctx.Provider>
+  const dismiss = () => setDismissed(true)   // 帯を閉じるだけ。分析の結果は自己分析の画面に残る
+  return <Ctx.Provider value={{ phase, count, left, res, err, start, finish, dismiss, dismissed, MAX_FRAMES }}>{children}</Ctx.Provider>
 }
 
 // どの画面にいても出る帯
 export function ScanBanner() {
   const s = useScan()
   const path = usePathname()
-  if (!s || s.phase === 'idle') return null
+  if (!s || s.phase === 'idle' || (s.phase === 'done' && s.dismissed)) return null
   const mm = String(Math.floor(s.left / 60)).padStart(2, '0'), ss = String(s.left % 60).padStart(2, '0')
   const go = path !== '/selfscan' ? <Link className="btn btn-s" href="/selfscan">自己分析を開く</Link> : null
   return (
@@ -107,9 +108,9 @@ export function ScanBanner() {
       {s.phase === 'running' && <StatusBar tone="info" title={`自己分析 撮影中 ${mm}:${ss}`} text={`撮った静止画 ${s.count}枚。ほかの画面に移っても続きます（再読み込みすると止まります）`}>
         <button className="btn btn-s" onClick={() => s.finish('途中で終えた')}>ここで終えて分析する</button>{go}</StatusBar>}
       {s.phase === 'sending' && <StatusBar spinning title="自己分析エージェントが分析中です" text="1枚ずつ見て、何枚に映ったかを数えています（数十秒）">{go}</StatusBar>}
-      {s.phase === 'done' && <StatusBar tone={s.err ? 'warn' : 'ok'} title={s.err ? '自己分析が止まりました' : '自己分析が終わりました'} text={s.err || '見つかったタグは非公開で付いています。プロフィールで「採用」すると公開になります'}>
+      {s.phase === 'done' && <StatusBar tone={s.err ? 'warn' : 'ok'} title={s.err ? '自己分析が止まりました' : '自己分析が終わりました'} text={s.err || '何が映っていたからどのタグを候補にしたかは、自己分析の画面で見られます'}>
         {path !== '/selfscan' ? go : null}<Link className="btn btn-s" href="/profile?tab=knowledge">プロフィールで見る</Link>
-        <button className="btn btn-s" onClick={s.reset}>閉じる</button></StatusBar>}
+        <button className="btn btn-s" onClick={s.dismiss}>閉じる</button></StatusBar>}
     </div>
   )
 }

@@ -251,8 +251,9 @@ try {
       const key = g.tag ? g.tag.name : g.newName
       if (seenThisImage.has(key)) continue
       seenThisImage.add(key)
-      if (!seen.has(key)) seen.set(key, { g, frames: new Set(), evidence: c.evidence ?? '' })
+      if (!seen.has(key)) seen.set(key, { g, frames: new Set(), evidence: c.evidence ?? '', evidences: [] })
       seen.get(key).frames.add(r.index)
+      if (c.evidence) seen.get(key).evidences.push({ image: r.index + 1, text: String(c.evidence).slice(0, 120) })
     }
   }
 
@@ -267,11 +268,11 @@ try {
   for (const [key, v] of seen) {
     const frameCount = v.frames.size
     if (frameCount < MIRROR_MIN_FRAMES) {
-      droppedByFrames.push({ tag: key, frameCount })
+      droppedByFrames.push({ tag: key, frameCount, evidences: v.evidences })
       continue
     }
     const confidence = frameCount / IMAGE_PATHS.length   // ★ コードが計算する。LLMの自己申告は使わない
-    passed.push({ key, g: v.g, frameCount, confidence, evidence: v.evidence })
+    passed.push({ key, g: v.g, frameCount, confidence, evidence: v.evidence, evidences: v.evidences })
   }
 
   console.log(`🔢 枚数での足切り（${MIRROR_MIN_FRAMES}枚未満は落とす）`)
@@ -333,6 +334,22 @@ try {
 
   if (runId) await db.from('agent_runs')
     .update({ status: 'succeeded', cost_usd: totalCost, request_ids: requestIds, finished_at: new Date() }).eq('id', runId)
+
+  // ★ 画面（/selfscan）に「なぜこのタグが候補になったか」を出すための要約（1行のJSON）。
+  //   evidence はLLMが抽象化した説明で、画像そのものやファイル名は含まない（プロンプトで禁止）
+  const summary = {
+    frames: IMAGE_PATHS.length, minFrames: MIRROR_MIN_FRAMES,
+    passed: passed.map(p => ({
+      tag: p.g.newName ?? p.g.tag.name,
+      status: p.g.newName ? 'new' : p.g.tag.status,
+      frameCount: p.frameCount,
+      note: p.g.note ?? null,
+      reasons: [...new Set(p.evidences.map(e => e.text))].slice(0, 3),
+    })),
+    droppedByFrames: droppedByFrames.map(d => ({ tag: d.tag, frameCount: d.frameCount, reasons: [...new Set(d.evidences.map(e => e.text))].slice(0, 1) })),
+    droppedByGate: droppedByGate.map(d => ({ tag: d.tag, why: d.why })),
+  }
+  console.log('@@RESULT@@' + JSON.stringify(summary))
 
   console.log('\n✅ 書き込み完了')
   console.log(`   本人だけに見える知見タグ ${written}件（visibility=private, source=self）`)
