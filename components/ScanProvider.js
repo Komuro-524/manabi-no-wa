@@ -1,7 +1,7 @@
 'use client'
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import Link from 'next/link'
+import Link from '@/components/Link'
 import StatusBar from './StatusBar'
 
 // 自己分析の撮影と分析を、画面をまたいでも続けるための入れ物（アプリの外枠に1つだけ置く）。

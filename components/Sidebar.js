@@ -1,5 +1,5 @@
 'use client'
-import Link from 'next/link'
+import Link from '@/components/Link'
 import { usePathname } from 'next/navigation'
 import { Icon, Logo } from './icons'
 import { COMPANY_NAME } from '@/lib/company'

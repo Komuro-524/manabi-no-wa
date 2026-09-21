@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from '@/components/Link'
 import { Icon } from './icons'
 import Bell from './Bell'
 

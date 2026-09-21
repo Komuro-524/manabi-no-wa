@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import Link from '@/components/Link'
 import { supabaseBrowser } from '@/lib/supabase/browser'
 
 // 知見タグと興味タグを1画面に。「公開」「非公開」のエリアのあいだをドラッグ＆ドロップで動かす。
@@ -10,7 +9,6 @@ import { supabaseBrowser } from '@/lib/supabase/browser'
 const KIND = { knowledge: ['知見タグ', '話せること'], interest: ['興味タグ', '聞きたいこと'] }
 
 export default function TagBoard({ tags }) {
-  const router = useRouter()
   const [items, setItems] = useState(tags)   // 押した瞬間に動かし、失敗したら戻す
   const [over, setOver] = useState(null)
   const [err, setErr] = useState('')
@@ -21,7 +19,6 @@ export default function TagBoard({ tags }) {
     setItems(xs => xs.map(x => x.id === t.id ? { ...x, visibility: vis } : x))
     const { error } = await supabaseBrowser().rpc('set_tag_visibility', { p_tag_id: t.tag_id, p_kind: t.kind, p_visibility: vis })
     if (error) { setErr(`動かせませんでした: ${error.message}`); setItems(xs => xs.map(x => x.id === t.id ? { ...x, visibility: t.visibility } : x)) }
-    else router.refresh()
   }
 
   return (
@@ -35,7 +32,7 @@ export default function TagBoard({ tags }) {
               const list = items.filter(t => t.kind === kind && t.visibility === vis)
               return (
                 <div key={vis}
-                  onDragOver={e => { e.preventDefault(); setOver(zone) }}
+                  onDragOver={e => { e.preventDefault(); if (over !== zone) setOver(zone) }}   // 同じ値で何度も描き直さない
                   onDragLeave={() => setOver(o => o === zone ? null : o)}
                   onDrop={e => {
                     e.preventDefault(); setOver(null)
