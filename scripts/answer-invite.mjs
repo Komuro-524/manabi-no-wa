@@ -30,7 +30,7 @@ const { error: loginErr } = await db.auth.signInWithPassword({ email, password: 
 if (loginErr) { console.error('ログインできません:', loginErr.message); process.exit(1) }
 
 if (!idArg) {
-  const { data, error } = await db.from('invitations').select('id, status, quest_id, created_at').eq('status', 'sent').order('id')
+  const { data, error } = await db.from('invitations').select('id, status, quest_id').eq('status', 'sent').order('id')
   if (error) { console.error(error.message); process.exit(1) }
   console.log(`\n✉️ ${email} に届いている未回答の打診: ${data.length}件`)
   for (const i of data) console.log(`   #${i.id}（企て#${i.quest_id}）`)
