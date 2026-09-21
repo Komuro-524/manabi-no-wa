@@ -39,9 +39,9 @@ export default function Sidebar({ me, liveCount, inviteCount }) {
 
       <span style={{ flexGrow: 1 }} />
       {me.role === 'admin' && (
-        <span className="nav" style={{ opacity: .45, cursor: 'default' }} title="準備中">
-          <Icon name="admin" /><span>管理者ビュー</span><span style={{ marginLeft: 'auto', fontSize: 10 }}>準備中</span>
-        </span>
+        <Link className="nav" href="/admin">
+          <Icon name="admin" /><span>管理者ビュー</span><span style={{ marginLeft: 'auto' }}><Icon name="arrow" size={14} /></span>
+        </Link>
       )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '12px 10px 2px', marginTop: 8, borderTop: '1px solid rgba(255,255,255,.10)' }}>
         <span className="avt" style={{ width: 30, height: 30, fontSize: 15 }}>{me.display_name.slice(0, 1)}</span>

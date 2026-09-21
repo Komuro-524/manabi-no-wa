@@ -5,6 +5,7 @@ import Topbar from '@/components/Topbar'
 import { Icon } from '@/components/icons'
 import { fmtWhen, splitTitle } from '@/lib/format'
 import LiveActions from './LiveActions'
+import AdminRunButton from '@/components/AdminRunButton'
 
 export default async function LivePage({ params }) {
   const { id } = await params
@@ -68,6 +69,16 @@ export default async function LivePage({ params }) {
 
         {/* 右: 参加者と、このライブから生まれたもの */}
         <div style={{ width: 360, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {me.role === 'admin' && (l.status === 'scheduled' || l.status === 'live') && (
+            <div className="card sh" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8, borderColor: 'var(--ai)' }}>
+              <div className="ttl">管理者の操作</div>
+              {l.status === 'scheduled'
+                ? <><span className="sub">始めると、参加とチャットができるようになります</span>
+                    <AdminRunButton url="/api/admin/live" body={{ liveId: l.id, action: 'start' }} label="ライブを始める" /></>
+                : <><span className="sub">終えると、タグ付けエージェントがチャットを読んで知見カードを作ります（数十秒かかります）</span>
+                    <AdminRunButton url="/api/admin/live" body={{ liveId: l.id, action: 'end' }} label="ライブを終える" busyLabel="タグ付けエージェントが取り込み中…" confirmText="ライブを終えますか？終えたあとはチャットに書き込めません" /></>}
+            </div>
+          )}
           <div className="card sh" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div className="ttl">参加者</div>
             <span className="sub">スピーカー</span>

@@ -238,7 +238,6 @@ try {
   const { data: segments, error: segErr } = await db.from('transcript_segments')
     .select('seq,user_id,body').eq('live_id', LIVE_ID).order('seq')
   if (segErr) throw new Error(`文字起こしを読めません: ${segErr.message}`)
-  if (!segments?.length) throw new Error(`ライブ #${LIVE_ID} に発言がありません`)
 
   // --- 1.2 チャットも読む（★F3。is_agent=false だけ。§8 ルール5） -----------
   //   行番号の空間は文字起こし [s番号] とは分ける（[c番号]）。混ざると
@@ -247,6 +246,8 @@ try {
     .select('user_id,body').eq('live_id', LIVE_ID).eq('is_agent', false).order('created_at')
   if (chatErr) throw new Error(`チャットを読めません: ${chatErr.message}`)
   const chats = (chatRows ?? []).map((m, i) => ({ seq: i + 1, user_id: m.user_id, body: m.body }))
+  // 画面から開いたライブは文字起こしが無く、チャットだけのこともある。どちらも無いときだけ止める
+  if (!segments?.length && !chats.length) throw new Error(`ライブ #${LIVE_ID} に発言もチャットもありません`)
 
   // ★ 行番号（[s12] / [c3]） → アカウント。ここが唯一の「誰が喋ったか」の出どころ
   const userByToken = new Map([
@@ -255,7 +256,7 @@ try {
   ])
 
   console.log(`\n🎙️ ライブ #${live.id} ${live.title ?? ''}`)
-  console.log(`   発言 ${segments.length}行 / チャット ${chats.length}件 / 参加者 ${new Set(segments.map(s => s.user_id)).size}人`)
+  console.log(`   発言 ${segments.length}行 / チャット ${chats.length}件 / 参加者 ${new Set([...segments, ...chats].map(s => s.user_id)).size}人`)
 
   if (!DRY_RUN) await db.from('lives').update({ ingest_status: 'running' }).eq('id', LIVE_ID)
   // ★実演用: --pause <秒> で「取り込み中」の状態のまま待つ。この間に Ctrl+C で本当に落とせる（F8 の動画用）
