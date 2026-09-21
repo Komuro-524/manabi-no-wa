@@ -71,6 +71,7 @@ const db = createClient(
 const SYSTEM = fs.readFileSync(path.join(ROOT, 'lib/agents/prompts/organizer.md'), 'utf8')
 
 let spent = 0
+const requestIds = []   // ★F7: あとで確定額と突き合わせる
 let fakeIdSeq = 0
 const nextFakeId = () => `dry-${++fakeIdSeq}`
 
@@ -94,9 +95,11 @@ async function callLLM(userContent) {
     })
     .withResponse()
 
-  const cost  = data.usage?.cost_usd ?? 0
-  const model = response.headers.get('x-orca-resolved-model')
+  const cost      = data.usage?.cost_usd ?? 0
+  const model     = response.headers.get('x-orca-resolved-model')
+  const requestId = response.headers.get('x-orca-request-id')
   spent += cost
+  if (requestId) requestIds.push(requestId)
 
   let parsed = null
   try { parsed = JSON.parse(data.choices[0].message.content) } catch { /* 下で null 扱いにする */ }
@@ -561,7 +564,7 @@ try {
   }
 
   if (runId) {
-    await db.from('agent_runs').update({ status: 'succeeded', cost_usd: spent, finished_at: new Date() }).eq('id', runId)
+    await db.from('agent_runs').update({ status: 'succeeded', cost_usd: spent, request_ids: requestIds, finished_at: new Date() }).eq('id', runId)
   }
 
   console.log('\n✅ 1周おわり')
@@ -572,6 +575,6 @@ try {
 } catch (e) {
   console.error('\n🛑 失敗:', e.message)
   if (runId) await db.from('agent_runs')
-    .update({ status: 'failed', error: String(e.message), cost_usd: spent, finished_at: new Date() }).eq('id', runId)
+    .update({ status: 'failed', error: String(e.message), cost_usd: spent, request_ids: requestIds, finished_at: new Date() }).eq('id', runId)
   process.exit(1)
 }

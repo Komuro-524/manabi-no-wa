@@ -124,9 +124,10 @@ async function extract(chunk, index) {
     })
     .withResponse()
 
-  const cost  = data.usage?.cost_usd ?? null
-  const model = response.headers.get('x-orca-resolved-model')
-  const fb    = response.headers.get('x-orca-fallback-level')
+  const cost      = data.usage?.cost_usd ?? null
+  const model     = response.headers.get('x-orca-resolved-model')
+  const fb        = response.headers.get('x-orca-fallback-level')
+  const requestId = response.headers.get('x-orca-request-id')   // ★F7: あとで確定額と突き合わせる
 
   let parsed = { cards: [], interests: [], encore: 0 }
   try {
@@ -139,7 +140,7 @@ async function extract(chunk, index) {
     `  塊${index}: ${model ?? '?'} / $${cost ?? '?'}` +
     (fb && fb !== '0' ? ` / フォールバック段=${fb}` : ''),
   )
-  return { ...parsed, cost, model }
+  return { ...parsed, cost, model, requestId }
 }
 
 // ---------------------------------------------------------------------
@@ -214,7 +215,7 @@ try {
   console.log(`   ${chunks.length}個の塊に分割\n`)
   console.log('🧠 抽出中...')
 
-  const cards = [], interests = []
+  const cards = [], interests = [], requestIds = []
   let encore = 0, totalCost = 0
   for (let i = 0; i < chunks.length; i++) {
     const r = await extract(chunks[i], i + 1)
@@ -222,6 +223,7 @@ try {
     interests.push(...(r.interests ?? []))
     encore += r.encore ?? 0
     totalCost += r.cost ?? 0
+    if (r.requestId) requestIds.push(r.requestId)
   }
   console.log(`\n   カード候補 ${cards.length}件 / 興味 ${interests.length}件 / アンコール ${encore}回`)
   console.log(`   ここまでの費用 $${totalCost.toFixed(6)}\n`)
@@ -470,6 +472,7 @@ try {
   if (runId) await db.from('agent_runs').update({
     status: 'succeeded',
     cost_usd: totalCost,
+    request_ids: requestIds,   // ★F7
     note: needsReview ? `渡していない行番号を指した: ${badRefs.join(' / ')}` : null,
     finished_at: new Date(),
   }).eq('id', runId)

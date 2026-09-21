@@ -173,19 +173,22 @@ try {
       })
       .withResponse()
 
-    const cost  = data.usage?.cost_usd ?? 0
-    const model = response.headers.get('x-orca-resolved-model')
+    const cost      = data.usage?.cost_usd ?? 0
+    const model     = response.headers.get('x-orca-resolved-model')
+    const requestId = response.headers.get('x-orca-request-id')   // ★F7
 
     let parsed = { candidates: [] }
     try { parsed = JSON.parse(data.choices[0].message.content) } catch {
       console.warn(`  ⚠️ 画像${index + 1}: JSONとして読めなかったので候補0件扱いにする`)
     }
-    return { index, filePath, candidates: parsed.candidates ?? [], cost, model }
+    return { index, filePath, candidates: parsed.candidates ?? [], cost, model, requestId }
   }
 
   const perImage = await Promise.all(IMAGE_PATHS.map((p, i) => analyzeOne(p, i)))
+  const requestIds = []
   for (const r of perImage) {
     totalCost += r.cost
+    if (r.requestId) requestIds.push(r.requestId)
     const tags = r.candidates.map(c => c.tag).filter(Boolean)
     console.log(`   画像${r.index + 1}: ${r.model ?? '?'} / $${r.cost.toFixed(6)} — ${tags.length ? tags.join(' / ') : '(候補なし)'}`)
   }
@@ -316,7 +319,7 @@ try {
   }
 
   if (runId) await db.from('agent_runs')
-    .update({ status: 'succeeded', cost_usd: totalCost, finished_at: new Date() }).eq('id', runId)
+    .update({ status: 'succeeded', cost_usd: totalCost, request_ids: requestIds, finished_at: new Date() }).eq('id', runId)
 
   console.log('\n✅ 書き込み完了')
   console.log(`   本人だけに見える知見タグ ${written}件（visibility=private, source=self）`)
