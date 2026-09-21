@@ -27,9 +27,9 @@ export default async function SeedDetail({ searchParams }) {
         <Link className="btn btn-s" href="/admin/progress"><Icon name="back" size={14} /> ライブのタネへ</Link>
       </Topbar>
       <div className="body" style={{ flexDirection: 'row', gap: 14, overflow: 'hidden' }}>
-        <div className="card sh" style={{ width: 260, flexShrink: 0, padding: 8, overflowY: 'auto' }}>
+        <div className="card sh noscrollbar" style={{ width: 260, flexShrink: 0, padding: 8, overflowY: 'auto' }}>
           {(quests ?? []).map(q => (
-            <Link key={q.id} href={`/admin/quests?id=${q.id}`} style={{ display: 'flex', flexDirection: 'column', padding: '8px 10px', borderRadius: 8, color: 'var(--ink)', background: q.id === selId ? 'var(--bg)' : undefined }}>
+            <Link key={q.id} href={`/admin/quests?id=${q.id}`} className="hoverable" style={{ display: 'flex', flexDirection: 'column', padding: '8px 10px', borderRadius: 8, color: 'var(--ink)', background: q.id === selId ? 'var(--bg)' : undefined }}>
               <b style={{ fontSize: 14 }}>＃{q.tags?.name ?? '?'}</b>
               <span className="sub" style={{ fontSize: 11 }}>{STATUS[q.status] ?? q.status}</span>
             </Link>
