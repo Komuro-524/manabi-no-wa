@@ -213,9 +213,10 @@ try {
 
     // 検査3（簡易版）: 空白・全角半角・大小文字だけの違いなら 既存の正式タグに寄せる
     //   PowerAutomate → Power Automate。かな読みでの空似判定は範囲外（DESIGN §10）
-    if (!known) {
-      const hit = officialByNorm.get(norm(t))
-      if (hit) return { ok: true, tag: hit, note: `「${t}」→「${hit.name}」に寄せた（表記ゆれ）` }
+    //   ★ 表記ゆれの語が 過去に候補として辞書に入っていても、正式タグの方を優先する
+    const hit = officialByNorm.get(norm(t))
+    if (hit && known?.status !== 'banned') {
+      return hit.name === t ? { ok: true, tag: hit } : { ok: true, tag: hit, note: `「${t}」→「${hit.name}」に寄せた（表記ゆれ）` }
     }
     if (known?.status === 'official') return { ok: true, tag: known }
     if (known?.status === 'banned')   return { ok: false, why: '禁止リスト' }
