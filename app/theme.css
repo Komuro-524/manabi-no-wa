@@ -119,20 +119,22 @@ button.tab:disabled{opacity:.5;cursor:not-allowed}
 .deck-card{position:absolute;inset:0;background:#FFFDF6;border-radius:14px;border:1px solid var(--line);box-shadow:0 10px 24px rgba(0,0,0,.3);transform-origin:36px 50%;
   background-image:linear-gradient(transparent 0 58px,var(--line-soft) 58px 59px,transparent 59px)}
 .deck-card::before{content:"";position:absolute;left:25px;top:calc(50% - 11px);width:22px;height:22px;border-radius:999px;background:#2A323D;box-shadow:inset 0 2px 4px rgba(0,0,0,.6)}
-.deck-top{cursor:grab;touch-action:none;user-select:none;transition:transform .25s,box-shadow .25s;animation:deckRise .45s ease-out}
+.deck-top{backface-visibility:visible;cursor:grab;touch-action:none;user-select:none;transition:transform .25s,box-shadow .25s;animation:deckRise .45s ease-out}
 .deck-top:focus-visible{outline:3px solid #E0B84A;outline-offset:3px}
 @keyframes deckRise{from{transform:rotate(3deg);opacity:.5}to{transform:none;opacity:1}}
 .deck-ring{position:absolute;left:-94px;top:calc(50% - 70px);pointer-events:none}
 /* 採用: 穴を支点に 左斜め上へ ひねりながら持ち上がり、リングを越えて裏へ回る。
-   支点（transform-origin）が穴なので、どの瞬間も穴はリングにかかったまま。裏返った後半は紙の裏面を見せる */
-.deck-flip{animation:deckFlip .75s cubic-bezier(.45,0,.4,1) forwards}
-.deck-flip::after{content:"";position:absolute;inset:0;border-radius:14px;background:#EFE8D4;opacity:0;animation:deckBackside .75s step-end forwards}
+   ★ カクつき対策: キーフレームを「始め→終わり」の2点だけにして、途中で速度が切り替わらないようにする
+     （中間点を置くと区間ごとにイージングがかかり、止まっては動くように見える）。
+     回転は同じ並び（rotateZ→rotateX）なので、ブラウザは角度をそのまま滑らかに補間する。
+     影は毎フレーム描き直すと重いので、めくる間は消す。GPUに載せるため will-change を付ける */
+.deck-flip{animation:deckFlip .7s cubic-bezier(.35,.05,.35,1) forwards;box-shadow:none;will-change:transform,opacity}
+.deck-flip::after{content:"";position:absolute;inset:0;border-radius:14px;background:#EFE8D4;opacity:0;animation:deckBackside .7s linear forwards}
 @keyframes deckFlip{
-  0%{transform:perspective(1100px) rotateZ(0) rotateX(0)}
-  35%{transform:perspective(1100px) rotateZ(-38deg) rotateX(35deg)}
-  65%{transform:perspective(1100px) rotateZ(-95deg) rotateX(110deg);opacity:1}
-  100%{transform:perspective(1100px) rotateZ(-165deg) rotateX(178deg);opacity:0}}
-@keyframes deckBackside{55%{opacity:1}100%{opacity:1}}
+  from{transform:perspective(1100px) rotateZ(0deg) rotateX(0deg);opacity:1}
+  to{transform:perspective(1100px) rotateZ(-160deg) rotateX(180deg);opacity:.15}}
+/* 紙の裏面: 札が真横を向く（半分を過ぎた）あたりで、ふっと切り替える */
+@keyframes deckBackside{0%,42%{opacity:0}52%,100%{opacity:1}}
 /* 却下: 穴から左の辺までの細い部分にギザギザの裂け目が入り、札が右下へ抜けて落ちる */
 .deck-tear{pointer-events:none;animation:deckTear .7s ease-in forwards;
   clip-path:polygon(0 0,100% 0,100% 100%,0 100%,0 51%,9px 52.5%,5px 50.5%,14px 51.5%,11px 49.5%,20px 50.5%,26px 50%,20px 49.5%,11px 48.5%,14px 47%,5px 48%,9px 46%,0 49%)}
