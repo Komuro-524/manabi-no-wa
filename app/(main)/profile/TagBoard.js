@@ -1,17 +1,21 @@
 'use client'
-import { useState } from 'react'
-import Link from '@/components/Link'
+import { useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabaseBrowser } from '@/lib/supabase/browser'
 
-// 知見タグ・興味タグの公開／非公開。「公開」「非公開」のエリアのあいだをドラッグ＆ドロップで動かす。
-// 動かすと set_tag_visibility()（自分の行しか変えられない関数）を本人のセッションで呼ぶ。
-// ★ ドラッグできない環境のために、カードの ⇄ を押しても移せる
+// 知見タグ・興味タグの公開／非公開。「公開」「非公開」のエリアのあいだをドラッグで動かす。
+// ★ ブラウザ標準のドラッグ＆ドロップ（HTML5 DnD）はブラウザやタッチ操作で動きが違うので使わず、
+//   マウス・指・ペン共通の Pointer Events で自前で動かす（Edge・Chrome・Safari・スマホで同じ動き）
+// 動かすと set_tag_visibility()（自分の行しか変えられない関数）を本人のセッションで呼ぶ。⇄ を押しても移せる
 const KIND = { knowledge: ['知見タグ', '話せること'], interest: ['興味タグ', '聞きたいこと'] }
 
 export default function TagBoard({ tags, kinds = ['knowledge', 'interest'] }) {
+  const router = useRouter()
   const [items, setItems] = useState(tags)   // 押した瞬間に動かし、失敗したら戻す
   const [over, setOver] = useState(null)
+  const [ghost, setGhost] = useState(null)   // ドラッグ中に指やマウスについてくる札
   const [err, setErr] = useState('')
+  const drag = useRef(null)
 
   async function move(t, vis) {
     if (t.visibility === vis) return
@@ -19,6 +23,35 @@ export default function TagBoard({ tags, kinds = ['knowledge', 'interest'] }) {
     setItems(xs => xs.map(x => x.id === t.id ? { ...x, visibility: vis } : x))
     const { error } = await supabaseBrowser().rpc('set_tag_visibility', { p_tag_id: t.tag_id, p_kind: t.kind, p_visibility: vis })
     if (error) { setErr(`動かせませんでした: ${error.message}`); setItems(xs => xs.map(x => x.id === t.id ? { ...x, visibility: t.visibility } : x)) }
+  }
+
+  const zoneAt = (x, y) => document.elementFromPoint(x, y)?.closest('[data-zone]')?.getAttribute('data-zone') ?? null
+
+  function down(e, t) {
+    if (e.button !== 0 || e.target.closest('button')) return
+    e.currentTarget.setPointerCapture(e.pointerId)
+    drag.current = { t, x0: e.clientX, y0: e.clientY, moved: false }
+  }
+  function moveP(e) {
+    const d = drag.current; if (!d) return
+    if (!d.moved && Math.hypot(e.clientX - d.x0, e.clientY - d.y0) < 5) return   // 少し動いたらドラッグ開始（クリックと区別）
+    d.moved = true
+    setGhost({ name: d.t.name ?? '育ちかけ', x: e.clientX, y: e.clientY })
+    const z = zoneAt(e.clientX, e.clientY)
+    setOver(o => (o === z ? o : z))
+  }
+  function up(e) {
+    const d = drag.current; drag.current = null
+    setGhost(null); setOver(null)
+    if (!d) return
+    if (!d.moved) {   // 動かさずに離した＝クリック。正式なタグならそのタグのカードへ
+      if (d.t.status === 'official') router.push(`/cards?tag=${d.t.tag_id}`)
+      return
+    }
+    const z = zoneAt(e.clientX, e.clientY)
+    if (!z) return
+    const [kind, vis] = z.split(':')
+    if (kind === d.t.kind) move(d.t, vis)
   }
 
   return (
@@ -31,14 +64,7 @@ export default function TagBoard({ tags, kinds = ['knowledge', 'interest'] }) {
               const zone = `${kind}:${vis}`
               const list = items.filter(t => t.kind === kind && t.visibility === vis)
               return (
-                <div key={vis}
-                  onDragOver={e => { e.preventDefault(); if (over !== zone) setOver(zone) }}   // 同じ値で何度も描き直さない
-                  onDragLeave={() => setOver(o => o === zone ? null : o)}
-                  onDrop={e => {
-                    e.preventDefault(); setOver(null)
-                    const t = items.find(x => String(x.id) === e.dataTransfer.getData('text/plain'))
-                    if (t && t.kind === kind) move(t, vis)
-                  }}
+                <div key={vis} data-zone={zone}
                   style={{
                     minHeight: 92, borderRadius: 12, padding: 10, display: 'flex', flexDirection: 'column', gap: 8,
                     background: vis === 'public' ? 'var(--teal-bg)' : 'var(--bg)',
@@ -47,7 +73,11 @@ export default function TagBoard({ tags, kinds = ['knowledge', 'interest'] }) {
                   <span style={{ fontSize: 12, fontWeight: 700, color: vis === 'public' ? 'var(--teal)' : 'var(--sub)' }}>{name}<span className="sub" style={{ fontWeight: 400 }}>（{hint}）</span></span>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {list.length === 0 && <span className="sub" style={{ fontSize: 11 }}>ここにドラッグ</span>}
-                    {list.map(t => <TagCard key={t.id} t={t} onFlip={() => move(t, vis === 'public' ? 'private' : 'public')} />)}
+                    {list.map(t => (
+                      <TagCard key={t.id} t={t} dragging={ghost && drag.current?.t.id === t.id}
+                        onPointerDown={e => down(e, t)} onPointerMove={moveP} onPointerUp={up} onPointerCancel={up}
+                        onFlip={() => move(t, vis === 'public' ? 'private' : 'public')} />
+                    ))}
                   </div>
                 </div>
               )
@@ -55,21 +85,22 @@ export default function TagBoard({ tags, kinds = ['knowledge', 'interest'] }) {
           </div>
         </div>
       ))}
+      {ghost && (
+        <span className="card" style={{ position: 'fixed', left: ghost.x + 8, top: ghost.y + 8, pointerEvents: 'none', zIndex: 200, padding: '6px 10px', fontSize: 13, fontWeight: 700, boxShadow: '0 8px 20px rgba(28,43,61,.25)' }}>{ghost.name}</span>
+      )}
       {err && <div className="err">{err}</div>}
       <div className="note">育ちかけのタグは、公開にしても管理者が正式にするまで他の人には見えません。自己分析から付いたタグは最初は非公開です。公開に動かすと「採用」になります</div>
     </div>
   )
 }
 
-function TagCard({ t, onFlip }) {
+function TagCard({ t, dragging, onFlip, ...pointer }) {
   const official = t.status === 'official'
   return (
-    <span draggable onDragStart={e => { e.dataTransfer.setData('text/plain', String(t.id)); e.dataTransfer.effectAllowed = 'move' }}
-      className="card" title="ドラッグして公開・非公開を切り替え"
-      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 8px 6px 10px', cursor: 'grab', borderRadius: 10, background: '#FFF', borderColor: official ? 'var(--line)' : 'var(--amber)' }}>
-      {official
-        ? <Link href={`/cards?tag=${t.tag_id}`} style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }} draggable={false}>{t.name}</Link>
-        : <span style={{ fontSize: 13, fontWeight: 700 }}>{t.name ?? '育ちかけ'}</span>}
+    <span {...pointer} className="card" title={official ? 'ドラッグで公開・非公開を切り替え／押すとこのタグのカードへ' : 'ドラッグで公開・非公開を切り替え'}
+      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 8px 6px 10px', cursor: 'grab', borderRadius: 10, background: '#FFF',
+        borderColor: official ? 'var(--line)' : 'var(--amber)', touchAction: 'none', userSelect: 'none', opacity: dragging ? .4 : 1 }}>
+      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', textDecoration: official ? 'underline dotted var(--line)' : 'none' }}>{t.name ?? '育ちかけ'}</span>
       {!official && <span className="chip" style={{ padding: '1px 6px', fontSize: 10, background: 'var(--amber-bg)', color: 'var(--amber)' }}>育ちかけ</span>}
       {t.source === 'self' && <span className="chip" style={{ padding: '1px 6px', fontSize: 10, background: 'var(--purple-bg)', color: 'var(--purple)' }}>自己分析</span>}
       {t.cards > 0 && <span className="sub" style={{ fontSize: 10 }}>{t.cards}枚</span>}
