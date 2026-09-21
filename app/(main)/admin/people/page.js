@@ -2,6 +2,7 @@ import { requireAdmin } from '@/lib/admin-guard'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import Topbar from '@/components/Topbar'
 import Link from '@/components/Link'
+import BurdenChart from './BurdenChart'
 
 const PER = 50
 
@@ -33,8 +34,9 @@ export default async function AdminPeople({ searchParams }) {
     <>
       <Topbar me={me} title="メンバー" sub="話し手の負担が1人に偏っていないか" />
       <div className="body" style={{ overflow: 'hidden' }}>
-        <div className="note">権限は画面からは変えられません。話し手の相談は、同じ人に1週間2回までに抑えています</div>
-        <div className="card sh" style={{ padding: 12, flexGrow: 1, minHeight: 0, overflowY: 'auto' }}>
+        <BurdenChart rows={(users ?? []).map(u => ({ id: u.id, name: u.display_name, cards: cc.get(u.id) ?? 0, invites: inv.get(u.id) ?? 0 }))} />
+        <div className="note">権限は画面からは変えられません。{pages > 1 ? 'グラフはこのページの50人分です' : ''}</div>
+        <div className="card sh" style={{ padding: 12, flexGrow: 1, minHeight: 160, overflowY: 'auto' }}>
           <table>
             <thead><tr><th>名前</th><th>部署</th><th>権限</th><th>知見カード</th><th>話し手の相談（30日）</th></tr></thead>
             <tbody>
