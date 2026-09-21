@@ -44,11 +44,19 @@ const CHUNK_CHARS = 6000          // 1回のLLM呼び出しに渡す文字数
 const MODEL = 'orcarouter/manabi-recorder'   // ★ モデル名を書かない。ルーターに選ばせる
 const MAX_TAG_LEN = 20
 
-// ★F9: フォールバックを わざと起こすスイッチ（③堅牢性の実演用）
-//   ORCA_FORCE_FALLBACK=1 のときだけ、存在しないモデルを第1候補にして呼ぶ。
-//   OrcaRouter が第1候補の失敗を受けて 第2候補（本来のルーター）に切り替えれば成功する。
-//   普段は使わない。.env.local には書かず、コマンドの前に付けて1回だけ使う
-const FORCE_FALLBACK = (process.env.ORCA_FORCE_FALLBACK ?? '').split('#')[0].trim() === '1'
+// ★F9: 受け皿（フォールバック）は2段にしてある
+//   1段目: OrcaRouter のルーター内フォールバック（ルーター画面で設定。ルーターが選んだモデルが落ちたとき）
+//   2段目: アプリ側の受け皿。ルーター呼び出しそのものが失敗したら（404・429・5xx・通信断など）
+//          別ベンダーの構造化出力対応モデルを1回だけ直接呼ぶ。ルーターの受け皿と同じモデル
+const APP_FALLBACK_MODEL = 'google/gemini-2.5-flash-lite'
+
+// ★F9: 受け皿を わざと起こすスイッチ（③堅牢性の実演用。普段は使わない）
+//   .env.local には書かず、コマンドの前に付けて1回だけ使う
+//   ORCA_FORCE_FALLBACK=orca … 存在しないモデルを第1候補、実在モデルを第2候補にして OrcaRouter の fallback ルーティングを試す
+//   ORCA_FORCE_FALLBACK=app  … 存在しないモデルを呼ぶ → 失敗 → アプリ側の受け皿が拾う
+//   （1 は orca と同じ扱い）
+const FORCE_RAW = (process.env.ORCA_FORCE_FALLBACK ?? '').split('#')[0].trim()
+const FORCE_FALLBACK = FORCE_RAW === '1' ? 'orca' : (['orca', 'app'].includes(FORCE_RAW) ? FORCE_RAW : null)
 const BROKEN_MODEL = 'openai/this-model-does-not-exist'
 
 // 格上げ候補の条件。会社の規模やアクティブな人数に合わせて .env.local で変えられる
@@ -106,11 +114,32 @@ function shapeOk(tag) {
 // LLM を1回呼ぶ（構造化出力）
 // ---------------------------------------------------------------------
 async function extract(chunk, index) {
-  const { data, response } = await ai.chat.completions
+  // 1回目: ふだんはルーター。実演スイッチが入っているときだけ壊れたモデル
+  const first = !FORCE_FALLBACK ? { model: MODEL }
+    : FORCE_FALLBACK === 'orca'
+      ? { model: BROKEN_MODEL, models: [BROKEN_MODEL, APP_FALLBACK_MODEL], route: 'fallback' }
+      : { model: BROKEN_MODEL }
+  let appFallback = null
+  let res
+  try {
+    res = await callLLM(chunk, first)
+  } catch (e) {
+    // 入力の中身が原因の失敗（400 など）は 別モデルでも同じなので 受け皿に回さない
+    const st = e?.status
+    const retryable = st === undefined || st === 404 || st === 408 || st === 409 || st === 429 || st >= 500
+    if (!retryable) throw e
+    console.warn(`  🔁 塊${index}: 1回目が失敗（${st ?? '通信'}: ${String(e.message).slice(0, 80)}）→ 受け皿 ${APP_FALLBACK_MODEL} で1回だけやり直す`)
+    appFallback = `塊${index}: アプリ側の受け皿で回復（1回目 ${first.model} が ${st ?? '通信'} で失敗 → ${APP_FALLBACK_MODEL}）`
+    res = await callLLM(chunk, { model: APP_FALLBACK_MODEL })
+  }
+  const { data, response } = res
+  return finishExtract(data, response, index, appFallback)
+}
+
+function callLLM(chunk, target) {
+  return ai.chat.completions
     .create({
-      model: FORCE_FALLBACK ? BROKEN_MODEL : MODEL,
-      // ★F9: 第1候補が落ちたら 次の候補へ（OrcaRouter の fallback ルーティング）
-      ...(FORCE_FALLBACK ? { models: [BROKEN_MODEL, MODEL], route: 'fallback' } : {}),
+      ...target,
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: SYSTEM },
@@ -132,7 +161,9 @@ async function extract(chunk, index) {
       ],
     })
     .withResponse()
+}
 
+function finishExtract(data, response, index, appFallback) {
   const cost      = data.usage?.cost_usd ?? null
   const model     = response.headers.get('x-orca-resolved-model')
   const fb        = response.headers.get('x-orca-fallback-level')
@@ -150,7 +181,10 @@ async function extract(chunk, index) {
     `  塊${index}: ${model ?? '?'} / $${cost ?? '?'}` +
     (fb && fb !== '0' ? ` / フォールバック段=${fb}（受け皿: ${fbModel ?? '?'}）` : ''),
   )
-  const fallback = fb && fb !== '0' ? `塊${index}: 段=${fb} 受け皿=${fbModel ?? '?'} 実際=${model ?? '?'}` : null
+  const fallback = [
+    fb && fb !== '0' ? `塊${index}: OrcaRouterのフォールバック 段=${fb} 受け皿=${fbModel ?? '?'} 実際=${model ?? '?'}` : null,
+    appFallback,
+  ].filter(Boolean).join(' / ') || null
   return { ...parsed, cost, model, requestId, fallback }
 }
 
@@ -215,7 +249,7 @@ try {
   console.log(`   発言 ${segments.length}行 / チャット ${chats.length}件 / 参加者 ${new Set(segments.map(s => s.user_id)).size}人`)
 
   if (!DRY_RUN) await db.from('lives').update({ ingest_status: 'running' }).eq('id', LIVE_ID)
-  if (FORCE_FALLBACK) console.log(`\n🧨 ORCA_FORCE_FALLBACK=1: 第1候補を存在しないモデル（${BROKEN_MODEL}）にして呼びます\n`)
+  if (FORCE_FALLBACK) console.log(`\n🧨 ORCA_FORCE_FALLBACK=${FORCE_FALLBACK}: 1回目を存在しないモデル（${BROKEN_MODEL}）にして呼びます\n`)
 
   // --- 1.5 タグ辞書を読む（★抽出の前。既存の語と表記を揃えるための参考として渡す）
   const { data: allTags, error: tagErr } = await db.from('tags').select('id,name,status,alias_of')
