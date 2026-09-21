@@ -34,3 +34,6 @@ Thumbs.db
 
 # CLAUDE.md は提出物に含める（上の Claude.md 除外を打ち消す）
 !CLAUDE.md
+
+# ===== 検証用スクショ（個人の画面が写るのでコミットしない）=====
+tmp/
