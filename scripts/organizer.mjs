@@ -239,7 +239,7 @@ try {
   // --- 0. 土台のデータを1回で読み込む -----------------------------------
   const [{ data: tags }, { data: allUserTags }, { data: allUsers }, { data: activeQuests }, { data: recentInvites }] =
     await Promise.all([
-      db.from('tags').select('id, name, last_live_at'),
+      db.from('tags').select('id, name, last_live_at').in('status', ['official', 'proposed', 'candidate']),
       db.from('user_tags').select('user_id, tag_id, kind, strength, answer_count, updated_at'),
       db.from('users').select('id, display_name'),
       db.from('quests').select('*').in('status', ['scouting', 'inviting', 'scheduling', 'opened']),
