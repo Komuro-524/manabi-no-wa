@@ -47,7 +47,19 @@ if (missing.length) {
 const DRY_RUN = process.argv.includes('--dry')
 const userIdx = process.argv.indexOf('--user')
 const USER_ID = userIdx !== -1 ? process.argv[userIdx + 1] : null
-const IMAGE_PATHS = process.argv.slice(2).filter(a => !a.startsWith('--') && a !== USER_ID)
+let IMAGE_PATHS = process.argv.slice(2).filter(a => !a.startsWith('--') && a !== USER_ID)
+
+// ★ 画面（/selfscan）から呼ぶときは --stdin。画像はファイルにせず、標準入力で data URL のまま受け取る
+//   （ディスクに一度も書かない。ルール12）。{ frames: [...], started_at, ends_at, granularity }
+const STDIN = process.argv.includes('--stdin')
+let STDIN_META = {}
+if (STDIN) {
+  let raw = ''
+  for await (const chunk of process.stdin) raw += chunk
+  const j = JSON.parse(raw || '{}')
+  IMAGE_PATHS = (j.frames ?? []).filter(f => /^data:image\/(png|jpeg|webp);base64,/.test(f)).slice(0, 30)
+  STDIN_META = { started_at: j.started_at, ends_at: j.ends_at, granularity: j.granularity === 'screen' ? 'screen' : 'window' }
+}
 const MODEL = 'orcarouter/manabi-mirror'   // ★ モデル名を書かない。ルーターに選ばせる
 const MAX_TAG_LEN = 20
 
@@ -97,6 +109,7 @@ function shapeOk(tag) {
 const MIME_BY_EXT = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp' }
 
 function toDataUrl(filePath) {
+  if (filePath.startsWith('data:image/')) return filePath   // --stdin で受け取ったもの（検査済み）
   const ext = path.extname(filePath).toLowerCase()
   const mime = MIME_BY_EXT[ext]
   if (!mime) throw new Error(`対応していない画像形式です: ${filePath}`)
@@ -130,8 +143,8 @@ try {
   const now = new Date()
   if (!DRY_RUN) {
     const { error: sessErr } = await db.from('self_analysis_sessions').insert({
-      user_id: USER_ID, granularity: 'window', frame_count: IMAGE_PATHS.length,
-      started_at: now, ends_at: now, finished_at: now,
+      user_id: USER_ID, granularity: STDIN_META.granularity ?? 'window', frame_count: IMAGE_PATHS.length,
+      started_at: STDIN_META.started_at ?? now, ends_at: STDIN_META.ends_at ?? now, finished_at: now,
     })
     if (sessErr) throw new Error(`セッション記録に失敗: ${sessErr.message}`)
   }
