@@ -8,6 +8,8 @@ import LiveActions from './LiveActions'
 import AdminRunButton from '@/components/AdminRunButton'
 import StatusBar from '@/components/StatusBar'
 import AutoRefresh from '@/components/AutoRefresh'
+import LivePanels from './LivePanels'
+import Elapsed from './Elapsed'
 
 export default async function LivePage({ params }) {
   const { id } = await params
@@ -16,15 +18,16 @@ export default async function LivePage({ params }) {
   const db = await supabaseServer()
 
   const { data: l } = await db.from('lives')
-    .select('id, title, status, scheduled_start, started_at, ended_at, ingest_status, tags(name)')
+    .select('id, title, status, scheduled_start, started_at, ended_at, ingest_status, topic_tag_id, tags(name)')
     .eq('id', liveId).maybeSingle()
   if (!l) notFound()
 
-  const [{ data: ps }, { data: users }, { data: msgs }, { data: cards }] = await Promise.all([
+  const [{ data: ps }, { data: users }, { data: msgs }, { data: cards }, { data: lastSeg }] = await Promise.all([
     db.from('live_participants').select('user_id, role').eq('live_id', liveId),
     db.from('users').select('id, display_name, department'),
     db.from('messages').select('id, user_id, body, is_agent, created_at').eq('live_id', liveId).order('id'),     // RLS: 参加者だけ
     db.from('knowledge_cards').select('id, headline, body, speaker_id, tag_id, tags(name, status)').eq('live_id', liveId).order('id'), // RLS: 正式タグ or 本人 or 管理者
+    db.from('transcript_segments').select('user_id, seq').eq('live_id', liveId).order('seq', { ascending: false }).limit(1),   // RLS: 参加者だけ
   ])
   const who = new Map((users ?? []).map(u => [u.id, u]))
   const amIn = (ps ?? []).some(p => p.user_id === me.id)
@@ -53,70 +56,133 @@ export default async function LivePage({ params }) {
     : null
   const statusText = l.status === 'live' ? 'いま配信中' : l.status === 'scheduled' ? `${fmtWhen(l.scheduled_start)} から` : `${fmtWhen(l.ended_at ?? l.started_at)} に終了`
 
+  // ★ 音声は今回の範囲外。「いま話している人」は、いちばん新しい発言（チャット、なければ文字起こし）の人で示す
+  const lastHuman = [...(msgs ?? [])].reverse().find(m => !m.is_agent)
+  const talkingId = lastHuman?.user_id ?? lastSeg?.[0]?.user_id ?? null
+  const talkingFresh = l.status === 'live' && lastHuman && Date.now() - new Date(lastHuman.created_at).getTime() < 3 * 60 * 1000
+
+  // 話し手ごとに添えるタグ（このライブの話題のタグを持っていればそれ、なければ公開している知見タグを1つ）
+  const spIds = speakers.map(p => p.user_id)
+  const { data: spTags } = spIds.length
+    ? await db.from('user_tags').select('user_id, tag_id, tags(name, status)').in('user_id', spIds).eq('kind', 'knowledge')
+    : { data: [] }
+  const tagOf = id => {
+    const mine = (spTags ?? []).filter(t => t.user_id === id && t.tags?.status === 'official')
+    return (mine.find(t => t.tag_id === l.topic_tag_id) ?? mine[0])?.tags?.name ?? null
+  }
+  const isSpeaker = speakers.some(p => p.user_id === me.id)
+  const canRun = (me.role === 'admin' || isSpeaker) && (l.status === 'scheduled' || l.status === 'live')
+
+  const commentPanel = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 9, flexGrow: 1, minHeight: 0 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 9, overflowY: 'auto', flexGrow: 1, minHeight: 0 }}>
+        {!amIn && <div className="note">コメントと元の発言は、このライブに参加した人だけが読めます（参加していない人にはデータベースが渡しません）</div>}
+        {amIn && (msgs ?? []).length === 0 && <div className="empty">まだコメントはありません</div>}
+        {(msgs ?? []).map(m => m.is_agent ? (
+          <div key={m.id} style={{ display: 'flex', gap: 10, padding: 12, background: 'var(--shu-bg)', borderRadius: 12 }}>
+            <span className="avt" style={{ width: 32, height: 32, background: 'var(--shu)', color: '#FFF' }}><Icon name="robot" size={16} /></span>
+            <span style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                <span className="chip" style={{ background: 'var(--shu-bg)', color: 'var(--shu)', padding: '2px 8px' }}>場づくりエージェント</span>
+                <span className="sub">{fmtWhen(m.created_at)}</span>
+              </span>
+              <span style={{ fontSize: 13, lineHeight: 1.65 }}>{m.body}</span>
+            </span>
+          </div>
+        ) : (
+          <div key={m.id} style={{ display: 'flex', gap: 10, padding: '6px 2px' }}>
+            <span className="avt" style={{ width: 32, height: 32, fontSize: 15 }}>{who.get(m.user_id)?.display_name?.slice(0, 1) ?? '?'}</span>
+            <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><b style={{ fontSize: 14 }}>{who.get(m.user_id)?.display_name ?? '?'}</b><span className="sub">{fmtWhen(m.created_at)}</span></span>
+              <span style={{ fontSize: 13, lineHeight: 1.6 }}>{m.body}</span>
+            </span>
+          </div>
+        ))}
+      </div>
+      <LiveActions liveId={liveId} status={l.status} amIn={amIn} meId={me.id} />
+    </div>
+  )
+  const cardsPanel = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, overflowY: 'auto', flexGrow: 1, minHeight: 0 }}>
+      {l.status !== 'ended' && <span className="sub">ライブが終わると、タグ付けエージェントがコメントと発言を読んで知見カードを作ります</span>}
+      {l.status === 'ended' && groups.size === 0 && <span className="sub">{l.ingest_status === 'done' ? 'あなたに見えるカードはまだありません（育ちかけのタグは、管理者が正式にすると全員に見えます）' : 'まだ取り込まれていません'}</span>}
+      {[...groups].map(([tag, cs]) => (
+        <div key={tag} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span className="chip" style={{ alignSelf: 'flex-start', background: 'var(--blue-bg)', color: 'var(--blue)' }}><Icon name="tag" size={13} />{tag}</span>
+          {cs.map(c => (
+            <Link key={c.id} href={`/cards?id=${c.id}`} className="topic" style={{ color: 'var(--ink)' }}>
+              <b style={{ fontSize: 14 }}>{c.headline}</b>
+              <span className="sub">{c.body}</span>
+              <span className="sub" style={{ fontSize: 11 }}>話した人: {who.get(c.speaker_id)?.display_name ?? '?'}</span>
+            </Link>
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+
   return (
     <>
-      <Topbar me={me} title={`＃${main}`} sub={`${sub ? sub + ' ・ ' : ''}${statusText}`}>
-        <Link className="btn btn-s" href="/livehub"><Icon name="back" size={14} /> 一覧へ</Link>
-      </Topbar>
+      <header className="topbar" style={{ height: 'auto', padding: '14px 24px', gap: 14, flexWrap: 'wrap' }}>
+        {l.status === 'live'
+          ? <span className="chip" style={{ background: 'var(--live)', color: '#FFF', padding: '7px 12px' }}><span className="dot" style={{ background: '#FFF' }} />LIVE</span>
+          : <span className="chip" style={{ background: 'var(--sand)', color: 'var(--ink2)', padding: '7px 12px' }}>{l.status === 'scheduled' ? '配信予定' : '終了'}</span>}
+        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700 }}>＃{main}</h1>
+          {sub && <span className="sub">{sub}</span>}
+        </div>
+        <span className="chip" style={{ background: 'var(--sand)', color: 'var(--ink2)' }}><Icon name="clock" size={13} />
+          {l.status === 'live' ? <Elapsed since={l.started_at} /> : statusText}</span>
+        <span style={{ flexGrow: 1 }} />
+        <Link className="btn btn-s" href="/livehub"><Icon name="back" size={14} /> {l.status === 'live' && amIn ? '退出' : '一覧へ'}</Link>
+      </header>
       {ingestBar && <div style={{ padding: '14px 24px 0' }}>{ingestBar}</div>}
-      <AutoRefresh active={working} />
-      <div className="body" style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 16 }}>
-        {/* 左: 会話 */}
-        <div style={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div className="card sh" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div className="ttl">チャット</div>
-            {!amIn && <div className="note">チャットと元の発言は、このライブに参加した人だけが読めます（参加していない人にはデータベースが渡しません）</div>}
-            {amIn && (msgs ?? []).length === 0 && <div className="empty">まだ発言はありません</div>}
-            {(msgs ?? []).map(m => (
-              <div key={m.id} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                {m.is_agent
-                  ? <span className="avt" style={{ width: 30, height: 30, background: 'var(--amber-bg)', color: 'var(--amber)' }}><Icon name="robot" size={16} /></span>
-                  : <span className="avt" style={{ width: 30, height: 30, fontSize: 14 }}>{who.get(m.user_id)?.display_name?.slice(0, 1) ?? '?'}</span>}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <span className="sub" style={{ fontWeight: 600 }}>{m.is_agent ? '場づくりエージェント' : who.get(m.user_id)?.display_name ?? '?'}</span>
-                  <span style={{ fontSize: 14, lineHeight: 1.6 }}>{m.body}</span>
+      <AutoRefresh active={working || (l.status === 'live' && amIn)} every={working ? 4000 : 6000} />
+      <div className="body" style={{ flexDirection: 'row', alignItems: 'stretch', gap: 16, overflow: 'hidden' }}>
+        {/* 左: 話し手を大きく。いま話している人に色の輪 */}
+        <div style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12, overflowY: 'auto' }}>
+          {speakers.length === 0 && <div className="card empty">スピーカー未定</div>}
+          {speakers.map(p => {
+            const u = who.get(p.user_id); if (!u) return null
+            const talking = p.user_id === talkingId
+            const tag = tagOf(p.user_id)
+            return (
+              <div key={p.user_id} className="card sh" style={{ padding: 14, display: 'flex', alignItems: 'center', gap: 13, borderColor: talking ? 'var(--live)' : undefined }}>
+                <span style={{ borderRadius: 999, boxShadow: talking ? '0 0 0 3px var(--live)' : 'none', flexShrink: 0 }} className={talking && talkingFresh ? 'talking' : undefined}>
+                  <span className="avt" style={{ width: 56, height: 56, fontSize: 22, background: talking ? '#F5E3E8' : undefined, color: talking ? '#8A3B54' : undefined }}>{u.display_name.slice(0, 1)}</span>
+                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+                  <span style={{ fontSize: 16, fontWeight: 700 }}>{u.display_name}</span>
+                  {tag && <span className="chip" style={{ alignSelf: 'flex-start', background: 'var(--blue-bg)', color: 'var(--blue)' }}><Icon name="tag" size={12} />{tag}</span>}
+                  <span className="sub" style={{ fontWeight: 700, color: talking ? '#8A3B54' : undefined }}>
+                    {talking ? (l.status === 'live' ? (talkingFresh ? '話しています' : '最後に話した人') : 'いちばん最後に話した人') : (l.status === 'live' ? '聞いています' : u.department)}
+                  </span>
                 </div>
               </div>
-            ))}
-            <LiveActions liveId={liveId} status={l.status} amIn={amIn} meId={me.id} />
+            )
+          })}
+          <div className="card" style={{ padding: 13, display: 'flex', flexDirection: 'column', gap: 9 }}>
+            <span className="sub" style={{ fontWeight: 700 }}>リスナー {listeners.length}人</span>
+            {listeners.length > 0 && <span style={{ display: 'flex', flexWrap: 'wrap' }}>
+              {listeners.slice(0, 6).map(p => <span key={p.user_id} className="avt" title={who.get(p.user_id)?.display_name} style={{ width: 28, height: 28, fontSize: 13, marginRight: -4, border: '2px solid #FFF' }}>{who.get(p.user_id)?.display_name?.slice(0, 1)}</span>)}
+              {listeners.length > 6 && <span className="avt" style={{ width: 28, height: 28, fontSize: 11 }}>＋{listeners.length - 6}</span>}
+            </span>}
+            <span className="sub">聞くだけの参加も、正式な席です。</span>
+            <button className="btn btn-s" disabled title="音声は今回の範囲外" style={{ width: '100%' }}>スピーカーになる（音声は準備中）</button>
           </div>
-        </div>
-
-        {/* 右: 参加者と、このライブから生まれたもの */}
-        <div style={{ width: 360, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {(me.role === 'admin' || speakers.some(p => p.user_id === me.id)) && (l.status === 'scheduled' || l.status === 'live') && (
-            <div className="card sh" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8, borderColor: 'var(--ai)' }}>
-              <div className="ttl">{me.role === 'admin' ? '管理者の操作' : '話し手の操作'}</div>
+          {canRun && (
+            <div className="card sh" style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 8, borderColor: 'var(--ai)' }}>
+              <b style={{ fontSize: 14 }}>{me.role === 'admin' ? '管理者の操作' : '話し手の操作'}</b>
               {l.status === 'scheduled'
-                ? <><span className="sub">始めると、参加とチャットができるようになります</span>
-                    <AdminRunButton url="/api/admin/live" body={{ liveId: l.id, action: 'start' }} label="ライブを始める" /></>
-                : <><span className="sub">終えると、タグ付けエージェントがチャットを読んで知見カードを作ります（数十秒かかります）</span>
-                    <AdminRunButton url="/api/admin/live" body={{ liveId: l.id, action: 'end' }} label="ライブを終える" busyLabel="タグ付けエージェントが取り込み中…" confirmText="ライブを終えますか？終えたあとはチャットに書き込めません" /></>}
+                ? <AdminRunButton url="/api/admin/live" body={{ liveId: l.id, action: 'start' }} label="ライブを始める" small />
+                : <AdminRunButton url="/api/admin/live" body={{ liveId: l.id, action: 'end' }} label="ライブを終える" busyLabel="終えています…" confirmText="ライブを終えますか？終えたあとはコメントできません" small />}
             </div>
           )}
-          <div className="card sh" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div className="ttl">参加者</div>
-            <span className="sub">スピーカー</span>
-            {speakers.length ? speakers.map(p => <Person key={p.user_id} u={who.get(p.user_id)} />) : <span className="sub">未定</span>}
-            {listeners.length > 0 && <><span className="sub" style={{ paddingTop: 6 }}>リスナー</span>{listeners.map(p => <Person key={p.user_id} u={who.get(p.user_id)} />)}</>}
-          </div>
-          <div className="card sh" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div className="ttl">このライブから生まれたもの</div>
-            {l.status !== 'ended' && <span className="sub">ライブが終わると、タグ付けエージェントが知見カードを作ります</span>}
-            {l.status === 'ended' && groups.size === 0 && <span className="sub">{l.ingest_status === 'done' ? 'あなたに見えるカードはまだありません（育ちかけのタグは、管理者が正式にすると全員に見えます）' : 'まだ取り込まれていません'}</span>}
-            {[...groups].map(([tag, cs]) => (
-              <div key={tag} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <span className="chip" style={{ alignSelf: 'flex-start', background: 'var(--blue-bg)', color: 'var(--blue)' }}><Icon name="tag" size={13} />{tag}</span>
-                {cs.map(c => (
-                  <div key={c.id} style={{ borderLeft: '3px solid var(--line)', paddingLeft: 10 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700 }}>{c.headline}</div>
-                    <div className="sub">{c.body}</div>
-                    <div className="sub">話した人: {who.get(c.speaker_id)?.display_name ?? '?'}</div>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
+        </div>
+
+        {/* 右: コメント／生まれたタグ */}
+        <div className="card sh" style={{ flexGrow: 1, minWidth: 0, minHeight: 0, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <LivePanels cardsCount={groups.size} comment={commentPanel} cards={cardsPanel} initial={l.status === 'ended' && groups.size ? 'cards' : 'comment'} />
         </div>
       </div>
     </>

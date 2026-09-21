@@ -39,11 +39,10 @@ export default function LiveActions({ liveId, status, amIn, meId }) {
         ? <button className="btn btn-p" onClick={join} disabled={busy}><Icon name="play" size={16} /> リスナーとして入る</button>
         : (
           <form onSubmit={send} style={{ display: 'flex', gap: 8 }}>
-            <input className="inp" value={text} onChange={e => setText(e.target.value)} placeholder="コメントを書く" maxLength={500} />
+            <input className="inp" value={text} onChange={e => setText(e.target.value)} placeholder="コメントを書く（記録されます）" maxLength={500} />
             <button className="btn btn-p" disabled={busy || !text.trim()}><Icon name="send" size={15} /> 送る</button>
           </form>
         )}
-      <button className="btn btn-s" disabled title="音声は今回の範囲外" style={{ alignSelf: 'flex-start' }}>スピーカーになる（音声は準備中）</button>
       {err && <div className="err">{err}</div>}
     </div>
   )
