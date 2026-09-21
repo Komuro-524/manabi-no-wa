@@ -105,3 +105,7 @@ button.tab:disabled{opacity:.5;cursor:not-allowed}
 /* 押せる行・カード: ホバーで色が変わって「押せそう」に見せる */
 .hoverable{transition:background .15s,border-color .15s,transform .15s}
 .hoverable:hover{background:var(--sand);border-color:var(--line)}
+/* 知識地図: 検索で当たった丸を光らせる */
+.map-pulse{animation:mapPulse 1.4s ease-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes mapPulse{0%{opacity:1;transform:scale(.85)}100%{opacity:0;transform:scale(1.35)}}
+@media (prefers-reduced-motion:reduce){.map-pulse{animation:none}}

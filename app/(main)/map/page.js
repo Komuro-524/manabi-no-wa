@@ -2,9 +2,11 @@ import Link from '@/components/Link'
 import { supabaseServer, currentUser } from '@/lib/supabase/server'
 import Topbar from '@/components/Topbar'
 import { fetchAll } from '@/lib/fetch-all.mjs'
+import MapCanvas from './MapCanvas'
 
 // 知識地図（簡易）。円＝正式タグ（大きさ＝カード枚数）、線＝同じライブで一緒に語られた。読めるデータ（RLS）だけで描く
-export default async function MapPage() {
+export default async function MapPage({ searchParams }) {
+  const sp = await searchParams
   const me = await currentUser()
   const db = await supabaseServer()
   const [{ data: tags }, { data: cards }, { data: ut }] = await Promise.all([
@@ -42,37 +44,19 @@ export default async function MapPage() {
     const a = livesOf.get(nodes[i].id), b = livesOf.get(nodes[j].id)
     if (!a || !b) continue
     const shared = [...a].filter(x => b.has(x)).length
-    if (shared) edges.push({ a: nodes[i], b: nodes[j], w: shared })
+    if (shared) edges.push([nodes[i].id, nodes[j].id, shared])
   }
-  const COLOR = { '分野': ['#E2E9F0', '#1B3A5C'], '技術': ['#E6EDDC', '#3C5C34'], '業務': ['#F3E8CE', '#8C6A0C'] }
-
   return (
     <>
       <Topbar me={me} title="知識地図" sub="円が大きいほど知見カードが多い。線は同じライブで一緒に語られたタグ" />
       <div className="body" style={{ overflow: 'hidden' }}>
-        <div className="card sh" style={{ padding: 8, flexGrow: 1, minHeight: 0, display: 'flex' }}>
-          {nodes.length === 0 ? <div className="empty">まだ正式なタグがありません</div> : (
-            <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" style={{ width: '100%', height: '100%', display: 'block' }} role="img" aria-label="タグのつながり">
-              {edges.map((e, i) => <line key={i} x1={e.a.x} y1={e.a.y} x2={e.b.x} y2={e.b.y} stroke="#D8BE7C" strokeWidth={1 + e.w} opacity=".7" />)}
-              {nodes.map(n => {
-                const [bg, fg] = COLOR[n.kind] ?? COLOR['分野']
-                return (
-                  <a key={n.id} href={`/cards?tag=${n.id}`}>
-                    <title>{`${n.name}：知見カード${n.cards}枚・${n.people}人`}</title>
-                    <circle cx={n.x} cy={n.y} r={n.r} fill={bg} stroke={mine.has(n.id) ? '#A83B2E' : fg} strokeWidth={mine.has(n.id) ? 3 : 1.5} />
-                    <text x={n.x} y={n.y + 4} textAnchor="middle" fontSize="11" fontWeight="700" fill={fg}>{n.cards}</text>
-                    <text x={n.x} y={n.y + n.r + 16} textAnchor="middle" fontSize="14" fontWeight="700" fill="#1C2B3D"
-                      stroke="#FFFFFF" strokeWidth="4" strokeLinejoin="round" style={{ paintOrder: 'stroke' }}>{n.name}</text>
-                  </a>
-                )
-              })}
-            </svg>
-          )}
-        </div>
+        {nodes.length === 0 ? <div className="card sh empty">まだ正式なタグがありません</div> : (
+          <MapCanvas W={W} H={H} initialQ={String(sp?.q ?? '').slice(0, 40)} mine={[...mine]}
+            nodes={nodes.map(({ id, name, kind, x, y, r, cards, people }) => ({ id, name, kind, x, y, r, cards, people }))} edges={edges} />
+        )}
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-          {Object.entries(COLOR).map(([k, [bg, fg]]) => <span key={k} className="chip" style={{ background: bg, color: fg }}>{k}</span>)}
           <span className="chip" style={{ background: '#FFF', color: 'var(--shu)', border: '2px solid var(--shu)' }}>あなたのタグ</span>
-          <span className="sub">円の中の数字＝知見カードの枚数。円を押すと、そのタグのカードへ</span>
+          <span className="sub">円の中の数字＝知見カードの枚数。円を押すと、そのタグのカードへ。ドラッグで移動・ホイールで拡大縮小</span>
         </div>
       </div>
     </>
