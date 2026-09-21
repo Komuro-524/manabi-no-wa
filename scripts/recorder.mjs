@@ -1,5 +1,5 @@
 // =====================================================================
-//  🎙️ A 記録係
+//  🎙️ A タグ付けエージェント
 //
 //  使い方:
 //    node scripts/recorder.mjs "パス/文字起こし.txt"
@@ -217,21 +217,49 @@ try {
   }
   if (seenNew.size) console.log(`🌱 候補タグを${seenNew.size}件 登録した`)
 
-  // --- 5. 話した人をそろえる（デモ用。本番はログイン済みの社員を引く） ---
-  const names = [...new Set([...passed.map(c => c.speaker), ...interests.map(i => i.person)])].filter(Boolean)
-  const userIdByName = new Map()
-  for (const name of names) {
-    const { data: found } = await db.from('users').select('id').eq('display_name', name).maybeSingle()
-    if (found) { userIdByName.set(name, found.id); continue }
+  // --- 5. 話した人を照合する ------------------------------------------
+  //  ★ 名簿に無い話者を 勝手に作らない。
+  //    「星野陸」と「星野 陸」を別人と判断して社員が増殖した事故を受けた設計。
+  //    照合は 空白を落とした正規化名で行い、それでも当たらなければ
+  //    未知の話者として記録し 人の確認に返す（ライブは needs_review で止まる）。
+  const normalize = (s) => (s ?? '')
+    .normalize('NFKC')        // 全角英数・全角スペースをそろえる
+    .replace(/\s+/g, '')      // 空白は全部落とす
+    .toLowerCase()
 
-    const email = `demo-${crypto.createHash('sha1').update(name).digest('hex').slice(0, 10)}@example.invalid`
-    const { data: created, error } = await db.auth.admin.createUser({
-      email, password: crypto.randomUUID(), email_confirm: true,
-    })
-    if (error) { console.warn(`   ⚠️ ${name} を作れなかった: ${error.message}`); continue }
-    await db.from('users').insert({ id: created.user.id, display_name: name })
-    userIdByName.set(name, created.user.id)
-    console.log(`   👤 デモ社員を作った: ${name}`)
+  const names = [...new Set([...passed.map(c => c.speaker), ...interests.map(i => i.person)])].filter(Boolean)
+
+  const { data: allUsers, error: usersErr } = await db.from('users').select('id, display_name')
+  if (usersErr) throw new Error(`社員名簿が読めません: ${usersErr.message}`)
+
+  const byNorm = new Map()
+  const dupNorm = new Set()
+  for (const u of allUsers ?? []) {
+    const k = normalize(u.display_name)
+    if (byNorm.has(k)) dupNorm.add(k)
+    else byNorm.set(k, u)
+  }
+
+  const userIdByName = new Map()
+  const unknownSpeakers = []
+  for (const name of names) {
+    const key = normalize(name)
+    const hit = byNorm.get(key)
+    if (!hit) { unknownSpeakers.push(name); continue }
+    if (dupNorm.has(key)) {
+      console.warn(`   ⚠️ 名簿に同名が複数いる: 「${name}」。確認に回す`)
+      unknownSpeakers.push(name)
+      continue
+    }
+    userIdByName.set(name, hit.id)
+    if (name !== hit.display_name) {
+      console.log(`   🔤 表記ゆれを吸収: 「${name}」→「${hit.display_name}」`)
+    }
+  }
+
+  if (unknownSpeakers.length) {
+    console.log(`\n   🙋 名簿に無い話者が ${unknownSpeakers.length}人: ${unknownSpeakers.join(' / ')}`)
+    console.log('      社員は勝手に作らない。この人の発言はカードにせず 人の確認に回す')
   }
 
   // --- 6. ライブを1本作って カードを書く -------------------------------
@@ -287,16 +315,29 @@ try {
     interestCount++
   }
 
-  await db.from('lives').update({ ingest_status: 'done' }).eq('id', live.id)
-  if (runId) await db.from('agent_runs')
-    .update({ status: 'succeeded', cost_usd: totalCost, finished_at: new Date() }).eq('id', runId)
+  const needsReview = unknownSpeakers.length > 0
+  await db.from('lives')
+    .update({ ingest_status: needsReview ? 'needs_review' : 'done' }).eq('id', live.id)
+  if (runId) await db.from('agent_runs').update({
+    status: 'succeeded',
+    cost_usd: totalCost,
+    note: needsReview ? `名簿に無い話者: ${unknownSpeakers.join(' / ')}` : null,
+    finished_at: new Date(),
+  }).eq('id', runId)
 
   console.log('\n✅ 書き込み完了')
   console.log(`   ライブ #${live.id}`)
   console.log(`   知見カード ${written}件`)
   console.log(`   興味タグ   ${interestCount}件`)
   console.log(`   アンコール ${encore}回`)
-  console.log(`   費用       $${totalCost.toFixed(6)}\n`)
+  console.log(`   費用       $${totalCost.toFixed(6)}`)
+  if (needsReview) {
+    console.log(`\n   🚪 このライブは needs_review で止めた`)
+    console.log(`      名簿に無い話者: ${unknownSpeakers.join(' / ')}`)
+    console.log('      人が名寄せを決めてから done にする\n')
+  } else {
+    console.log('')
+  }
 
 } catch (e) {
   console.error('\n🛑 失敗:', e.message)
