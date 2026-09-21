@@ -40,7 +40,7 @@ const DRY_RUN = process.argv.includes('--dry')
 const userIdx = process.argv.indexOf('--user')
 const USER_ID = userIdx !== -1 ? process.argv[userIdx + 1] : null
 const IMAGE_PATHS = process.argv.slice(2).filter(a => !a.startsWith('--') && a !== USER_ID)
-const MODEL = 'orcarouter/auto'   // ★ モデル名を書かない。ルーターに選ばせる
+const MODEL = 'orcarouter/manabi-mirror'   // ★ モデル名を書かない。ルーターに選ばせる
 const MAX_TAG_LEN = 20
 
 if (!USER_ID || IMAGE_PATHS.length === 0) {

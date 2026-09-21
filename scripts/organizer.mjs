@@ -46,7 +46,7 @@ if (missing.length) {
 // 設定
 // ---------------------------------------------------------------------
 const DRY_RUN = process.argv.includes('--dry')
-const MODEL = 'orcarouter/auto'          // ★ モデル名を書かない。ルーターに選ばせる
+const MODEL = 'orcarouter/manabi-organizer'          // ★ モデル名を書かない。ルーターに選ばせる
 const DAY_MS = 24 * 60 * 60 * 1000
 
 // ★ 停止条件はここに定数として持つ。LLMの出力では絶対に上書きしない
