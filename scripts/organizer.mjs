@@ -184,8 +184,8 @@ async function insertLive(fields) {
   return data
 }
 
-async function insertMessage(fields) {
-  console.log(`   💬 呼び水 → "${fields.body}"${DRY_RUN ? '  🧪[dry]' : ''}`)
+async function insertMessage(fields, label = '呼び水') {
+  console.log(`   💬 ${label} → "${fields.body}"${DRY_RUN ? '  🧪[dry]' : ''}`)
   if (DRY_RUN) return
   const { error } = await db.from('messages').insert(fields)
   if (error) throw new Error(`message記録失敗: ${error.message}`)
@@ -195,26 +195,37 @@ async function insertMessage(fields) {
 // 📅 予定（free/busy だけ見る。タイトルも参加者も取りに行かない）
 // ---------------------------------------------------------------------
 async function pickFreeSlot(userId) {
-  const from = daysFromNow(1)
-  const to = daysFromNow(15)
+  // ★ from は「明日0:00（ローカル）」にする。daysFromNow(1)（＝いまから24時間後）だと
+  //   今の時刻より前の予定（例: 今15:30に実行したら、明日15:00の予定）を
+  //   クエリの範囲外にしてしまい、埋まっているのに見落とす事故になる
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const from = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 0, 0, 0)
+  const to = new Date(from)
+  to.setDate(to.getDate() + 15)
+
+  // ★ starts_at だけで絞ると「跨いでいる予定」を取りこぼす。区間の重なりで絞る
+  //   （starts_at < to かつ ends_at > from）
   const { data: busy, error } = await db
     .from('calendar_events')
     .select('starts_at, ends_at')
     .eq('user_id', userId)
     .eq('busy', true)
-    .gte('starts_at', from.toISOString())
-    .lte('starts_at', to.toISOString())
+    .lt('starts_at', to.toISOString())
+    .gt('ends_at', from.toISOString())
   if (error) throw new Error(`予定を読めません: ${error.message}`)
 
   for (let d = 0; d < 14; d++) {
-    const day = daysFromNow(1 + d)
+    const day = new Date(from)
+    day.setDate(day.getDate() + d)
     const start = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 15, 0, 0)
     const end   = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 16, 0, 0)
     const overlaps = (busy ?? []).some(b => new Date(b.starts_at) < end && new Date(b.ends_at) > start)
     if (!overlaps) return { start, end }
   }
   // 14日以内に空きが見つからない場合でも 15日後の同じ枠で仮予約する（デモ用フォールバック）
-  const day = daysFromNow(15)
+  const day = new Date(from)
+  day.setDate(day.getDate() + 14)
   return {
     start: new Date(day.getFullYear(), day.getMonth(), day.getDate(), 15, 0, 0),
     end:   new Date(day.getFullYear(), day.getMonth(), day.getDate(), 16, 0, 0),
@@ -335,9 +346,14 @@ try {
       ingest_status: 'pending',
     })
     await updateQuest(quest.id, { status: 'opened', live_id: live.id, next_action_at: start.toISOString() })
+    // ★ DESIGN §3.2 手順7: 予約した直後に「最初の一言」を書く（is_agent=true）
+    await insertMessage({
+      live_id: live.id, user_id: null, is_agent: true,
+      body: `「${tag.name}」の回、${nameById.get(quest.current_invitee) ?? '?'}さんに話してもらいます。よろしくお願いします！`,
+    }, '最初の一言')
     await insertQuestStep({
       quest_id: quest.id, kind: 'schedule', decision: 'open',
-      reason: `${nameById.get(quest.current_invitee) ?? '?'} の空き時間から ${start.toLocaleString('ja-JP')} に予約した（free/busyのみ参照）`,
+      reason: `${nameById.get(quest.current_invitee) ?? '?'} の空き時間から ${start.toLocaleString('ja-JP')} に予約し、最初の一言を投稿した（free/busyのみ参照）`,
     })
     summary.scheduled++
   }
