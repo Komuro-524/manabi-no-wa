@@ -86,32 +86,29 @@ export default function TagDeck({ deck, meId, onClose }) {
         </div>
 
         <div style={{ position: 'relative', width: '100%', height: 250, marginBottom: 28 }}>
+          {/* 綴じリング: 短い辺（左）の真ん中の穴を通す。
+              下半分は札の後ろ（札の外に出たところだけ見える）、上半分は札の手前。穴で前後が入れ替わって「通っている」ように見せる */}
+          <Ring part="back" />
           {/* 下に重なっている札（3枚まで見せる） */}
           {cards.slice(1, 4).reverse().map((c, i, arr) => {
             const depth = arr.length - i
             return <div key={c.id} className="deck-card" aria-hidden="true"
-              style={{ transform: `translate(${depth * 7}px, ${depth * 9}px)`, filter: `brightness(${1 - depth * 0.06})` }} />
+              style={{ transform: `rotate(${depth * 2.2}deg)`, filter: `brightness(${1 - depth * 0.06})` }} />
           })}
           {top && (anim?.kind === 'tear' && anim.id === top.id ? (
-            <>
-              <div className="deck-card deck-half deck-tear-l"><Face t={top} /></div>
-              <div className="deck-card deck-half deck-tear-r"><Face t={top} /></div>
-            </>
+            // 穴の左側（穴と短い辺のあいだの細い部分）だけが小さく破れ、札がリングから抜けて落ちる
+            <div className="deck-card deck-tear"><Face t={top} /></div>
           ) : (
             <div key={top.id} className={'deck-card deck-top' + (anim?.kind === 'flip' ? ' deck-flip' : '')} tabIndex={0}
               onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={() => { drag.current = null; setPull(null) }}
-              style={pull ? { transform: `translate(${pull.dx * 0.35}px, ${pull.dy * 0.35}px) rotate(${pull.dx * 0.03}deg)`, transition: 'none', cursor: 'grabbing',
+              style={pull ? { transform: `translate(${Math.max(0, pull.dx) * 0.12}px, ${pull.dy * 0.12}px) rotate(${pull.dy * 0.04}deg)`, transition: 'none', cursor: 'grabbing',
                 boxShadow: `0 ${10 + strain * 16}px ${24 + strain * 20}px rgba(0,0,0,${0.3 + strain * 0.2})` } : undefined}>
               <Face t={top} strain={strain} />
             </div>
           ))}
+          <Ring part="front" />
           {!top && <div className="deck-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span className="wa" style={{ fontSize: 22, fontWeight: 700, color: 'var(--sub)' }}>おつかれさまでした</span></div>}
-          {/* 綴じリング（札の左上の穴を通す） */}
-          <svg className="deck-ring" width="64" height="84" viewBox="0 0 64 84" aria-hidden="true">
-            <path d="M40 30 A26 26 0 1 0 40 72" fill="none" stroke="#C9CED6" strokeWidth="6" strokeLinecap="round" />
-            <path d="M40 30 A26 26 0 1 0 40 72" fill="none" stroke="#8E959F" strokeWidth="2" strokeLinecap="round" transform="translate(1 1)" opacity=".6" />
-          </svg>
         </div>
 
         {err && <div className="err" style={{ width: '100%' }}>{err}</div>}
@@ -129,9 +126,21 @@ export default function TagDeck({ deck, meId, onClose }) {
   )
 }
 
+function Ring({ part }) {
+  const d = part === 'front' ? 'M130 70 A60 60 0 0 0 10 70' : 'M10 70 A60 60 0 0 0 130 70'
+  return (
+    <svg className="deck-ring" style={{ zIndex: part === 'front' ? 5 : 0 }} width="140" height="140" viewBox="0 0 140 140" aria-hidden="true">
+      <defs><linearGradient id={`ring-${part}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#EEF1F5" /><stop offset=".5" stopColor="#9AA3AE" /><stop offset="1" stopColor="#D5DAE1" /></linearGradient></defs>
+      <path d={d} fill="none" stroke="rgba(0,0,0,.3)" strokeWidth="10" strokeLinecap="round" transform="translate(1.5 2.5)" />
+      <path d={d} fill="none" stroke={`url(#ring-${part})`} strokeWidth="10" strokeLinecap="round" />
+      {part === 'front' && <path d={d} fill="none" stroke="#FFFFFF" strokeWidth="1.5" opacity=".55" strokeDasharray="30 200" strokeDashoffset="-40" />}
+    </svg>
+  )
+}
+
 function Face({ t, strain = 0 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '26px 30px 22px 92px', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '26px 30px 22px 84px', height: '100%' }}>
       <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         {t.requests > 0 && <span className="chip" style={{ background: 'var(--shu-bg)', color: 'var(--shu)' }}>申請 {t.requests}人</span>}
         <span className="chip" style={{ background: 'var(--amber-bg)', color: 'var(--amber)' }}>{t.status === 'proposed' ? '格上げ候補' : '候補'}</span>
