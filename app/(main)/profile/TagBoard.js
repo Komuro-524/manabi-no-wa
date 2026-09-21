@@ -25,6 +25,16 @@ export default function TagBoard({ tags, kinds = ['knowledge', 'interest'] }) {
     if (error) { setErr(`動かせませんでした: ${error.message}`); setItems(xs => xs.map(x => x.id === t.id ? { ...x, visibility: t.visibility } : x)) }
   }
 
+  // 育ちかけのタグを「タグにしてほしい」と申請する／取り下げる（request_tag() は自分の分しか動かせない・0020）
+  // ★ 申請は管理者のタグ帳で上に出るだけ。正式にするのは管理者の承認
+  async function request(t) {
+    const on = !t.requested
+    setErr('')
+    setItems(xs => xs.map(x => x.tag_id === t.tag_id ? { ...x, requested: on } : x))
+    const { error } = await supabaseBrowser().rpc('request_tag', { p_tag_id: t.tag_id, p_on: on })
+    if (error) { setErr(`申請できませんでした: ${error.message}`); setItems(xs => xs.map(x => x.tag_id === t.tag_id ? { ...x, requested: !on } : x)) }
+  }
+
   const zoneAt = (x, y) => document.elementFromPoint(x, y)?.closest('[data-zone]')?.getAttribute('data-zone') ?? null
 
   function down(e, t) {
@@ -76,7 +86,7 @@ export default function TagBoard({ tags, kinds = ['knowledge', 'interest'] }) {
                     {list.map(t => (
                       <TagCard key={t.id} t={t} dragging={ghost && drag.current?.t.id === t.id}
                         onPointerDown={e => down(e, t)} onPointerMove={moveP} onPointerUp={up} onPointerCancel={up}
-                        onFlip={() => move(t, vis === 'public' ? 'private' : 'public')} />
+                        onFlip={() => move(t, vis === 'public' ? 'private' : 'public')} onRequest={() => request(t)} />
                     ))}
                   </div>
                 </div>
@@ -89,12 +99,12 @@ export default function TagBoard({ tags, kinds = ['knowledge', 'interest'] }) {
         <span className="card" style={{ position: 'fixed', left: ghost.x + 8, top: ghost.y + 8, pointerEvents: 'none', zIndex: 200, padding: '6px 10px', fontSize: 13, fontWeight: 700, boxShadow: '0 8px 20px rgba(28,43,61,.25)' }}>{ghost.name}</span>
       )}
       {err && <div className="err">{err}</div>}
-      <div className="note">育ちかけのタグは、公開にしても管理者が正式にするまで他の人には見えません。自己分析から付いたタグは最初は非公開です。公開に動かすと「採用」になります</div>
+      <div className="note">育ちかけのタグは、公開にしても管理者が正式にするまで他の人には見えません。価値のある知識だと思ったら「タグにしてほしい」で管理者に申請できます。自己分析から付いたタグは最初は非公開です。公開に動かすと「採用」になります</div>
     </div>
   )
 }
 
-function TagCard({ t, dragging, onFlip, ...pointer }) {
+function TagCard({ t, dragging, onFlip, onRequest, ...pointer }) {
   const official = t.status === 'official'
   return (
     <span {...pointer} className="card" title={official ? 'ドラッグで公開・非公開を切り替え／押すとこのタグのカードへ' : 'ドラッグで公開・非公開を切り替え'}
@@ -102,6 +112,14 @@ function TagCard({ t, dragging, onFlip, ...pointer }) {
         borderColor: official ? 'var(--line)' : 'var(--amber)', touchAction: 'none', userSelect: 'none', opacity: dragging ? .4 : 1 }}>
       <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', textDecoration: official ? 'underline dotted var(--line)' : 'none' }}>{t.name ?? '育ちかけ'}</span>
       {!official && <span className="chip" style={{ padding: '1px 6px', fontSize: 10, background: 'var(--amber-bg)', color: 'var(--amber)' }}>育ちかけ</span>}
+      {!official && t.name && (
+        <button onClick={onRequest} aria-pressed={!!t.requested}
+          title={t.requested ? '申請を取り下げる' : '価値のある知識だと思ったら、管理者に「正式なタグにしてほしい」と伝えます'}
+          style={{ border: `1px solid ${t.requested ? 'var(--shu)' : 'var(--line)'}`, background: t.requested ? 'var(--shu)' : '#FFF', color: t.requested ? '#FFF' : 'var(--shu)',
+            borderRadius: 999, cursor: 'pointer', fontSize: 10, fontWeight: 700, padding: '1px 8px' }}>
+          {t.requested ? '申請中 ✓' : 'タグにしてほしい'}
+        </button>
+      )}
       {t.source === 'self' && <span className="chip" style={{ padding: '1px 6px', fontSize: 10, background: 'var(--purple-bg)', color: 'var(--purple)' }}>自己分析</span>}
       {t.cards > 0 && <span className="sub" style={{ fontSize: 10 }}>{t.cards}枚</span>}
       <button onClick={onFlip} aria-label="公開と非公開を入れ替える" title="公開と非公開を入れ替える"

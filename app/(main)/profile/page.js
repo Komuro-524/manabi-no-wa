@@ -18,13 +18,14 @@ export default async function Profile({ searchParams }) {
   const me = await currentUser()
   const db = await supabaseServer()
 
-  const [{ data: mine }, { data: myParts }, { data: myCards }, { count: segCount }, { data: invites }] = await Promise.all([
+  const [{ data: mine }, { data: myParts }, { data: myCards }, { count: segCount }, { data: invites }, { data: myReqs }] = await Promise.all([
     db.from('user_tags').select('id, tag_id, kind, source, visibility, updated_at, tags(name, status, kind)')
       .eq('user_id', me.id).order('updated_at', { ascending: false }),
     db.from('live_participants').select('live_id, role, lives(id, title, status, scheduled_start, ended_at, started_at)').eq('user_id', me.id),
     db.from('knowledge_cards').select('id, live_id, tag_id, headline, created_at').eq('speaker_id', me.id).order('id', { ascending: false }),
     db.from('transcript_segments').select('seq', { count: 'exact', head: true }).eq('user_id', me.id),
     db.from('invitations').select('status'),   // RLS: 自分宛だけ
+    db.from('tag_requests').select('tag_id').eq('user_id', me.id),   // 自分の「タグにしてほしい」申請（0020）
   ])
   // 自分の育ちかけのタグは RLS で名前が読めないので、自分の行の tag_id だけを使って名前を引く
   const missing = (mine ?? []).filter(t => !t.tags).map(t => t.tag_id)
@@ -32,6 +33,7 @@ export default async function Profile({ searchParams }) {
     const names = await ownTagNames(missing)
     for (const t of mine ?? []) if (!t.tags && names.has(t.tag_id)) t.tags = names.get(t.tag_id)
   }
+  const requested = new Set((myReqs ?? []).map(r => r.tag_id))
   const know = (mine ?? []).filter(t => t.kind === 'knowledge')
   const intr = (mine ?? []).filter(t => t.kind === 'interest')
   const lives = (myParts ?? []).filter(p => p.lives).sort((a, b) => b.live_id - a.live_id)
@@ -76,9 +78,9 @@ export default async function Profile({ searchParams }) {
         </div>
 
         <ClientTabs basePath="/profile" initial={tab} tabs={TABS} panels={{
-          interest: <TagBoard kinds={['interest']} tags={(mine ?? []).map(t => ({ id: t.id, tag_id: t.tag_id, kind: t.kind, source: t.source, visibility: t.visibility, name: t.tags?.name ?? null, status: t.tags?.status ?? null, cards: t.kind === 'knowledge' ? (cardsByTag.get(t.tag_id) ?? []).length : 0 }))} />,
+          interest: <TagBoard kinds={['interest']} tags={(mine ?? []).map(t => ({ id: t.id, tag_id: t.tag_id, kind: t.kind, source: t.source, visibility: t.visibility, name: t.tags?.name ?? null, status: t.tags?.status ?? null, cards: t.kind === 'knowledge' ? (cardsByTag.get(t.tag_id) ?? []).length : 0, requested: requested.has(t.tag_id) }))} />,
           knowledge: <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <TagBoard kinds={['knowledge']} tags={(mine ?? []).map(t => ({ id: t.id, tag_id: t.tag_id, kind: t.kind, source: t.source, visibility: t.visibility, name: t.tags?.name ?? null, status: t.tags?.status ?? null, cards: t.kind === 'knowledge' ? (cardsByTag.get(t.tag_id) ?? []).length : 0 }))} />
+            <TagBoard kinds={['knowledge']} tags={(mine ?? []).map(t => ({ id: t.id, tag_id: t.tag_id, kind: t.kind, source: t.source, visibility: t.visibility, name: t.tags?.name ?? null, status: t.tags?.status ?? null, cards: t.kind === 'knowledge' ? (cardsByTag.get(t.tag_id) ?? []).length : 0, requested: requested.has(t.tag_id) }))} />
             <b style={{ fontSize: 15, paddingTop: 4 }}>知見タグごとの話題</b>
             {(know.length === 0
           ? <div className="card empty">まだありません。ライブで話すと、ここに育っていきます</div>

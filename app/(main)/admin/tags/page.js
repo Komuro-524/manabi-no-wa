@@ -22,12 +22,16 @@ export default async function AdminTags({ searchParams }) {
     const s = acc[m.tag_id] ??= { lives: new Set(), users: new Set() }
     s.lives.add(m.live_id); s.users.add(m.user_id)
   }
+  // 「タグにしてほしい」の申請数（0020）。管理者は RLS で全員分読める。まだ migration を流していなければ空のまま
+  const { data: reqs } = await fetchAll(() => db.from('tag_requests').select('tag_id').order('tag_id').order('user_id'))
+  const requests = {}
+  for (const r of reqs ?? []) requests[r.tag_id] = (requests[r.tag_id] ?? 0) + 1
   const stats = Object.fromEntries(Object.entries(acc).map(([k, v]) => [k, [v.lives.size, v.users.size]]))
 
   return (
     <>
       <Topbar me={me} title="タグ辞書" sub="AIが見つけた言葉は候補止まり。正式にするのは管理者だけ" />
-      <TagsBoard tags={all ?? []} stats={stats} meId={me.id} initialTab={sp.tab} />
+      <TagsBoard tags={all ?? []} stats={stats} requests={requests} meId={me.id} initialTab={sp.tab} />
     </>
   )
 }
