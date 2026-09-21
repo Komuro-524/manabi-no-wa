@@ -44,6 +44,18 @@ const CHUNK_CHARS = 6000          // 1回のLLM呼び出しに渡す文字数
 const MODEL = 'orcarouter/manabi-recorder'   // ★ モデル名を書かない。ルーターに選ばせる
 const MAX_TAG_LEN = 20
 
+// 格上げ候補の条件。会社の規模やアクティブな人数に合わせて .env.local で変えられる
+//   （本番では管理者が画面から設定する想定。今回は画面が無いので環境変数。DESIGN §5.4 / §10）
+const envInt = (k, d) => {
+  const raw = (process.env[k] ?? '').split('#')[0]
+  if (raw.trim() === '') return d
+  const v = Number(raw)
+  return Number.isInteger(v) && v >= 0 ? v : d
+}
+const PROPOSE_MIN_SPEAKERS = envInt('TAG_PROPOSE_MIN_SPEAKERS', 2)   // 何人が語ったら（広がり）
+const PROPOSE_MIN_MENTIONS = envInt('TAG_PROPOSE_MIN_MENTIONS', 3)   // 1人でも延べ何回語ったら（情熱）
+const PROPOSE_WINDOW_DAYS  = envInt('TAG_PROPOSE_WINDOW_DAYS', 30)   // 直近何日を数えるか。0 なら区切らない
+
 if (!argv.includes('--live') || !Number.isInteger(LIVE_ID)) {
   console.error('使い方: node scripts/recorder.mjs --live <ライブ番号> [--dry]')
   console.error('  ライブを開くには: node scripts/open-live.mjs "文字起こしのパス"')
@@ -318,7 +330,11 @@ try {
   const resolve = g => g.tag ?? tagByName.get(g.newName)
   const usable  = t => t && ['official', 'proposed', 'candidate'].includes(t.status)
   const mentions = new Map()          // tag_id → 今回 語られた回数
-  const bump = id => mentions.set(id, (mentions.get(id) ?? 0) + 1)
+  const mentionLog = []               // tag_mentions に書く行（いつ・誰が・どのタグを）
+  const bump = (id, uid, kind) => {
+    mentions.set(id, (mentions.get(id) ?? 0) + 1)
+    mentionLog.push({ tag_id: id, user_id: uid, live_id: LIVE_ID, kind })
+  }
 
   async function addUserTag(uid, tagId, kind) {
     const { data: ut } = await db.from('user_tags')
@@ -340,7 +356,7 @@ try {
     })
     if (cardErr) throw new Error(`知見カードを書けません: ${cardErr.message}`)
     await addUserTag(c.user_id, tag.id, 'knowledge')   // カードが集まって初めて人のタグになる
-    bump(tag.id)
+    bump(tag.id, c.user_id, 'knowledge')
     written++
   }
 
@@ -350,32 +366,44 @@ try {
     const tag = resolve(it.g)
     if (!usable(tag)) continue
     await addUserTag(it.user_id, tag.id, 'interest')
-    bump(tag.id)
+    bump(tag.id, it.user_id, 'interest')
     interestCount++
   }
 
-  // --- 6.5 語られた回数を数え、条件を満たした候補を「格上げ候補」にする ------
+  // --- 6.5 語られた記録を残し、条件を満たした候補を「格上げ候補」にする ------
   //   ★ official にはしない。承認は管理者だけ（§8 ルール8）
-  //   条件: 延べ3回（1人の情熱も拾う） または 2人以上が語った（広がり）
-  const PROPOSE_MENTIONS = 3
-  const PROPOSE_SPEAKERS = 2
+  //   条件: 直近 PROPOSE_WINDOW_DAYS 日のうちに
+  //         延べ PROPOSE_MIN_MENTIONS 回（1人の情熱も拾う） または PROPOSE_MIN_SPEAKERS 人以上（広がり）
+  if (mentionLog.length) {
+    const { error } = await db.from('tag_mentions').insert(mentionLog)
+    if (error) throw new Error(`語られた記録を書けません（0009 は適用済みですか）: ${error.message}`)
+  }
+  const since = PROPOSE_WINDOW_DAYS > 0 ? new Date(Date.now() - PROPOSE_WINDOW_DAYS * 86400_000) : null
+  const windowLabel = since ? `直近${PROPOSE_WINDOW_DAYS}日` : '全期間'
   const proposedNow = []
   for (const [tagId, n] of mentions) {
     const { data: t } = await db.from('tags').select('id,name,status,mention_count').eq('id', tagId).single()
     if (!t) continue
-    const mc = (t.mention_count ?? 0) + n
-    await db.from('tags').update({ mention_count: mc, last_mentioned_at: new Date() }).eq('id', tagId)
+    // 累計（管理者ビューの表示用）
+    await db.from('tags').update({ mention_count: (t.mention_count ?? 0) + n, last_mentioned_at: new Date() }).eq('id', tagId)
     if (t.status !== 'candidate') continue
 
-    const { data: holders } = await db.from('user_tags').select('user_id').eq('tag_id', tagId)
-    const speakers = new Set((holders ?? []).map(h => h.user_id)).size
-    if (mc >= PROPOSE_MENTIONS || speakers >= PROPOSE_SPEAKERS) {
-      const { error } = await db.from('tags')
+    // 判定は期間内の記録だけで数える
+    let q = db.from('tag_mentions').select('user_id').eq('tag_id', tagId)
+    if (since) q = q.gte('created_at', since.toISOString())
+    const { data: rows, error } = await q
+    if (error) throw new Error(`語られた記録を読めません: ${error.message}`)
+    const recent   = rows?.length ?? 0
+    const speakers = new Set((rows ?? []).map(r => r.user_id)).size
+
+    if (recent >= PROPOSE_MIN_MENTIONS || speakers >= PROPOSE_MIN_SPEAKERS) {
+      const { error: upErr } = await db.from('tags')
         .update({ status: 'proposed', proposed_at: new Date() })
         .eq('id', tagId).eq('status', 'candidate')          // 楽観ロック
-      if (!error) proposedNow.push(`${t.name}（延べ${mc}回／${speakers}人）`)
+      if (!upErr) proposedNow.push(`${t.name}（${windowLabel}で延べ${recent}回／${speakers}人）`)
     }
   }
+  console.log(`   格上げの条件: ${windowLabel}に 延べ${PROPOSE_MIN_MENTIONS}回 または ${PROPOSE_MIN_SPEAKERS}人以上`)
   if (proposedNow.length) {
     console.log(`📣 格上げ候補にした（管理者の承認待ち）: ${proposedNow.join(' / ')}`)
   }

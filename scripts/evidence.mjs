@@ -41,6 +41,7 @@ const TABLES = [
   'users', 'tags', 'lives', 'live_participants', 'messages',
   'knowledge_cards', 'user_tags', 'quests', 'quest_steps',
   'invitations', 'calendar_events', 'agent_runs', 'self_analysis_sessions',
+  'transcript_segments', 'tag_mentions',
 ]
 
 async function countTable(name) {

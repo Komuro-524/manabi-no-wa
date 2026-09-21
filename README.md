@@ -147,7 +147,7 @@ A が乗っ取られても、**外に出ていくものがありません**。�
 知見カードも人のタグも **辞書（`tags`）の行を指します**。会話に紛れ込んだ命令文が、そのまま書き込まれることはありません。
 
 会話に出た新しい語は、門を通ったものだけが **「候補」として辞書に入ります**。
-**延べ3回 または 2人以上** が語ると「格上げ候補」になり、**管理者が承認したら正式タグ**として全員に見えるようになります。**AIは正式にできません。**
+**直近30日に 延べ3回 または 2人以上** が語ると「格上げ候補」になり、**管理者が承認したら正式タグ**として全員に見えるようになります。**AIは正式にできません。**
 
 | 検査 | 落とすもの | 今回の実装 |
 |---|---|---|
@@ -203,7 +203,7 @@ npm install
 cp .env.example .env.local   # 値を入れる
 ```
 
-1. Supabase の SQL Editor で [`supabase/migrations/`](supabase/migrations/) の `0001` 〜 `0008` を番号順に流す
+1. Supabase の SQL Editor で [`supabase/migrations/`](supabase/migrations/) の `0001` 〜 `0009` を番号順に流す
 2. ライブを開いて、タグ付けエージェントに取り込ませる
 
 ```bash
@@ -230,7 +230,7 @@ manabi-no-wa/
 ├── .env.example             環境変数のひな形
 ├── scripts/                 エージェント3体と、人の操作を代行する小道具
 ├── lib/agents/prompts/      エージェントのシステムプロンプト
-├── supabase/migrations/     スキーマ・RLS・シード（0001〜0008）
+├── supabase/migrations/     スキーマ・RLS・シード（0001〜0009）
 ├── docs/demo-transcripts/   デモ用の文字起こし（話者は user_id）
 ├── docs/evidence/           動作と安全性の記録
 └── repos/mock/              画面モック
