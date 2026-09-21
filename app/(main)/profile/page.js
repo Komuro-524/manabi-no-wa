@@ -4,6 +4,7 @@ import Topbar from '@/components/Topbar'
 import { Icon } from '@/components/icons'
 import { fmtWhen, splitTitle } from '@/lib/format'
 import VisibilityToggle from './VisibilityToggle'
+import ClientTabs from '@/components/ClientTabs'
 
 const SOURCE = { live: 'ライブから', self: '自己分析から', manual: '手で追加' }
 const TABS = [['knowledge', '知見タグ'], ['skill', '勝手に育つスキルシート'], ['interest', '興味タグ'], ['lives', '参加したライブ']]
@@ -67,11 +68,8 @@ export default async function Profile({ searchParams }) {
           <Stat n={`相談役 ${accepted}回`} sub={accepted >= 3 ? '最近多めです' : '負担は多くありません'} shu />
         </div>
 
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {TABS.map(([k, name]) => <Link key={k} className={'tab' + (tab === k ? ' tabon' : '')} href={`/profile?tab=${k}`}>{name}</Link>)}
-        </div>
-
-        {tab === 'knowledge' && (know.length === 0
+        <ClientTabs basePath="/profile" initial={tab} tabs={TABS} panels={{
+          knowledge: (know.length === 0
           ? <div className="card empty">まだありません。ライブで話すと、ここに育っていきます</div>
           : <div className="grid3">
               {know.map(t => {
@@ -101,9 +99,8 @@ export default async function Profile({ searchParams }) {
                   </div>
                 )
               })}
-            </div>)}
-
-        {tab === 'skill' && (
+            </div>),
+          skill: (
           <div className="card sh" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div><div className="ttl">勝手に育つスキルシート</div>
               <span className="sub">ライブでの発言から生まれた知見カードの枚数で伸びます。現場が変わっても消えません（点数ではなく、実際に話した量です）</span></div>
@@ -116,9 +113,8 @@ export default async function Profile({ searchParams }) {
               </div>
             ))}
           </div>
-        )}
-
-        {tab === 'interest' && (
+        ),
+          interest: (
           <div className="card sh" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div className="ttl">興味タグ ── あなたが知りたいこと</div>
             {intr.length === 0 && <div className="empty">まだありません。ライブで「聞きたい」と言うと増えます</div>}
@@ -135,9 +131,8 @@ export default async function Profile({ searchParams }) {
             </div>
             <div className="note">同じ話題に興味のある人が増えると、場づくりエージェントが話せる人を探して場を立てます。非公開にしたタグは、あなた以外には見えません</div>
           </div>
-        )}
-
-        {tab === 'lives' && (
+        ),
+          lives: (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {lives.length === 0 && <div className="card empty">まだ参加したライブはありません</div>}
             {lives.map(p => {
@@ -156,7 +151,8 @@ export default async function Profile({ searchParams }) {
               )
             })}
           </div>
-        )}
+        ),
+        }} />
       </div>
     </>
   )

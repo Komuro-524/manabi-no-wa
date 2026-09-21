@@ -18,7 +18,11 @@ export async function middleware(request) {
       },
     },
   )
-  const { data: { user } } = await db.auth.getUser()
+  // ★ 速さのため getSession（期限切れならここでトークンを更新する。通信は更新のときだけ）。
+  //   本物かどうかは、データを読むときにDBのRLSがトークンを検証する。
+  //   管理者の判定など権限を決めるところは、各画面・APIで getUser（認証サーバーに確認）を使う
+  const { data: { session } } = await db.auth.getSession()
+  const user = session?.user ?? null
   const isLogin = request.nextUrl.pathname.startsWith('/login')
   if (!user && !isLogin) {
     const url = request.nextUrl.clone(); url.pathname = '/login'

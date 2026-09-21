@@ -7,7 +7,8 @@ export default function AutoRefresh({ active, every = 4000 }) {
   const router = useRouter()
   useEffect(() => {
     if (!active) return
-    const t = setInterval(() => router.refresh(), every)
+    // タブが裏にあるときは読み直さない（無駄な通信で重くしない）
+    const t = setInterval(() => { if (document.visibilityState === 'visible') router.refresh() }, every)
     return () => clearInterval(t)
   }, [active, every, router])
   return null
