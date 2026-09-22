@@ -8,16 +8,25 @@
     "build": "next build",
     "start": "next start -p 3030",
     "recorder": "node scripts/recorder.mjs",
-    "evidence": "node scripts/evidence.mjs"
+    "evidence": "node scripts/evidence.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "prompts": "node scripts/build-prompts.mjs",
+    "prebuild": "npm run prompts",
+    "test:browser": "node tests/browser/navigation.mjs --build"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.45.0",
     "dotenv": "^16.4.5",
-    "openai": "^4.68.0",
     "next": "^15.5.0",
+    "openai": "^4.68.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "@supabase/ssr": "^0.7.0",
-    "server-only": "^0.0.1"
+    "server-only": "^0.0.1",
+    "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@playwright/test": "^1.63.0"
   }
 }

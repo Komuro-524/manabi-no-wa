@@ -17,15 +17,12 @@ export default async function AdminPeople({ searchParams }) {
   const { data: users, count: total } = await db.from('users').select('id, display_name, department, role', { count: 'exact' })
     .order('department').order('display_name').range((page - 1) * PER, page * PER - 1)
   const ids = (users ?? []).map(u => u.id)
-  const [{ data: tags }, { data: invites }, { data: cards }] = ids.length ? await Promise.all([
-    db.from('user_tags').select('user_id, kind').in('user_id', ids),
+  const [{ data: invites }, { data: cards }] = ids.length ? await Promise.all([
     db.from('invitations').select('user_id, status, sent_at').in('user_id', ids).gte('sent_at', since),
     db.from('knowledge_cards').select('speaker_id').in('speaker_id', ids),
-  ]) : [{ data: [] }, { data: [] }, { data: [] }]
+  ]) : [{ data: [] }, { data: [] }]
   const pages = Math.max(1, Math.ceil((total ?? 0) / PER))
   const count = (arr, f) => { const m = new Map(); for (const x of arr ?? []) { const k = f(x); m.set(k, (m.get(k) ?? 0) + 1) } return m }
-  const know = count((tags ?? []).filter(t => t.kind === 'knowledge'), t => t.user_id)
-  const intr = count((tags ?? []).filter(t => t.kind === 'interest'), t => t.user_id)
   const inv = count(invites, i => i.user_id)
   const acc = count((invites ?? []).filter(i => i.status === 'accepted'), i => i.user_id)
   const cc = count(cards, c => c.speaker_id)

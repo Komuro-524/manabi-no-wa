@@ -8,9 +8,10 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 export async function POST(req) {
   const me = await verifiedUser()
   if (!me) return NextResponse.json({ error: 'ログインしてください' }, { status: 401 })
-  const body = await req.json().catch(() => ({}))
+  const body = (await req.json().catch(() => null)) ?? {}
   const title = String(body.title ?? '').trim()
   const tagId = body.tagId ? Number(body.tagId) : null
+  if (tagId !== null && (!Number.isSafeInteger(tagId) || tagId <= 0)) return NextResponse.json({ error: 'タグの指定が不正です' }, { status: 400 })
   const start = new Date(body.start)
   const minutes = Number(body.minutes) || 60
 
@@ -25,15 +26,16 @@ export async function POST(req) {
     if (!tag) return NextResponse.json({ error: 'そのタグは選べません' }, { status: 400 })
   }
 
-  const admin = supabaseAdmin()
-  const end = new Date(start.getTime() + minutes * 60 * 1000)
-  const { data: live, error } = await admin.from('lives').insert({
-    title, topic_tag_id: tagId, status: 'scheduled',
-    scheduled_start: start.toISOString(), scheduled_end: end.toISOString(),
-    source_ref: `user-${me.id}-${Date.now()}`, ingest_status: 'pending',
-  }).select('id').single()
-  if (error) return NextResponse.json({ error: `作れませんでした: ${error.message}` }, { status: 500 })
-  const { error: pErr } = await admin.from('live_participants').insert({ live_id: live.id, user_id: me.id, role: 'speaker', invited_at: new Date().toISOString() })
-  if (pErr) return NextResponse.json({ error: `参加者に入れられませんでした: ${pErr.message}` }, { status: 500 })
-  return NextResponse.json({ ok: true, id: live.id })
+  const { data: id, error } = await supabaseAdmin().rpc('create_live_with_speaker', {
+    p_user: me.id, p_title: title, p_tag: tagId, p_start: start.toISOString(), p_minutes: minutes,
+  })
+  if (error) {
+    // Log only a code, never DB details, user input or credentials.
+    console.error('[create-live]', error.code ?? 'unknown')
+    const missing = ['PGRST202', '42883'].includes(error.code)
+    return NextResponse.json({ error: missing
+      ? '配信予定の作成に必要なDB更新が未適用です。管理者にご連絡ください'
+      : '配信予定を作れませんでした', code: missing ? 'DB_MIGRATION_REQUIRED' : 'CREATE_LIVE_FAILED' }, { status: 500 })
+  }
+  return NextResponse.json({ ok: true, id })
 }

@@ -11,22 +11,20 @@ export default async function AdminTags({ searchParams }) {
   const sp = await searchParams
   const me = await requireAdmin()
   const db = await supabaseServer()
-  const { data: all } = await fetchAll(() => db.from('tags').select('id, name, status').order('id', { ascending: false }))
-
-  // 直近30日に何回（何ライブ）・何人が語ったか。tag_mentions はブラウザから読めない設計 → 管理者と確かめたので service_role で数える
+  // 直近30日に何回（何ライブ）・何人が語ったか。集計はDB側（admin_tag_stats: 0016）。tag_mentions の生の行は画面に出さない
   const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString()
   const admin = supabaseAdmin()
-  const { data: ments } = await fetchAll(() => admin.from('tag_mentions').select('tag_id, user_id, live_id').gte('created_at', since).order('id'))
-  const acc = {}
-  for (const m of ments ?? []) {
-    const s = acc[m.tag_id] ??= { lives: new Set(), users: new Set() }
-    s.lives.add(m.live_id); s.users.add(m.user_id)
-  }
+  const [tagResult, statResult] = await Promise.all([
+    fetchAll(() => db.from('tags').select('id, name, status').order('id', { ascending: false })),
+    admin.rpc('admin_tag_stats', { p_since: since }),
+  ])
+  if (tagResult.error || statResult.error) throw new Error('タグ帳を取得できませんでした')
+  const all = tagResult.data
   // 「タグにしてほしい」の申請数（0020）。管理者は RLS で全員分読める。まだ migration を流していなければ空のまま
   const { data: reqs } = await fetchAll(() => db.from('tag_requests').select('tag_id').order('tag_id').order('user_id'))
   const requests = {}
   for (const r of reqs ?? []) requests[r.tag_id] = (requests[r.tag_id] ?? 0) + 1
-  const stats = Object.fromEntries(Object.entries(acc).map(([k, v]) => [k, [v.lives.size, v.users.size]]))
+  const stats = Object.fromEntries((statResult.data ?? []).map(x => [x.tag_id, [Number(x.lives), Number(x.users)]]))
 
   return (
     <>

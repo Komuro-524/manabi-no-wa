@@ -8,7 +8,7 @@ import StatusBar from './StatusBar'
 // ★ 画像はこのタブのメモリの中だけ。送ったら手元からも消す。ページを再読み込みすると撮影は止まる
 const Ctx = createContext(null)
 export const useScan = () => useContext(Ctx)
-const MAX_FRAMES = 30
+const MAX_FRAMES = 12
 
 function notify(body) {
   try { if ('Notification' in window && Notification.permission === 'granted') new Notification('まなびのわ', { body, icon: '/logo.png' }) } catch {}
@@ -35,12 +35,17 @@ export default function ScanProvider({ children }) {
 
   function grab() {
     const x = r.current, v = x.video
-    if (!v || !v.videoWidth) return
-    const scale = Math.min(1, 1280 / v.videoWidth)   // 軽くするため横1280pxまでに縮める
+    if (!x.stream || x.finishing || !v || !v.videoWidth) return
+    const scale = Math.min(1, 1280 / v.videoWidth, 720 / v.videoHeight)   // 軽くするため横1280pxまでに縮める
     const c = document.createElement('canvas')
     c.width = Math.round(v.videoWidth * scale); c.height = Math.round(v.videoHeight * scale)
     c.getContext('2d').drawImage(v, 0, 0, c.width, c.height)
-    x.frames.push(c.toDataURL('image/jpeg', 0.7))
+    let frame = c.toDataURL('image/jpeg', 0.7)
+    if (frame.length > 500_000) frame = c.toDataURL('image/jpeg', 0.4)
+    if (frame.length > 500_000 || x.frames.reduce((n, f) => n + f.length, 0) + frame.length > 3_900_000) {
+      finish('画像容量の上限'); return
+    }
+    x.frames.push(frame)
     setCount(x.frames.length)
     if (x.frames.length >= MAX_FRAMES) finish('枚数の上限')
   }

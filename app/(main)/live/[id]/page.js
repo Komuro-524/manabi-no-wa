@@ -14,9 +14,12 @@ import Elapsed from './Elapsed'
 import MicTranscriber from './MicTranscriber'
 import { usersByIds } from '@/lib/users-by-id'
 
-export default async function LivePage({ params }) {
+export default async function LivePage({ params, searchParams }) {
   const { id } = await params
   const liveId = Number(id)
+  const value = Number((await searchParams).history)
+  const history = Number.isSafeInteger(value) && value > 0 && value <= 10000 ? value : 1
+  const offset = (history - 1) * 100
   const me = await currentUser()
   const db = await supabaseServer()
 
@@ -27,10 +30,13 @@ export default async function LivePage({ params }) {
 
   const [{ data: ps }, { data: msgs }, { data: cards }, { data: segs }] = await Promise.all([
     db.from('live_participants').select('user_id, role').eq('live_id', liveId),
-    db.from('messages').select('id, user_id, body, is_agent, created_at').eq('live_id', liveId).order('id'),     // RLS: 参加者だけ
+    db.from('messages').select('id, user_id, body, is_agent, created_at').eq('live_id', liveId).order('id', { ascending: false }).range(offset, offset + 100), // RLS: 参加者だけ
     db.from('knowledge_cards').select('id, headline, body, speaker_id, tag_id, tags(name, status)').eq('live_id', liveId).order('id'), // RLS: 正式タグ or 本人 or 管理者
-    db.from('transcript_segments').select('id, user_id, seq, body, spoken_at').eq('live_id', liveId).order('seq'),   // RLS: 参加者だけ
+    db.from('transcript_segments').select('id, user_id, seq, body, spoken_at').eq('live_id', liveId).order('seq', { ascending: false }).range(offset, offset + 100), // RLS: 参加者だけ
   ])
+  const moreHistory = (msgs?.length ?? 0) > 100 || (segs?.length ?? 0) > 100
+  if (msgs) msgs.splice(100)
+  if (segs) segs.splice(100)
   // 画面に出てくる人（参加者・発言した人・カードの話し手）だけを読む
   const who = await usersByIds(db, [...(ps ?? []).map(p => p.user_id), ...(msgs ?? []).map(m => m.user_id), ...(segs ?? []).map(s => s.user_id), ...(cards ?? []).map(c => c.speaker_id)])
   // 自分が話したカードのうち、育ちかけでタグ名が読めないものは名前だけ引く（自分の行の tag_id に限る）
@@ -58,7 +64,7 @@ export default async function LivePage({ params }) {
   const working = endedRecently && ['pending', 'running'].includes(l.ingest_status)
   const ingestBar = l.status !== 'ended' ? null
     : l.ingest_status === 'running' ? <StatusBar spinning title="タグ付けエージェントが取り込み中です" text="チャットと発言を読んで、知見カードとタグの候補を作っています（数十秒）" />
-    : l.ingest_status === 'pending' && endedRecently ? <StatusBar spinning title="タグ付けの順番待ちです" text="まもなくタグ付けエージェントが取り込みを始めます" />
+    : l.ingest_status === 'pending' && endedRecently ? <StatusBar spinning title="タグ付けの順番待ちです" text="自動で順番に再処理します。話し手または管理者は取り込みを再実行できます" />
     : l.ingest_status === 'needs_review' ? <StatusBar tone="warn" title="人の確認待ちです" text="取り込みが途中で止まったか、確かめが必要な行がありました。二重に書かないよう、エージェントは自分でやり直しません" />
     : l.ingest_status === 'failed' ? <StatusBar tone="warn" title="取り込みに失敗しました" text="管理者ビューのセキュリティ画面で理由を確かめられます" />
     : l.ingest_status === 'done' && endedRecently ? (groups.size
@@ -88,7 +94,7 @@ export default async function LivePage({ params }) {
     return (mine.find(t => t.tag_id === l.topic_tag_id) ?? mine[0])?.tags?.name ?? null
   }
   const isSpeaker = speakers.some(p => p.user_id === me.id)
-  const canRun = (me.role === 'admin' || isSpeaker) && (l.status === 'scheduled' || l.status === 'live')
+  const canRun = (me.role === 'admin' || isSpeaker) && (l.status === 'scheduled' || l.status === 'live' || (l.status === 'ended' && ['pending', 'running'].includes(l.ingest_status)))
 
   const commentPanel = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 9, flexGrow: 1, minHeight: 0 }}>
@@ -123,6 +129,11 @@ export default async function LivePage({ params }) {
             </span>
           </div>
         ))}
+      </div>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <span className="sub">コメント・発言 各100件まで（{history}ページ）</span>
+        {history > 1 && <Link className="btn btn-s" href={`/live/${liveId}?history=${history - 1}`}>新しい発言</Link>}
+        {moreHistory && <Link className="btn btn-s" href={`/live/${liveId}?history=${history + 1}`}>以前の発言</Link>}
       </div>
       <LiveActions liveId={liveId} status={l.status} amIn={amIn} meId={me.id} />
     </div>
@@ -162,7 +173,7 @@ export default async function LivePage({ params }) {
         <Link className="btn btn-s" href="/livehub"><Icon name="back" size={14} /> {l.status === 'live' && amIn ? '退出' : '一覧へ'}</Link>
       </header>
       {ingestBar && <div style={{ padding: '14px 24px 0' }}>{ingestBar}</div>}
-      <AutoRefresh active={working || (l.status === 'live' && amIn)} every={working ? 4000 : 6000} />
+      <AutoRefresh active={history === 1 && (working || (l.status === 'live' && amIn))} every={working ? 4000 : 6000} />
       <div className="body" style={{ flexDirection: 'row', alignItems: 'stretch', gap: 16, overflow: 'hidden' }}>
         {/* 左: 話し手を大きく。いま話している人に色の輪 */}
         <div style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12, overflowY: 'auto' }}>
@@ -201,6 +212,7 @@ export default async function LivePage({ params }) {
               <b style={{ fontSize: 14 }}>{me.role === 'admin' ? '管理者の操作' : '話し手の操作'}</b>
               {l.status === 'scheduled'
                 ? <AdminRunButton url="/api/admin/live" body={{ liveId: l.id, action: 'start' }} label="ライブを始める" small />
+                : l.status === 'ended' ? <AdminRunButton url="/api/admin/live" body={{ liveId: l.id, action: 'end' }} label="取り込みを再実行" busyLabel="取り込んでいます…" small />
                 : <AdminRunButton url="/api/admin/live" body={{ liveId: l.id, action: 'end' }} label="ライブを終える" busyLabel="終えています…" confirmText="ライブを終えますか？終えたあとはコメントできません" small />}
             </div>
           )}

@@ -14,12 +14,14 @@ export default async function SeedDetail({ searchParams }) {
   const sp = await searchParams
   const me = await requireAdmin()
   const db = supabaseAdmin()
-  const { data: quests } = await db.from('quests').select('id, status, current_invitee, live_id, tags(name)').order('id', { ascending: false }).limit(300)
+  const { data: quests, error: qErr } = await db.from('quests').select('id, status, current_invitee, live_id, tags(name)').order('id', { ascending: false }).limit(300)
+  if (qErr) throw new Error('タネの足あとを取得できませんでした')
   const ids = (quests ?? []).map(q => q.id)
-  const [people, { data: steps }] = await Promise.all([
+  const [people, { data: steps, error: sErr }] = await Promise.all([
     usersByIds(db, (quests ?? []).map(q => q.current_invitee), 'id, display_name'),
     ids.length ? fetchAll(() => db.from('quest_steps').select('id, quest_id, kind, decision, reason, created_at').in('quest_id', ids).order('id'), { max: 20000 }) : { data: [] },
   ])
+  if (sErr) throw new Error('タネの足あとを取得できませんでした')
   const who = Object.fromEntries([...people.values()].map(u => [u.id, u.display_name]))
   const byQuest = {}
   for (const s of steps ?? []) (byQuest[s.quest_id] ??= []).push({ id: s.id, kind: s.kind, decision: s.decision, reason: s.reason, at: s.created_at })

@@ -1,13 +1,17 @@
 // ログインのクッキーを毎回更新し、未ログインならログイン画面へ送る
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { screenFetch } from './lib/screen-fetch.mjs'
 
 export async function middleware(request) {
+  // Cron routes authenticate with CRON_SECRET; never redirect these paths to login.
+  if (['/api/cron/organizer', '/api/cron/recorder'].includes(request.nextUrl.pathname)) return NextResponse.next({ request })
   let response = NextResponse.next({ request })
   const db = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
+      global: { fetch: screenFetch },
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: list => {

@@ -7,16 +7,18 @@ import { useRouter } from 'next/navigation'
 // ★ エージェントは裏で動く（数十秒〜数分）。進み具合は agent_runs と quest_steps を数秒おきに読み直して出す
 const DECISION = { open: '立てる', wait: '待つ', skip: '見送る', sent: '相談した', accepted: '引き受けてもらった', opened: '予約した', done: '開催した' }
 
-export default function FieldWorker({ running, run, steps }) {
+export default function FieldWorker({ running, run, steps, refresh }) {
   const router = useRouter()
   const [starting, setStarting] = useState(null)   // 押した時刻。裏でエージェントが記録を書き始めるまで
   const [err, setErr] = useState('')
   const active = running || !!starting
+  // 読み直し: 親（ProgressBoard）が API で読み直す関数をくれていればそれを使う。無ければ画面ごと読み直す
+  const reload = () => (refresh ? refresh() : router.refresh())
 
   // 動いている間は3秒おきに読み直す（タブが裏にあるときは休む）
   useEffect(() => {
-    if (!active) return
-    const t = setInterval(() => { if (document.visibilityState === 'visible') router.refresh() }, 3000)
+    if (!active || refresh) return   // 親が自動で読み直している（ProgressBoard）ときは二重に読まない
+    const t = setInterval(() => { if (document.visibilityState === 'visible') reload() }, 3000)
     return () => clearInterval(t)
   }, [active, router])
   // 押したあとに新しい周の記録が現れたら（動いている／もう終わった のどちらでも）押した直後の状態は終わり。
@@ -29,14 +31,17 @@ export default function FieldWorker({ running, run, steps }) {
     return () => clearTimeout(t)
   }, [starting])
 
+  // ★ /api/admin/organizer は 1周が終わるまで返ってこない（数十秒〜数分）。
+  //   返事を待たずにすぐ読み直しを始めて、見回り中の様子（記録）を画面に出す
   async function go() {
     setErr(''); setStarting(Date.now())
+    reload()
     try {
       const r = await fetch('/api/admin/organizer', { method: 'POST' })
-      const j = await r.json()
+      const j = await r.json().catch(() => ({}))
       if (!r.ok) { setStarting(null); setErr(j.error ?? '動かせませんでした') }
-      router.refresh()
     } catch (e) { setStarting(null); setErr(String(e)) }
+    reload()
   }
 
   const latest = steps[0]

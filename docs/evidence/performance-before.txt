@@ -1,0 +1,23 @@
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":0,"path":"/admin/progress","ms":634,"queries":6}
+{"navigation":1,"path":"/admin/tags","ms":497,"queries":4}
+{"navigation":2,"path":"/admin","ms":380,"queries":9}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":3,"path":"/calendar","ms":858,"queries":4}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":4,"path":"/livehub","ms":851,"queries":4}
+{"navigation":5,"path":"/admin","ms":852,"queries":9}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+page.waitForURL: Timeout 10000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "**/admin/progress" until "load"
+============================================================
+    at /workspace/scratch/ac4cbbe0b439/work/manabi-no-wa-main/tests/browser/navigation.mjs:53:16 {
+  log: [],
+  name: 'TimeoutError'
+}
+
+Node.js v24.19.0

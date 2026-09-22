@@ -12,12 +12,13 @@ export default async function AdminHome() {
     db.from('users').select('id', { count: 'exact', head: true }),
     db.from('lives').select('id', { count: 'exact', head: true }).eq('status', 'scheduled'),
     db.from('knowledge_cards').select('id', { count: 'exact', head: true }),
-    db.from('agent_runs').select('cost_usd').gte('started_at', monthStart.toISOString()),
+    db.rpc('admin_month_cost', { p_since: monthStart.toISOString() }),
     db.from('tags').select('id', { count: 'exact', head: true }).eq('status', 'proposed'),
     db.from('lives').select('id', { count: 'exact', head: true }).eq('ingest_status', 'needs_review'),
     db.from('agent_runs').select('id', { count: 'exact', head: true }).eq('status', 'failed').gte('started_at', monthStart.toISOString()),
   ])
-  const cost = (runs.data ?? []).reduce((s, r) => s + Number(r.cost_usd ?? 0), 0)
+  if (runs.error) throw new Error('AI費用を取得できませんでした')
+  const cost = Number(runs.data ?? 0)
   const todo = [
     { n: proposed.count ?? 0, label: '格上げ候補のタグを承認する', href: '/admin/tags?tab=proposed' },
     { n: review.count ?? 0, label: '止まったライブを確かめる', href: '/admin/security' },

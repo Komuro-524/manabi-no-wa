@@ -1,3 +1,4 @@
+import Form from 'next/form'
 import Link from '@/components/Link'
 import { usersByIds } from '@/lib/users-by-id'
 import { supabaseServer, currentUser } from '@/lib/supabase/server'
@@ -67,11 +68,11 @@ export default async function Cards({ searchParams }) {
       <div className="body">
         {/* 知見カード専用の検索窓（右上はすべてを探す横断検索） */}
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-          <form action="/cards" style={{ display: 'flex', gap: 6 }}>
+          <Form prefetch={false} action="/cards" style={{ display: 'flex', gap: 6 }}>
             {tagIds.length > 0 && <input type="hidden" name="tag" value={tagIds.join(',')} />}
             <input className="inp" name="q" defaultValue={q} placeholder="知見カードの見出し・本文を探す" aria-label="知見カードを探す" style={{ width: 280, minHeight: 40 }} />
             <button className="btn btn-s" style={{ minHeight: 40 }} aria-label="探す"><Icon name="search" size={15} /></button>
-          </form>
+          </Form>
           <TagSelect tags={officialTags ?? []} value={tagIds} q={q} />
           {(q || tagIds.length > 0) && <Link className="btn btn-s" href="/cards">絞り込みを外す</Link>}
         </div>

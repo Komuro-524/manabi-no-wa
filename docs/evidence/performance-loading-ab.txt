@@ -1,0 +1,108 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> manabi-no-wa@0.1.0 prebuild
+> npm run prompts
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> manabi-no-wa@0.1.0 prompts
+> node scripts/build-prompts.mjs
+
+
+> manabi-no-wa@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.25
+
+   Creating an optimized production build ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (113kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (267kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled successfully in 18.0s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/10) ...
+   Generating static pages (2/10) 
+   Generating static pages (4/10) 
+   Generating static pages (7/10) 
+ ✓ Generating static pages (10/10)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                      146 B         103 kB
+├ ○ /_not-found                            991 B         104 kB
+├ ƒ /admin                               2.14 kB         108 kB
+├ ƒ /admin/agents                        2.14 kB         108 kB
+├ ƒ /admin/people                        2.14 kB         108 kB
+├ ƒ /admin/progress                      2.71 kB         109 kB
+├ ƒ /admin/quests                        2.14 kB         108 kB
+├ ƒ /admin/security                      2.14 kB         108 kB
+├ ƒ /admin/tags                          3.28 kB         177 kB
+├ ƒ /api/admin/live                        146 B         103 kB
+├ ƒ /api/admin/organizer                   146 B         103 kB
+├ ƒ /api/cron/organizer                    146 B         103 kB
+├ ƒ /api/cron/recorder                     146 B         103 kB
+├ ƒ /api/lives                             146 B         103 kB
+├ ƒ /api/lives/[id]/segments               146 B         103 kB
+├ ƒ /api/notifications                     146 B         103 kB
+├ ƒ /api/selfscan                          146 B         103 kB
+├ ƒ /calendar                             3.5 kB         110 kB
+├ ƒ /cards                               2.42 kB         108 kB
+├ ƒ /invite                              2.58 kB         177 kB
+├ ƒ /live/[id]                            5.2 kB         179 kB
+├ ƒ /livehub                             2.14 kB         108 kB
+├ ○ /login                               2.56 kB         173 kB
+├ ƒ /map                                 2.14 kB         108 kB
+├ ƒ /profile                             4.26 kB         178 kB
+└ ƒ /selfscan                            5.81 kB         112 kB
++ First Load JS shared by all             103 kB
+  ├ chunks/4cb00ac7-52cd0ed8028a3e40.js  54.2 kB
+  ├ chunks/556-79afe63083304383.js       46.5 kB
+  └ other shared chunks (total)          1.92 kB
+
+
+ƒ Middleware                             93.7 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":0,"path":"/admin/progress","ms":521,"queries":6}
+{"navigation":1,"path":"/admin/tags","ms":464,"queries":4}
+{"navigation":2,"path":"/admin","ms":399,"queries":9}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":3,"path":"/calendar","ms":402,"queries":4}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":4,"path":"/livehub","ms":298,"queries":4}
+{"navigation":5,"path":"/admin","ms":413,"queries":9}
+{"navigation":6,"path":"/admin/progress","ms":478,"queries":6}
+{"navigation":7,"path":"/admin","ms":388,"queries":9}
+{"navigation":8,"path":"/admin/progress","ms":421,"queries":6}
+{"navigation":9,"path":"/admin/tags","ms":452,"queries":4}
+{"navigation":10,"path":"/admin","ms":405,"queries":9}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":11,"path":"/calendar","ms":258,"queries":4}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":12,"path":"/livehub","ms":208,"queries":4}
+{"navigation":13,"path":"/admin","ms":359,"queries":9}
+{"navigation":14,"path":"/admin/progress","ms":472,"queries":6}
+{"navigation":15,"path":"/admin","ms":349,"queries":9}
+{"navigation":16,"path":"/admin/progress","ms":451,"queries":6}
+{"navigation":17,"path":"/admin/tags","ms":419,"queries":4}
+{"navigation":18,"path":"/admin","ms":396,"queries":9}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":19,"path":"/calendar","ms":297,"queries":4}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":20,"path":"/livehub","ms":261,"queries":4}
+{"navigation":21,"path":"/admin","ms":337,"queries":9}
+{"navigation":22,"path":"/admin/progress","ms":470,"queries":6}
+{"navigation":23,"path":"/admin","ms":400,"queries":9}
+{"navigation":24,"path":"/admin/progress","ms":302,"queries":6}
+{"navigation":25,"path":"/admin/tags","ms":353,"queries":4}
+{"navigation":26,"path":"/admin","ms":306,"queries":9}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":27,"path":"/calendar","ms":254,"queries":4}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":28,"path":"/livehub","ms":223,"queries":4}
+{"navigation":29,"path":"/admin","ms":371,"queries":9}
+{"passed":30,"maxMs":521,"totalQueries":200,"errors":[]}
