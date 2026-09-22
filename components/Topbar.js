@@ -15,7 +15,7 @@ export default function Topbar({ title, sub, me, children, hideSearch }) {
       {children}
       {!hideSearch && <Form prefetch={false} action="/search" role="search" style={{ display: 'flex', alignItems: 'center', gap: 7, border: '1px solid var(--line)', borderRadius: 10, padding: '0 12px', height: 40, background: 'var(--bg)' }}>
         <span style={{ color: 'var(--sub)' }}><Icon name="search" size={15} /></span>
-        <input name="q" placeholder="タグ・人・知見カード・ライブを探す" aria-label="すべてを探す" style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 12, width: 190 }} />
+        <input name="q" placeholder="タグ・人・カード・ライブを探す" aria-label="タグ・人・知見カード・ライブを探す" title="タグ・人・知見カード・ライブをまとめて探せます" style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 12, width: 210, minWidth: 0 }} />
       </Form>}
       <Bell />
       <Link href="/profile" className="avt" style={{ width: 32, height: 32, fontSize: 15 }} title={me.display_name}>{me.display_name.slice(0, 1)}</Link>
