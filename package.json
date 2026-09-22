@@ -11,7 +11,8 @@
     "evidence": "node scripts/evidence.mjs",
     "test": "node --test tests/*.test.mjs",
     "prompts": "node scripts/build-prompts.mjs",
-    "prebuild": "npm run prompts"
+    "prebuild": "npm run prompts",
+    "test:browser": "node tests/browser/navigation.mjs --build"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
@@ -25,6 +26,7 @@
     "sharp": "^0.34.5"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.5.8"
+    "@electric-sql/pglite": "^0.5.8",
+    "@playwright/test": "^1.63.0"
   }
 }

@@ -15,11 +15,20 @@ export default async function SeedDetail({ searchParams }) {
   const me = await requireAdmin()
   const db = supabaseAdmin()
   const { data: quests } = await db.from('quests').select('id, status, current_invitee, live_id, tags(name)').order('id', { ascending: false }).limit(300)
-  const people = await usersByIds(db, (quests ?? []).map(q => q.current_invitee), 'id, display_name')
-  const who = new Map([...people.values()].map(u => [u.id, u.display_name]))
   const selId = sp.id ? Number(sp.id) : (quests ?? [])[0]?.id
-  const sel = (quests ?? []).find(q => q.id === selId)
-  const { data: steps } = sel ? await db.from('quest_steps').select('id, kind, decision, reason, created_at').eq('quest_id', sel.id).order('id') : { data: [] }
+  let sel = (quests ?? []).find(q => q.id === selId)
+  if (!sel && Number.isSafeInteger(selId) && selId > 0) {
+    const result = await db.from('quests').select('id, status, current_invitee, live_id, tags(name)').eq('id', selId).maybeSingle()
+    if (result.error) throw new Error('タネの足あとを取得できませんでした')
+    sel = result.data
+    if (sel && quests) quests.unshift(sel)
+  }
+  const [people, { data: steps, error }] = await Promise.all([
+    usersByIds(db, (quests ?? []).map(q => q.current_invitee), 'id, display_name'),
+    sel ? db.from('quest_steps').select('id, kind, decision, reason, created_at').eq('quest_id', sel.id).order('id') : { data: [] },
+  ])
+  if (error) throw new Error('タネの足あとを取得できませんでした')
+  const who = new Map([...people.values()].map(u => [u.id, u.display_name]))
 
   return (
     <>

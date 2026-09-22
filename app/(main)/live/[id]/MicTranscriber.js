@@ -1,13 +1,11 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Icon } from '@/components/icons'
 
 // デモ用の「マイクで話す」。ブラウザの音声認識（Web Speech API）で文字にして、確定した一文だけサーバーへ送る。
 // ★ 音声そのものはまなびのわに届かない・保存しない。送るのは確定した文字だけ
 // ★ 他の参加者に声は届かない（音声通話は DESIGN.md §11 の将来構成）
 export default function MicTranscriber({ liveId }) {
-  const router = useRouter()
   const [supported, setSupported] = useState(true)
   const [consent, setConsent] = useState(false)
   const [asking, setAsking] = useState(false)
@@ -32,7 +30,7 @@ export default function MicTranscriber({ liveId }) {
     const j = await res.json().catch(() => ({}))
     if (!res.ok) { setErr(j.error ?? '送れませんでした'); if (res.status === 403 || res.status === 409) stop(); return }
     setSent(n => n + 1)
-    router.refresh()
+    // The live page polls once per interval; do not refresh the entire route per sentence.
   }
 
   function start() {

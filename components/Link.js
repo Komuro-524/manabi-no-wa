@@ -1,8 +1,17 @@
-import NextLink from 'next/link'
+'use client'
+import NextLink, { useLinkStatus } from 'next/link'
+import { createPortal } from 'react-dom'
 
-// ★ 画面に出ているリンクを先読み（prefetch）しない。
-//   Next.js は見えているリンク先を裏で読み込むが、この画面たちは毎回DBを読むので、
-//   一覧にリンクが何十個もあると裏で何十回もDBを叩いて重くなり、固まる原因になっていた
-export default function Link(props) {
-  return <NextLink prefetch={false} {...props} />
+// Preserve soft navigation and ScanProvider state. No speculative DB requests.
+// Show pending state directly rather than suspending the shared route tree.
+function Pending() {
+  const { pending } = useLinkStatus()
+  if (!pending || typeof document === 'undefined') return null
+  return createPortal(<div role="status" aria-live="polite" className="card loader-delay"
+    style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 100, padding: '12px 20px', pointerEvents: 'none' }}>
+    読み込み中…
+  </div>, document.body)
+}
+export default function Link({ children, ...props }) {
+  return <NextLink {...props} prefetch={false}>{children}<Pending /></NextLink>
 }

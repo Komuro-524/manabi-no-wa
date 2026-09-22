@@ -1,3 +1,4 @@
+import { fetchAll } from '@/lib/fetch-all.mjs'
 import Link from '@/components/Link'
 import { supabaseServer, currentUser } from '@/lib/supabase/server'
 import Topbar from '@/components/Topbar'
@@ -47,7 +48,7 @@ export default async function CalendarPage({ searchParams }) {
   const [{ data: busy }, { data: parts }, { data: officialTags }] = await Promise.all([
     db.from('calendar_events').select('starts_at, ends_at').eq('busy', true)   // RLS: 自分の予定だけ
       .lt('starts_at', toIso(to)).gt('ends_at', toIso(from)),
-    db.from('live_participants').select('role, lives(id, title, status, scheduled_start, scheduled_end, started_at, ended_at)').eq('user_id', me.id),
+    fetchAll(() => db.rpc('calendar_lives', { p_from: toIso(from), p_to: toIso(to) }).order('live_id')),
     db.from('tags').select('id, name').eq('status', 'official').order('name'),
   ])
   const items = []

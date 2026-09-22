@@ -29,6 +29,13 @@ export async function POST(req) {
   const { data: id, error } = await supabaseAdmin().rpc('create_live_with_speaker', {
     p_user: me.id, p_title: title, p_tag: tagId, p_start: start.toISOString(), p_minutes: minutes,
   })
-  if (error) return NextResponse.json({ error: '配信予定を作れませんでした' }, { status: 500 })
+  if (error) {
+    // Log only a code, never DB details, user input or credentials.
+    console.error('[create-live]', error.code ?? 'unknown')
+    const missing = ['PGRST202', '42883'].includes(error.code)
+    return NextResponse.json({ error: missing
+      ? '配信予定の作成に必要なDB更新が未適用です。管理者にご連絡ください'
+      : '配信予定を作れませんでした', code: missing ? 'DB_MIGRATION_REQUIRED' : 'CREATE_LIVE_FAILED' }, { status: 500 })
+  }
   return NextResponse.json({ ok: true, id })
 }

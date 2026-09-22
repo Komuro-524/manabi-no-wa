@@ -936,3 +936,11 @@ base_url = https://api.orcarouter.ai/v1
 - 手動ライブの作成と話し手の登録を1つのDB関数にする。すべての追加RPCは `service_role` のみ実行できる。
 
 運用・適用手順と検証範囲: [docs/REVIEW-FIXES.md](docs/REVIEW-FIXES.md)
+
+## 14. 画面遷移と読み取りの改善
+
+共通loading.jsで遷移停止が再現したため、リンクのpending状態から読み込み表示を出す。内部リンクは引き続きcomponents/Link.jsを使い、先読みを止め、自己分析の状態を維持する。
+
+ライブのタネは認証・管理者権限を検証するJSON APIで局所更新する。DBの画面用集計は0016に追加。knowledge_map_statsとcalendar_livesはsecurity invokerで本人のRLSを適用し、管理者集計はservice_roleだけに実行を許可する。知識地図は最大60タグ、タネは100件ずつ、ライブ履歴はコメント・発言各100件ずつ表示する。
+
+変更内容・適用手順・再現と検証の条件はdocs/PERFORMANCE-FIXES.mdを参照。

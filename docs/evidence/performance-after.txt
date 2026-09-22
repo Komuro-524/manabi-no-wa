@@ -1,0 +1,147 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> manabi-no-wa@0.1.0 prebuild
+> npm run prompts
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> manabi-no-wa@0.1.0 prompts
+> node scripts/build-prompts.mjs
+
+
+> manabi-no-wa@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.25
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 7.6s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/10) ...
+   Generating static pages (2/10) 
+   Generating static pages (4/10) 
+   Generating static pages (7/10) 
+ ✓ Generating static pages (10/10)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                      147 B         103 kB
+├ ○ /_not-found                            994 B         104 kB
+├ ƒ /admin                                 196 B         110 kB
+├ ƒ /admin/agents                          182 B         110 kB
+├ ƒ /admin/people                          196 B         110 kB
+├ ƒ /admin/progress                      2.49 kB         112 kB
+├ ƒ /admin/quests                          196 B         110 kB
+├ ƒ /admin/security                        196 B         110 kB
+├ ƒ /admin/tags                          1.57 kB         179 kB
+├ ƒ /api/admin/live                        147 B         103 kB
+├ ƒ /api/admin/organizer                   147 B         103 kB
+├ ƒ /api/admin/progress                    147 B         103 kB
+├ ƒ /api/cron/organizer                    147 B         103 kB
+├ ƒ /api/cron/recorder                     147 B         103 kB
+├ ƒ /api/lives                             147 B         103 kB
+├ ƒ /api/lives/[id]/segments               147 B         103 kB
+├ ƒ /api/notifications                     147 B         103 kB
+├ ƒ /api/selfscan                          147 B         103 kB
+├ ƒ /calendar                            1.89 kB         111 kB
+├ ƒ /cards                                 609 B         110 kB
+├ ƒ /invite                                827 B         178 kB
+├ ƒ /live/[id]                           3.73 kB         181 kB
+├ ƒ /livehub                               196 B         110 kB
+├ ○ /login                               2.55 kB         173 kB
+├ ƒ /map                                   196 B         110 kB
+├ ƒ /profile                             2.68 kB         180 kB
+└ ƒ /selfscan                             4.3 kB         114 kB
++ First Load JS shared by all             103 kB
+  ├ chunks/255-37e0f0325134c4d7.js       46.4 kB
+  ├ chunks/4bd1b696-c023c6e3521b1417.js  54.2 kB
+  └ other shared chunks (total)          1.92 kB
+
+
+ƒ Middleware                               94 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":0,"path":"/admin/progress","ms":486,"queries":5}
+{"navigation":1,"path":"/admin/tags","ms":434,"queries":4}
+{"navigation":2,"path":"/admin","ms":296,"queries":9}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":3,"path":"/calendar","ms":330,"queries":4}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":4,"path":"/livehub","ms":494,"queries":6}
+{"navigation":5,"path":"/admin","ms":385,"queries":9}
+{"navigation":6,"path":"/admin/progress","ms":454,"queries":5}
+{"navigation":7,"path":"/admin","ms":323,"queries":9}
+{"navigation":8,"path":"/admin/agents","ms":379,"queries":3}
+{"navigation":9,"path":"/admin/security","ms":359,"queries":6}
+{"navigation":10,"path":"/admin/people","ms":313,"queries":5}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":11,"path":"/cards","ms":254,"queries":3}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":12,"path":"/map","ms":158,"queries":2}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":13,"path":"/profile","ms":196,"queries":6}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":14,"path":"/invite","ms":294,"queries":2}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":15,"path":"/selfscan","ms":295,"queries":3}
+{"navigation":16,"path":"/admin","ms":284,"queries":9}
+{"navigation":17,"path":"/admin/progress","ms":423,"queries":5}
+{"navigation":18,"path":"/admin/tags","ms":266,"queries":4}
+{"navigation":19,"path":"/admin","ms":395,"queries":9}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":20,"path":"/calendar","ms":220,"queries":4}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":21,"path":"/livehub","ms":418,"queries":6}
+{"navigation":22,"path":"/admin","ms":317,"queries":9}
+{"navigation":23,"path":"/admin/progress","ms":404,"queries":5}
+{"navigation":24,"path":"/admin","ms":337,"queries":9}
+{"navigation":25,"path":"/admin/agents","ms":339,"queries":3}
+{"navigation":26,"path":"/admin/security","ms":267,"queries":6}
+{"navigation":27,"path":"/admin/people","ms":464,"queries":5}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":28,"path":"/cards","ms":207,"queries":3}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":29,"path":"/map","ms":245,"queries":2}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":30,"path":"/profile","ms":247,"queries":6}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":31,"path":"/invite","ms":190,"queries":2}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":32,"path":"/selfscan","ms":283,"queries":3}
+{"navigation":33,"path":"/admin","ms":303,"queries":9}
+{"navigation":34,"path":"/admin/progress","ms":392,"queries":5}
+{"navigation":35,"path":"/admin/tags","ms":235,"queries":4}
+{"navigation":36,"path":"/admin","ms":348,"queries":9}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":37,"path":"/calendar","ms":268,"queries":4}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":38,"path":"/livehub","ms":379,"queries":6}
+{"navigation":39,"path":"/admin","ms":365,"queries":9}
+{"navigation":40,"path":"/admin/progress","ms":383,"queries":5}
+{"navigation":41,"path":"/admin","ms":241,"queries":9}
+{"navigation":42,"path":"/admin/agents","ms":279,"queries":3}
+{"navigation":43,"path":"/admin/security","ms":344,"queries":6}
+{"navigation":44,"path":"/admin/people","ms":328,"queries":5}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":45,"path":"/cards","ms":177,"queries":3}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":46,"path":"/map","ms":267,"queries":2}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":47,"path":"/profile","ms":220,"queries":6}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":48,"path":"/invite","ms":160,"queries":2}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"navigation":49,"path":"/selfscan","ms":241,"queries":3}
+{"backgroundPoll":"passed","rscRequests":0}
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.
+{"liveHistoryAndRefresh":"passed"}
+{"passed":50,"maxMs":494,"totalQueries":340,"errors":[]}

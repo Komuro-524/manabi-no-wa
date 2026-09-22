@@ -11,18 +11,15 @@ export default async function AdminTags({ searchParams }) {
   const sp = await searchParams
   const me = await requireAdmin()
   const db = await supabaseServer()
-  const { data: all } = await fetchAll(() => db.from('tags').select('id, name, status').order('id', { ascending: false }))
-
-  // 直近30日に何回（何ライブ）・何人が語ったか。tag_mentions はブラウザから読めない設計 → 管理者と確かめたので service_role で数える
   const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString()
   const admin = supabaseAdmin()
-  const { data: ments } = await fetchAll(() => admin.from('tag_mentions').select('tag_id, user_id, live_id').gte('created_at', since).order('id'))
-  const acc = {}
-  for (const m of ments ?? []) {
-    const s = acc[m.tag_id] ??= { lives: new Set(), users: new Set() }
-    s.lives.add(m.live_id); s.users.add(m.user_id)
-  }
-  const stats = Object.fromEntries(Object.entries(acc).map(([k, v]) => [k, [v.lives.size, v.users.size]]))
+  const [tagResult, statResult] = await Promise.all([
+    fetchAll(() => db.from('tags').select('id, name, status').order('id', { ascending: false })),
+    admin.rpc('admin_tag_stats', { p_since: since }),
+  ])
+  if (tagResult.error || statResult.error) throw new Error('タグ辞書を取得できませんでした')
+  const all = tagResult.data
+  const stats = Object.fromEntries((statResult.data ?? []).map(s => [s.tag_id, [s.lives, s.users]]))
 
   return (
     <>

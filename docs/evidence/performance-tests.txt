@@ -1,0 +1,33 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> manabi-no-wa@0.1.0 test
+> node --test tests/*.test.mjs
+
+✔ organizer shared entry rejects an occupied DB lock before calling LLM (4.197144ms)
+✔ organizer budget reserves the next call and unknown cost stops later calls (10.499603ms)
+✔ recorder uses trusted line identity and one atomic commit, excluding agent chat (4.69848ms)
+✔ invalid recorder output releases owned claim without committing partial data (0.972078ms)
+✔ mirror enforces shared rate gate before any LLM call (1.513996ms)
+▶ database migration and safety invariants
+  ✔ screen aggregation respects RLS and admin RPC permissions (5668.81201ms)
+  ✔ live creation rolls back when speaker insertion fails (8.653631ms)
+  ✔ organizer singleton, completed duplicate Cron day and browser permissions (16.941667ms)
+  ✔ mirror concurrency, cooldown and rolling daily quota (9.578505ms)
+  ✔ recorder only one claim, atomic rollback, retry and commit idempotency (43.795013ms)
+  ✔ expired recorder can recover; old worker cannot commit; attempt limit stops retry (25.824955ms)
+✔ database migration and safety invariants (13717.364205ms)
+✔ Cron rejects absent, short and wrong secrets (2.395756ms)
+✔ body size enforced while streaming even without Content-Length (21.116093ms)
+✔ images: real decoding, dimensions, MIME, Base64, bytes and count (57.210366ms)
+✔ metadata and invalid budget config fail closed (1.580348ms)
+✔ poll serializes slow reads, aborts on hide and never publishes after disposal (164.593198ms)
+✔ DB requests time out and respect caller cancellation without retrying writes (12.072355ms)
+✔ Japanese date formatting crosses UTC midnight without parsing locale strings (0.835264ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14340.2051

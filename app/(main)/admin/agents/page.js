@@ -13,7 +13,7 @@ const AGENTS = [
 export default async function AdminAgents() {
   const me = await requireAdmin()
   const { data: runs } = await supabaseAdmin().from('agent_runs')
-    .select('id, agent, trigger, status, ref_id, model, cost_usd, error, note, request_ids, started_at, finished_at')
+    .select('id, agent, status, cost_usd, error, note, started_at')
     .order('id', { ascending: false }).limit(300)
   const by = id => (runs ?? []).filter(r => r.agent === id)
 

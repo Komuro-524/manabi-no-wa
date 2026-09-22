@@ -9,9 +9,9 @@ const token2 = '00000000-0000-4000-8000-000000000020'
 async function setup() {
   const db = new PGlite()
   await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
-    create schema auth; create table auth.users(id uuid primary key);
+    create schema auth; grant usage on schema auth to authenticated, anon, service_role; create table auth.users(id uuid primary key);
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;`)
-  for (const n of ['0001_schema','0002_rls','0004_grants','0005_grants_service','0007_unknown_speaker','0008_transcript_segments','0009_tag_mentions','0010_hide_growing_content','0011_request_ids','0014_speaker_participants','0015_agent_safety']) {
+  for (const n of ['0001_schema','0002_rls','0004_grants','0005_grants_service','0007_unknown_speaker','0008_transcript_segments','0009_tag_mentions','0010_hide_growing_content','0011_request_ids','0014_speaker_participants','0015_agent_safety','0016_screen_performance']) {
     await db.exec(fs.readFileSync(`supabase/migrations/${n}.sql`,'utf8'))
   }
   await db.query('insert into auth.users values ($1),($2)',[user, other])
@@ -32,6 +32,38 @@ const payload = (uid=user) => ({
 test('database migration and safety invariants', async t => {
   const db = await setup()
   try {
+    await t.test('screen aggregation respects RLS and admin RPC permissions', async () => {
+      const db = await setup()
+      try {
+      await db.exec(`insert into tags(name,kind,status) values ('Visible','技術','official'),('Private','技術','candidate')`)
+      const tag = await scalar(db, "select id from tags where name='Visible'")
+      await db.query("insert into user_tags(user_id,tag_id,kind,source,visibility) values ($1,$3,'knowledge','manual','public'),($2,$3,'interest','manual','private')", [user,other,tag])
+      const mineLive = await scalar(db,"select create_live_with_speaker($1,'Mine',$2,now()+interval '1 hour',60)",[user,tag])
+      await scalar(db,"select create_live_with_speaker($1,'Other',$2,now()+interval '1 hour',60)",[other,tag])
+      await scalar(db,"select create_live_with_speaker($1,'Old',$2,now()+interval '1 hour',60)",[user,tag])
+      await db.exec("update lives set scheduled_start='2026-09-22 10:00Z',scheduled_end='2026-09-22 11:00Z' where title in ('Mine','Other'); update lives set scheduled_start='2025-01-01 10:00Z',scheduled_end='2025-01-01 11:00Z' where title='Old'")
+      await db.query("insert into knowledge_cards(live_id,tag_id,speaker_id,headline,body) select $1,$2,$3,'Summary','Body' from generate_series(1,1100)",[mineLive,tag,user])
+      await db.query("select set_config('request.jwt.claim.sub',$1,false)",[user])
+      await db.exec('set role authenticated')
+      try {
+        const graph = await scalar(db,'select knowledge_map_stats()')
+        assert.equal(graph.nodes.length,1)
+        assert.equal(graph.nodes[0].people,1)
+        assert.equal(graph.nodes[0].cards,1100)
+        const calendar = await db.query("select * from calendar_lives('2026-09-22 10:30Z','2026-09-22 11:30Z')")
+        assert.equal(calendar.rows.length,1)
+        assert.equal(calendar.rows[0].live_id,mineLive)
+        assert.equal((await db.query("select * from calendar_lives('2026-09-22 11:00Z','2026-09-22 12:00Z')")).rows.length,0)
+        assert.equal(graph.nodes[0].mine,true)
+        assert.deepEqual(graph.edges,[])
+        await assert.rejects(scalar(db,"select admin_tag_stats(now())"),e=>e.code==='42501')
+        await assert.rejects(scalar(db,"select admin_month_cost(now())"),e=>e.code==='42501')
+      } finally { await db.exec('reset role') }
+      await db.exec('set role anon')
+      try { await assert.rejects(scalar(db,'select knowledge_map_stats()'),e=>e.code==='42501') }
+      finally { await db.exec('reset role') }
+      } finally { await db.close() }
+    })
     await t.test('live creation rolls back when speaker insertion fails', async () => {
       const before = await scalar(db,'select count(*) from lives')
       await assert.rejects(scalar(db,"select create_live_with_speaker($1,'Rollback',null,now(),60)",[token]))

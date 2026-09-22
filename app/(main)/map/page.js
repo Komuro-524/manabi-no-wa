@@ -1,27 +1,15 @@
 import Link from '@/components/Link'
 import { supabaseServer, currentUser } from '@/lib/supabase/server'
 import Topbar from '@/components/Topbar'
-import { fetchAll } from '@/lib/fetch-all.mjs'
 
 // 知識地図（簡易）。円＝正式タグ（大きさ＝カード枚数）、線＝同じライブで一緒に語られた。読めるデータ（RLS）だけで描く
 export default async function MapPage() {
   const me = await currentUser()
   const db = await supabaseServer()
-  const [{ data: tags }, { data: cards }, { data: ut }] = await Promise.all([
-    db.from('tags').select('id, name, kind').eq('status', 'official'),
-    // ★ 年月で増える。上限で黙って欠けないようページを送って読む（本来はDB側で集計する: DESIGN §12）
-    fetchAll(() => db.from('knowledge_cards').select('tag_id, live_id').order('id')),
-    fetchAll(() => db.from('user_tags').select('tag_id, user_id, kind').order('id')),
-  ])
-  const cardN = new Map(), people = new Map(), livesOf = new Map()
-  for (const c of cards ?? []) {
-    cardN.set(c.tag_id, (cardN.get(c.tag_id) ?? 0) + 1)
-    if (!livesOf.has(c.tag_id)) livesOf.set(c.tag_id, new Set()); livesOf.get(c.tag_id).add(c.live_id)
-  }
-  for (const u of ut ?? []) { if (!people.has(u.tag_id)) people.set(u.tag_id, new Set()); people.get(u.tag_id).add(u.user_id) }
-  const mine = new Set((ut ?? []).filter(u => u.user_id === me.id).map(u => u.tag_id))
-  const nodes = (tags ?? []).map(t => ({ ...t, cards: cardN.get(t.id) ?? 0, people: people.get(t.id)?.size ?? 0 }))
-    .sort((a, b) => b.cards - a.cards)
+  const { data, error } = await db.rpc('knowledge_map_stats')
+  if (error) throw new Error('知識地図を取得できませんでした。DBの更新状態をご確認ください')
+  const nodes = data.nodes
+  const mine = new Set(nodes.filter(n => n.mine).map(n => n.id))
   // 画面にぴったり収まるよう、横長の座標で描いて SVG を枠いっぱいに縮める（スクロールさせない）
   const W = 1000, H = 560, cx = W / 2, cy = H / 2 - 10
   const inner = nodes.slice(1, 7), outer = nodes.slice(7)
@@ -37,13 +25,8 @@ export default async function MapPage() {
     n.x = Math.round(x); n.y = Math.round(y)
     n.r = 12 + Math.min(26, n.cards * 4)   // 円は小さめ。文字は円の下に出す
   })
-  const edges = []
-  for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
-    const a = livesOf.get(nodes[i].id), b = livesOf.get(nodes[j].id)
-    if (!a || !b) continue
-    const shared = [...a].filter(x => b.has(x)).length
-    if (shared) edges.push({ a: nodes[i], b: nodes[j], w: shared })
-  }
+  const byId = new Map(nodes.map(n => [n.id, n]))
+  const edges = data.edges.map(e => ({ a: byId.get(e.a), b: byId.get(e.b), w: e.w }))
   const COLOR = { '分野': ['#E2E9F0', '#1B3A5C'], '技術': ['#E6EDDC', '#3C5C34'], '業務': ['#F3E8CE', '#8C6A0C'] }
 
   return (
@@ -57,13 +40,13 @@ export default async function MapPage() {
               {nodes.map(n => {
                 const [bg, fg] = COLOR[n.kind] ?? COLOR['分野']
                 return (
-                  <a key={n.id} href={`/cards?tag=${n.id}`}>
+                  <Link key={n.id} href={`/cards?tag=${n.id}`}>
                     <title>{`${n.name}：知見カード${n.cards}枚・${n.people}人`}</title>
                     <circle cx={n.x} cy={n.y} r={n.r} fill={bg} stroke={mine.has(n.id) ? '#A83B2E' : fg} strokeWidth={mine.has(n.id) ? 3 : 1.5} />
                     <text x={n.x} y={n.y + 4} textAnchor="middle" fontSize="11" fontWeight="700" fill={fg}>{n.cards}</text>
                     <text x={n.x} y={n.y + n.r + 16} textAnchor="middle" fontSize="14" fontWeight="700" fill="#1C2B3D"
                       stroke="#FFFFFF" strokeWidth="4" strokeLinejoin="round" style={{ paintOrder: 'stroke' }}>{n.name}</text>
-                  </a>
+                  </Link>
                 )
               })}
             </svg>
@@ -72,7 +55,7 @@ export default async function MapPage() {
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           {Object.entries(COLOR).map(([k, [bg, fg]]) => <span key={k} className="chip" style={{ background: bg, color: fg }}>{k}</span>)}
           <span className="chip" style={{ background: '#FFF', color: 'var(--shu)', border: '2px solid var(--shu)' }}>あなたのタグ</span>
-          <span className="sub">円の中の数字＝知見カードの枚数。円を押すと、そのタグのカードへ</span>
+          <span className="sub">全{data.total}タグ中、カードの多い順に最大60タグを表示。円の中の数字＝知見カードの枚数。円を押すと、そのタグのカードへ</span>
         </div>
       </div>
     </>
