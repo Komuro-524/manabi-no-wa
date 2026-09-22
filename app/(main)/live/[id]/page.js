@@ -10,6 +10,7 @@ import AdminRunButton from '@/components/AdminRunButton'
 import StatusBar from '@/components/StatusBar'
 import AutoRefresh from '@/components/AutoRefresh'
 import LivePanels from './LivePanels'
+import ScrollFollow from './ScrollFollow'
 import Elapsed from './Elapsed'
 import MicTranscriber from './MicTranscriber'
 import { usersByIds } from '@/lib/users-by-id'
@@ -19,7 +20,9 @@ export default async function LivePage({ params, searchParams }) {
   const liveId = Number(id)
   const value = Number((await searchParams).history)
   const history = Number.isSafeInteger(value) && value > 0 && value <= 10000 ? value : 1
-  const offset = (history - 1) * 100
+  // コメントは1ページ100件、文字起こしは長い会議でもさかのぼれるよう1ページ400行
+  const MSG = 100, SEG = 400
+  const offset = (history - 1) * MSG, segOffset = (history - 1) * SEG
   const me = await currentUser()
   const db = await supabaseServer()
 
@@ -32,11 +35,11 @@ export default async function LivePage({ params, searchParams }) {
     db.from('live_participants').select('user_id, role').eq('live_id', liveId),
     db.from('messages').select('id, user_id, body, is_agent, created_at').eq('live_id', liveId).order('id', { ascending: false }).range(offset, offset + 100), // RLS: 参加者だけ
     db.from('knowledge_cards').select('id, headline, body, speaker_id, tag_id, tags(name, status)').eq('live_id', liveId).order('id'), // RLS: 正式タグ or 本人 or 管理者
-    db.from('transcript_segments').select('id, user_id, seq, body, spoken_at').eq('live_id', liveId).order('seq', { ascending: false }).range(offset, offset + 100), // RLS: 参加者だけ
+    db.from('transcript_segments').select('id, user_id, seq, body, spoken_at').eq('live_id', liveId).order('seq', { ascending: false }).range(segOffset, segOffset + SEG), // RLS: 参加者だけ
   ])
-  const moreHistory = (msgs?.length ?? 0) > 100 || (segs?.length ?? 0) > 100
-  if (msgs) msgs.splice(100)
-  if (segs) segs.splice(100)
+  const moreHistory = (msgs?.length ?? 0) > MSG || (segs?.length ?? 0) > SEG
+  if (msgs) msgs.splice(MSG)
+  if (segs) segs.splice(SEG)
   // 画面に出てくる人（参加者・発言した人・カードの話し手）だけを読む
   const who = await usersByIds(db, [...(ps ?? []).map(p => p.user_id), ...(msgs ?? []).map(m => m.user_id), ...(segs ?? []).map(s => s.user_id), ...(cards ?? []).map(c => c.speaker_id)])
   // 自分が話したカードのうち、育ちかけでタグ名が読めないものは名前だけ引く（自分の行の tag_id に限る）
@@ -96,45 +99,89 @@ export default async function LivePage({ params, searchParams }) {
   const isSpeaker = speakers.some(p => p.user_id === me.id)
   const canRun = (me.role === 'admin' || isSpeaker) && (l.status === 'scheduled' || l.status === 'live' || (l.status === 'ended' && ['pending', 'running'].includes(l.ingest_status)))
 
+  // ★ 文字起こしとチャットは別の枠にする（文字起こしがチャットを押し流さないように）。
+  //   文字起こしは Teams の会議画面のように、いつでも上にさかのぼって読める
+  const transcript = [...(segs ?? [])].sort((a, b) => a.seq - b.seq)
+  const chat = [...(msgs ?? [])].sort((a, b) => a.id - b.id)
+  // 同じ人が続けて話した行は、名前を1回だけ出して まとめる（2分あいたら区切る）
+  const tGroups = []
+  for (const s of transcript) {
+    const g = tGroups[tGroups.length - 1]
+    const at = s.spoken_at ? new Date(s.spoken_at).getTime() : 0
+    if (g && g.user_id === s.user_id && at - g.lastAt < 2 * 60 * 1000) { g.lines.push(s); g.lastAt = at }
+    else tGroups.push({ user_id: s.user_id, lines: [s], lastAt: at, key: s.id })
+  }
+  const pager = (moreHistory || history > 1) && (
+    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+      <span className="sub">{history}ページ目</span>
+      {history > 1 && <Link className="btn btn-s" href={`/live/${liveId}?history=${history - 1}`}>新しい方へ</Link>}
+      {moreHistory && <Link className="btn btn-s" href={`/live/${liveId}?history=${history + 1}`}>もっと前へ</Link>}
+    </div>
+  )
+
+  const transcriptPanel = (
+    <div className="card sh" style={{ flex: '1.4 1 380px', minWidth: 0, minHeight: 0, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        <b style={{ fontSize: 15 }}>🎙️ 文字起こし</b>
+        {l.status === 'live' && <span className="chip" style={{ background: 'var(--live)', color: '#FFF', padding: '1px 8px', fontSize: 11 }}><span className="dot" style={{ background: '#FFF', width: 6, height: 6 }} />リアルタイム</span>}
+        <span style={{ flexGrow: 1 }} />
+        <span className="sub">{transcript.length}行 ・ 上にスクロールでさかのぼれます</span>
+      </div>
+      {!amIn ? <div className="note">文字起こしは、このライブに参加した人だけが読めます</div> : (
+        <ScrollFollow count={transcript.length} label="新しい発言" style={{ gap: 14, paddingRight: 4 }}>
+          {tGroups.length === 0 && <div className="empty">{l.status === 'live' ? 'まだ発言はありません。話し手がマイクで話すと、ここに流れます' : '文字起こしはありません'}</div>}
+          {tGroups.map(g => {
+            const u = who.get(g.user_id)
+            const talkingNow = l.status === 'live' && g === tGroups[tGroups.length - 1] && g.user_id === talkingId && talkingFresh
+            return (
+              <div key={g.key} style={{ display: 'flex', gap: 10 }}>
+                <span className={talkingNow ? 'talking' : undefined} style={{ borderRadius: 999, flexShrink: 0, alignSelf: 'flex-start', boxShadow: talkingNow ? '0 0 0 2px var(--live)' : 'none' }}>
+                  <span className="avt" style={{ width: 30, height: 30, fontSize: 14 }}>{u?.display_name?.slice(0, 1) ?? '?'}</span>
+                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0, flexGrow: 1 }}>
+                  <span style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                    <b style={{ fontSize: 13 }}>{u?.display_name ?? '?'}</b>
+                    <span className="sub" style={{ fontSize: 11 }}>{hhmm(g.lines[0].spoken_at)}</span>
+                  </span>
+                  {g.lines.map(x => <p key={x.id} style={{ margin: 0, fontSize: 15, lineHeight: 1.75, color: 'var(--ink)' }}>{x.body}</p>)}
+                </div>
+              </div>
+            )
+          })}
+        </ScrollFollow>
+      )}
+      {l.status === 'live' && isSpeaker && <MicTranscriber liveId={liveId} />}
+      {pager}
+    </div>
+  )
+
   const commentPanel = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 9, flexGrow: 1, minHeight: 0 }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 9, overflowY: 'auto', flexGrow: 1, minHeight: 0 }}>
-        {!amIn && <div className="note">コメントと元の発言は、このライブに参加した人だけが読めます（参加していない人にはデータベースが渡しません）</div>}
-        {amIn && timeline.length === 0 && <div className="empty">まだコメントはありません</div>}
-        {timeline.map(m => m.kind === 'seg' ? (
-          <div key={m.key} style={{ display: 'flex', gap: 10, padding: '8px 10px', background: 'var(--blue-bg)', borderRadius: 12 }}>
-            <span className="avt" style={{ width: 32, height: 32, fontSize: 15 }}>{who.get(m.user_id)?.display_name?.slice(0, 1) ?? '?'}</span>
-            <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}><b style={{ fontSize: 14 }}>{who.get(m.user_id)?.display_name ?? '?'}</b><span className="chip" style={{ background: '#FFF', color: 'var(--blue)', padding: '1px 7px', fontSize: 11 }}>🎙️ 話した言葉</span>{m.spoken_at && <span className="sub">{fmtWhen(m.spoken_at)}</span>}</span>
-              <span style={{ fontSize: 13, lineHeight: 1.6 }}>{m.body}</span>
-            </span>
-          </div>
-        ) : m.is_agent ? (
-          <div key={m.key} style={{ display: 'flex', gap: 10, padding: 12, background: 'var(--shu-bg)', borderRadius: 12 }}>
-            <span className="avt" style={{ width: 32, height: 32, background: 'var(--shu)', color: '#FFF' }}><Icon name="robot" size={16} /></span>
-            <span style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-                <span className="chip" style={{ background: 'var(--shu-bg)', color: 'var(--shu)', padding: '2px 8px' }}>場づくりエージェント</span>
-                <span className="sub">{fmtWhen(m.created_at)}</span>
+      {!amIn ? <div className="note">チャットは、このライブに参加した人だけが読めます（参加していない人にはデータベースが渡しません）</div> : (
+        <ScrollFollow count={chat.length} label="新しいコメント" style={{ gap: 9 }}>
+          {chat.length === 0 && <div className="empty">まだコメントはありません</div>}
+          {chat.map(m => m.is_agent ? (
+            <div key={m.id} style={{ display: 'flex', gap: 10, padding: 12, background: 'var(--shu-bg)', borderRadius: 12, flexShrink: 0 }}>
+              <span className="avt" style={{ width: 30, height: 30, background: 'var(--shu)', color: '#FFF' }}><Icon name="robot" size={15} /></span>
+              <span style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                  <span className="chip" style={{ background: 'var(--shu-bg)', color: 'var(--shu)', padding: '2px 8px' }}>場づくりエージェント</span>
+                  <span className="sub">{hhmm(m.created_at)}</span>
+                </span>
+                <span style={{ fontSize: 13, lineHeight: 1.65 }}>{m.body}</span>
               </span>
-              <span style={{ fontSize: 13, lineHeight: 1.65 }}>{m.body}</span>
-            </span>
-          </div>
-        ) : (
-          <div key={m.key} style={{ display: 'flex', gap: 10, padding: '6px 2px' }}>
-            <span className="avt" style={{ width: 32, height: 32, fontSize: 15 }}>{who.get(m.user_id)?.display_name?.slice(0, 1) ?? '?'}</span>
-            <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><b style={{ fontSize: 14 }}>{who.get(m.user_id)?.display_name ?? '?'}</b><span className="sub">{fmtWhen(m.created_at)}</span></span>
-              <span style={{ fontSize: 13, lineHeight: 1.6 }}>{m.body}</span>
-            </span>
-          </div>
-        ))}
-      </div>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <span className="sub">コメント・発言 各100件まで（{history}ページ）</span>
-        {history > 1 && <Link className="btn btn-s" href={`/live/${liveId}?history=${history - 1}`}>新しい発言</Link>}
-        {moreHistory && <Link className="btn btn-s" href={`/live/${liveId}?history=${history + 1}`}>以前の発言</Link>}
-      </div>
+            </div>
+          ) : (
+            <div key={m.id} style={{ display: 'flex', gap: 10, padding: '4px 2px', flexShrink: 0 }}>
+              <span className="avt" style={{ width: 30, height: 30, fontSize: 14 }}>{who.get(m.user_id)?.display_name?.slice(0, 1) ?? '?'}</span>
+              <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                <span style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}><b style={{ fontSize: 13 }}>{who.get(m.user_id)?.display_name ?? '?'}</b><span className="sub" style={{ fontSize: 11 }}>{hhmm(m.created_at)}</span></span>
+                <span style={{ fontSize: 13, lineHeight: 1.6 }}>{m.body}</span>
+              </span>
+            </div>
+          ))}
+        </ScrollFollow>
+      )}
       <LiveActions liveId={liveId} status={l.status} amIn={amIn} meId={me.id} />
     </div>
   )
@@ -176,7 +223,7 @@ export default async function LivePage({ params, searchParams }) {
       <AutoRefresh active={history === 1 && (working || (l.status === 'live' && amIn))} every={working ? 4000 : 6000} />
       <div className="body" style={{ flexDirection: 'row', alignItems: 'stretch', gap: 16, overflow: 'hidden' }}>
         {/* 左: 話し手を大きく。いま話している人に色の輪 */}
-        <div style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12, overflowY: 'auto' }}>
+        <div className="noscrollbar" style={{ width: 260, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12, overflowY: 'auto' }}>
           {speakers.length === 0 && <div className="card empty">スピーカー未定</div>}
           {speakers.map(p => {
             const u = who.get(p.user_id); if (!u) return null
@@ -206,7 +253,6 @@ export default async function LivePage({ params, searchParams }) {
             <span className="sub">聞くだけの参加も、正式な席です。</span>
             <button className="btn btn-s" disabled title="音声通話は将来構成（DESIGN.md §11）" style={{ width: '100%' }}>スピーカーになる（音声通話は準備中）</button>
           </div>
-          {l.status === 'live' && isSpeaker && <MicTranscriber liveId={liveId} />}
           {canRun && (
             <div className="card sh" style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 8, borderColor: 'var(--ai)' }}>
               <b style={{ fontSize: 14 }}>{me.role === 'admin' ? '管理者の操作' : '話し手の操作'}</b>
@@ -218,13 +264,20 @@ export default async function LivePage({ params, searchParams }) {
           )}
         </div>
 
-        {/* 右: コメント／生まれたタグ */}
-        <div className="card sh" style={{ flexGrow: 1, minWidth: 0, minHeight: 0, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {/* 中: 文字起こし（いつでもさかのぼれる）／右: チャット・生まれたタグ */}
+        {transcriptPanel}
+        <div className="card sh" style={{ flex: '1 1 320px', maxWidth: 440, minWidth: 0, minHeight: 0, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <LivePanels cardsCount={groups.size} comment={commentPanel} cards={cardsPanel} initial={l.status === 'ended' && groups.size ? 'cards' : 'comment'} />
         </div>
       </div>
     </>
   )
+}
+
+// 文字起こし・チャットの時刻は「14:05」だけ（日付は画面上部に出ている）
+function hhmm(iso) {
+  if (!iso) return ''
+  return new Date(iso).toLocaleTimeString('ja-JP', { timeZone: 'Asia/Tokyo', hour: '2-digit', minute: '2-digit' })
 }
 
 function Person({ u }) {
