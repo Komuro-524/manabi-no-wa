@@ -72,6 +72,17 @@ test('invalid recorder output releases owned claim without committing partial da
   assert.equal(db.calls.some(c=>c.rpc==='commit_recorder'),false)
   assert.equal(db.calls.some(c=>c.rpc==='release_recorder'),true)
 })
+test('recorder completes an empty live without calling the LLM', async () => {
+  const db = fakeDb({ lives:[{id:1,title:'Empty'}], transcript_segments:[], messages:[] },
+    name => ({ data:name==='claim_recorder' ? 10 : {cards:0}, error:null }))
+  const ai = aiWith({})
+  const result = await runRecorder({argv:['--live','1'],context:context(db,ai)})
+  const commit = db.calls.find(c=>c.rpc==='commit_recorder')
+  assert.equal(ai.calls.length,0)
+  assert.deepEqual(commit.args.p_payload.items,[])
+  assert.equal(commit.args.p_payload.note,'発言とチャットが0件のため取り込み対象なし')
+  assert.equal(result.empty,true)
+})
 test('mirror enforces shared rate gate before any LLM call', async () => {
   const db = fakeDb({users:[{id:uid,display_name:'Test'}]},()=>({error:{code:'P0429'}})), ai=aiWith({})
   await assert.rejects(runMirror({userId:uid,frames:['a','b'],context:context(db,ai)}),e=>e.status===429)
