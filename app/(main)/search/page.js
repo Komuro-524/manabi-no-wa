@@ -73,7 +73,7 @@ export default async function Search({ searchParams }) {
 
   return (
     <>
-      <Topbar me={me} title="さがす" sub={q ? `「${q}」の結果` : 'タグ・人・知見カード・ライブをまとめて探せます'} />
+      <Topbar hideSearch me={me} title="さがす" sub={q ? `「${q}」の結果` : 'タグ・人・知見カード・ライブをまとめて探せます'} />
       <div className="body" style={{ gap: 18 }}>
         <form action="/search" style={{ display: 'flex', gap: 6 }}>
           <input className="inp" name="q" defaultValue={q} autoFocus={!q} placeholder="タグ・人・知見カード・ライブを探す" aria-label="さがす" style={{ maxWidth: 480, minHeight: 44, fontSize: 15 }} />
