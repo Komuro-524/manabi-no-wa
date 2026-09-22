@@ -13,6 +13,8 @@
 | `README.md` | 審査員向けの説明 |
 | `docs/VOICE-DESIGN.md` | 声の設計（デモの音声入力・将来の音声通話・提供形態） |
 | `docs/evidence/README.md` | 証拠の置き方 |
+| `docs/README.md` | docs の一覧（いまも有効な資料と、当時の記録の区別） |
+| `supabase/demo/` | 展示用のリセットSQL（デモの行だけを戻す） |
 
 ---
 

@@ -1,5 +1,7 @@
 # 記事の構成（たたき台）
 
+> 📦 **当時の記録（9/21 昼）です。** いまの姿は [README.md](../README.md) と [DESIGN.md](../DESIGN.md) が正です。資料の一覧は [docs/README.md](README.md)。
+
 > 9/21 昼MTG用。**決めるのは見出しの並びと、どの証拠を貼るか。** 本文はこのあと Claude が下書きする。
 > 見出しは採点の5軸に揃える（AIhack の HACKATHON.md §10 Day4）。
 
