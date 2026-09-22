@@ -2,6 +2,7 @@ import { requireAdmin } from '@/lib/admin-guard'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import Topbar from '@/components/Topbar'
 import Link from '@/components/Link'
+import PersonLink from '@/components/PersonLink'
 import BurdenChart from './BurdenChart'
 
 const PER = 50
@@ -39,7 +40,7 @@ export default async function AdminPeople({ searchParams }) {
             <tbody>
               {(users ?? []).map(u => (
                 <tr key={u.id}>
-                  <td><b>{u.display_name}</b></td><td className="sub">{u.department}</td>
+                  <td><PersonLink id={u.id}><b style={{ textDecoration: 'underline dotted' }}>{u.display_name}</b></PersonLink></td><td className="sub">{u.department}</td>
                   <td>{u.role === 'admin' ? '管理者' : '一般'}</td>
                   <td className="num">{cc.get(u.id) ?? 0}</td>
                   <td className="num" style={{ color: (inv.get(u.id) ?? 0) >= 3 ? 'var(--shu)' : undefined, fontWeight: (inv.get(u.id) ?? 0) >= 3 ? 700 : 400 }}>{inv.get(u.id) ?? 0}回{(acc.get(u.id) ?? 0) > 0 ? `（引き受け${acc.get(u.id)}）` : ''}</td>

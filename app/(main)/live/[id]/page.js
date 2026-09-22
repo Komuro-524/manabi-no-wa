@@ -1,4 +1,5 @@
 import Link from '@/components/Link'
+import PersonLink from '@/components/PersonLink'
 import { notFound } from 'next/navigation'
 import { supabaseServer, currentUser } from '@/lib/supabase/server'
 import Topbar from '@/components/Topbar'
@@ -136,11 +137,11 @@ export default async function LivePage({ params, searchParams }) {
             return (
               <div key={g.key} style={{ display: 'flex', gap: 10 }}>
                 <span className={talkingNow ? 'talking' : undefined} style={{ borderRadius: 999, flexShrink: 0, alignSelf: 'flex-start', boxShadow: talkingNow ? '0 0 0 2px var(--live)' : 'none' }}>
-                  <span className="avt" style={{ width: 30, height: 30, fontSize: 14 }}>{u?.display_name?.slice(0, 1) ?? '?'}</span>
+                  <PersonLink id={g.user_id}><span className="avt" style={{ width: 30, height: 30, fontSize: 14 }}>{u?.display_name?.slice(0, 1) ?? '?'}</span></PersonLink>
                 </span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0, flexGrow: 1 }}>
                   <span style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                    <b style={{ fontSize: 13 }}>{u?.display_name ?? '?'}</b>
+                    <PersonLink id={g.user_id}><b style={{ fontSize: 13 }}>{u?.display_name ?? '?'}</b></PersonLink>
                     <span className="sub" style={{ fontSize: 11 }}>{hhmm(g.lines[0].spoken_at)}</span>
                   </span>
                   {g.lines.map(x => <p key={x.id} style={{ margin: 0, fontSize: 15, lineHeight: 1.75, color: 'var(--ink)' }}>{x.body}</p>)}
@@ -173,9 +174,9 @@ export default async function LivePage({ params, searchParams }) {
             </div>
           ) : (
             <div key={m.id} style={{ display: 'flex', gap: 10, padding: '4px 2px', flexShrink: 0 }}>
-              <span className="avt" style={{ width: 30, height: 30, fontSize: 14 }}>{who.get(m.user_id)?.display_name?.slice(0, 1) ?? '?'}</span>
+              <PersonLink id={m.user_id}><span className="avt" style={{ width: 30, height: 30, fontSize: 14 }}>{who.get(m.user_id)?.display_name?.slice(0, 1) ?? '?'}</span></PersonLink>
               <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-                <span style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}><b style={{ fontSize: 13 }}>{who.get(m.user_id)?.display_name ?? '?'}</b><span className="sub" style={{ fontSize: 11 }}>{hhmm(m.created_at)}</span></span>
+                <span style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}><PersonLink id={m.user_id}><b style={{ fontSize: 13 }}>{who.get(m.user_id)?.display_name ?? '?'}</b></PersonLink><span className="sub" style={{ fontSize: 11 }}>{hhmm(m.created_at)}</span></span>
                 <span style={{ fontSize: 13, lineHeight: 1.6 }}>{m.body}</span>
               </span>
             </div>
@@ -232,10 +233,10 @@ export default async function LivePage({ params, searchParams }) {
             return (
               <div key={p.user_id} className="card sh" style={{ padding: 14, display: 'flex', alignItems: 'center', gap: 13, borderColor: talking ? 'var(--live)' : undefined }}>
                 <span style={{ borderRadius: 999, boxShadow: talking ? '0 0 0 3px var(--live)' : 'none', flexShrink: 0 }} className={talking && talkingFresh ? 'talking' : undefined}>
-                  <span className="avt" style={{ width: 56, height: 56, fontSize: 22, background: talking ? '#F5E3E8' : undefined, color: talking ? '#8A3B54' : undefined }}>{u.display_name.slice(0, 1)}</span>
+                  <PersonLink id={p.user_id}><span className="avt" style={{ width: 56, height: 56, fontSize: 22, background: talking ? '#F5E3E8' : undefined, color: talking ? '#8A3B54' : undefined }}>{u.display_name.slice(0, 1)}</span></PersonLink>
                 </span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
-                  <span style={{ fontSize: 16, fontWeight: 700 }}>{u.display_name}</span>
+                  <PersonLink id={p.user_id} style={{ fontSize: 16, fontWeight: 700 }}>{u.display_name}</PersonLink>
                   {tag && <span className="chip" style={{ alignSelf: 'flex-start', background: 'var(--blue-bg)', color: 'var(--blue)' }}><Icon name="tag" size={12} />{tag}</span>}
                   <span className="sub" style={{ fontWeight: 700, color: talking ? '#8A3B54' : undefined }}>
                     {talking ? (l.status === 'live' ? (talkingFresh ? '話しています' : '最後に話した人') : 'いちばん最後に話した人') : (l.status === 'live' ? '聞いています' : u.department)}
@@ -247,7 +248,7 @@ export default async function LivePage({ params, searchParams }) {
           <div className="card" style={{ padding: 13, display: 'flex', flexDirection: 'column', gap: 9 }}>
             <span className="sub" style={{ fontWeight: 700 }}>リスナー {listeners.length}人</span>
             {listeners.length > 0 && <span style={{ display: 'flex', flexWrap: 'wrap' }}>
-              {listeners.slice(0, 6).map(p => <span key={p.user_id} className="avt" title={who.get(p.user_id)?.display_name} style={{ width: 28, height: 28, fontSize: 13, marginRight: -4, border: '2px solid #FFF' }}>{who.get(p.user_id)?.display_name?.slice(0, 1)}</span>)}
+              {listeners.slice(0, 6).map(p => <PersonLink key={p.user_id} id={p.user_id} title={`${who.get(p.user_id)?.display_name ?? ''}さんのプロフィール`}><span className="avt" style={{ width: 28, height: 28, fontSize: 13, marginRight: -4, border: '2px solid #FFF' }}>{who.get(p.user_id)?.display_name?.slice(0, 1)}</span></PersonLink>)}
               {listeners.length > 6 && <span className="avt" style={{ width: 28, height: 28, fontSize: 11 }}>＋{listeners.length - 6}</span>}
             </span>}
             <span className="sub">聞くだけの参加も、正式な席です。</span>

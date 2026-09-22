@@ -1,4 +1,5 @@
 import Link from '@/components/Link'
+import PersonLink from '@/components/PersonLink'
 import { supabaseServer, currentUser } from '@/lib/supabase/server'
 import { usersByIds } from '@/lib/users-by-id'
 import Topbar from '@/components/Topbar'
@@ -92,7 +93,7 @@ export default async function Search({ searchParams }) {
               {allPeople.slice(0, cap('people')).map(p => {
                 const t = peopleTags.get(p.id) ?? { knowledge: [], interest: [] }
                 return (
-                  <div key={p.id} className="card sh" style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <PersonLink key={p.id} id={p.id} className="card sh hoverable" style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                       <span className="avt" style={{ width: 34, height: 34, fontSize: 15 }}>{p.display_name.slice(0, 1)}</span>
                       <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -102,7 +103,8 @@ export default async function Search({ searchParams }) {
                     </span>
                     <TagRow label="話せること" names={t.knowledge} bg="var(--blue-bg)" fg="var(--blue)" />
                     <TagRow label="聞きたいこと" names={t.interest} bg="var(--teal-bg)" fg="var(--teal)" />
-                  </div>
+                    <span className="sub" style={{ fontSize: 11, alignSelf: 'flex-end' }}>プロフィールを見る ›</span>
+                  </PersonLink>
                 )
               })}
             </div>

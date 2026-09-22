@@ -1,5 +1,6 @@
 import Form from 'next/form'
 import Link from '@/components/Link'
+import PersonLink from '@/components/PersonLink'
 import { usersByIds } from '@/lib/users-by-id'
 import { supabaseServer, currentUser } from '@/lib/supabase/server'
 import Topbar from '@/components/Topbar'
@@ -98,7 +99,7 @@ export default async function Cards({ searchParams }) {
               <TagChip t={sel.tags} />
               <div style={{ fontSize: 20, fontWeight: 700 }}>{sel.headline}</div>
               <div style={{ fontSize: 14, lineHeight: 1.7 }}>{sel.body}</div>
-              <div className="sub">話した人: {who.get(sel.speaker_id)?.display_name ?? '?'}（{who.get(sel.speaker_id)?.department}）</div>
+              <div className="sub">話した人: <PersonLink id={sel.speaker_id} style={{ fontWeight: 700, textDecoration: 'underline dotted' }}>{who.get(sel.speaker_id)?.display_name ?? '?'}</PersonLink>（{who.get(sel.speaker_id)?.department}）</div>
               {live && <Link className="btn btn-s" style={{ alignSelf: 'stretch', whiteSpace: 'normal', textAlign: 'left', justifyContent: 'flex-start', lineHeight: 1.5 }} href={`/live/${live.id}`}><Icon name="live" size={14} /> <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>元のライブ：{splitTitle(live.title).main}</span></Link>}
 
               <div style={{ borderTop: '1px solid var(--line)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -110,7 +111,7 @@ export default async function Cards({ searchParams }) {
               <div style={{ borderTop: '1px solid var(--line)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <span className="ttl" style={{ fontSize: 15 }}>この知見に詳しい人</span>
                 {experts.length
-                  ? experts.map(u => <span key={u.id} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13 }}><span className="avt" style={{ width: 26, height: 26, fontSize: 12 }}>{u.display_name.slice(0, 1)}</span>{u.display_name}<span className="sub">{u.department}</span></span>)
+                  ? experts.map(u => <PersonLink key={u.id} id={u.id} className="hoverable" style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13, borderRadius: 8, padding: '2px 4px' }}><span className="avt" style={{ width: 26, height: 26, fontSize: 12 }}>{u.display_name.slice(0, 1)}</span>{u.display_name}<span className="sub">{u.department}</span></PersonLink>)
                   : <span className="sub">公開している人はまだいません</span>}
               </div>
             </div>
