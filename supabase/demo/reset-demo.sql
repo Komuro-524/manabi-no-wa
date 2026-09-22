@@ -6,7 +6,7 @@
 --    B. 神谷さんの申請ボタン …… 「申請中 ✓」を押す前に戻す
 --    C. 神谷さんの育ちかけタグの公開／非公開 …… 公開に戻す
 --    D. 桜庭さん宛の打診 …… 「引き受ける／今は難しい」を押す前に戻す
---    E. ライブのタネ 5つ …… 種・芽・葉・つぼみ・花の並びに戻す
+--    E. ライブのタネ 5つ …… 種・芽・葉・つぼみ・花の並びに戻す（引き受けで予約されたライブは中止にする）
 --    F. Power BI の予定のライブ …… 「始める」を押していたら予定に戻す
 --    G. 配信中のライブを1つ用意する …… 「Teams会議の小技を持ち寄る」が いま配信中（コメントつき）。
 --       デモで「終える」を押されていたら、それは過去のライブとして残し、新しく配信中のものを立て直す
@@ -82,6 +82,17 @@ update invitations i
 -- E. ライブのタネを 種・芽・葉・つぼみ・花 に戻す
 --    （「いま1周動かす」でエージェントが進めていても、デモの並びに戻る）
 -- ---------------------------------------------------------------------
+-- 打診を引き受けると、その場でライブが予約される（0022）。デモ中に予約されたライブは
+-- 目印（source_ref）を外して「中止」にし、次に引き受けたときに新しく予約できるようにする
+update lives l
+   set status = 'cancelled', source_ref = l.source_ref || '-old-' || l.id
+  from quests q, tags t
+ where l.quest_id = q.id and q.tag_id = t.id
+   and t.name in ('VBAの保守', '問い合わせ対応', '要件定義')
+   and l.source_ref not like 'ui-demo-%'
+   and l.source_ref not like '%-old-%'
+   and l.status in ('scheduled', 'live');
+
 update quests q
    set status          = v.status,
        current_invitee = (select id from users where display_name = v.invitee),

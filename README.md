@@ -218,6 +218,7 @@ cp .env.example .env.local   # 値を入れる
 | `0016` | 画面用の集計関数（知識地図・タグ帳・カレンダー・月の費用） |
 | `0020` | 育ちかけのタグへの「タグにしてほしい」申請 |
 | `0021` | 画面確認用のデモデータ（架空） |
+| `0022` | 打診を引き受けたその場でライブを予約する（返事の関数の差し替え） |
 
 2. 画面を立ち上げる
 
@@ -273,7 +274,7 @@ manabi-no-wa/
 ├── components/ lib/         部品・Supabase の接続・エージェントの起動
 ├── scripts/                 エージェント3体と、人の操作を代行する小道具
 ├── lib/agents/prompts/      エージェントのシステムプロンプト
-├── supabase/migrations/     スキーマ・RLS・シード（0001〜0016・0020・0021）
+├── supabase/migrations/     スキーマ・RLS・シード（0001〜0016・0020〜0022）
 ├── supabase/demo/           展示用のリセットSQL
 ├── tests/                   自動テスト（npm run test）
 ├── docs/demo-transcripts/   デモ用の文字起こし（話者は user_id）
