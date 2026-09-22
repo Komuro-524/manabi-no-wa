@@ -11,7 +11,7 @@ async function setup() {
   await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
     create schema auth; grant usage on schema auth to authenticated, anon, service_role; create table auth.users(id uuid primary key);
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;`)
-  for (const n of ['0001_schema','0002_rls','0004_grants','0005_grants_service','0007_unknown_speaker','0008_transcript_segments','0009_tag_mentions','0010_hide_growing_content','0011_request_ids','0014_speaker_participants','0015_agent_safety','0016_screen_performance']) {
+  for (const n of ['0001_schema','0002_rls','0004_grants','0005_grants_service','0007_unknown_speaker','0008_transcript_segments','0009_tag_mentions','0010_hide_growing_content','0011_request_ids','0014_speaker_participants','0015_agent_safety','0016_screen_performance','0022_schedule_accepted_invitation']) {
     await db.exec(fs.readFileSync(`supabase/migrations/${n}.sql`,'utf8'))
   }
   await db.query('insert into auth.users values ($1),($2)',[user, other])
@@ -68,6 +68,21 @@ test('database migration and safety invariants', async t => {
       const before = await scalar(db,'select count(*) from lives')
       await assert.rejects(scalar(db,"select create_live_with_speaker($1,'Rollback',null,now(),60)",[token]))
       assert.equal(await scalar(db,'select count(*) from lives'),before)
+    })
+    await t.test('accepting an invitation immediately schedules a visible live', async () => {
+      const tag = await scalar(db,"insert into tags(name,kind,status) values ('Immediate','技術','official') returning id")
+      const quest = await scalar(db,"insert into quests(tag_id,status,current_invitee) values ($1,'inviting',$2) returning id",[tag,user])
+      const invitation = await scalar(db,"insert into invitations(quest_id,user_id) values ($1,$2) returning id",[quest,user])
+      await db.query("select set_config('request.jwt.claim.sub',$1,false)",[user])
+      await db.exec('set role authenticated')
+      try {
+        await db.query('select respond_invitation($1,true)',[invitation])
+        assert.equal(await scalar(db,"select count(*) from calendar_lives(now(),now()+interval '30 days')"),1)
+      } finally { await db.exec('reset role') }
+      assert.equal(await scalar(db,"select status from invitations where id=$1",[invitation]),'accepted')
+      assert.equal(await scalar(db,"select status from quests where id=$1",[quest]),'opened')
+      assert.equal(await scalar(db,"select count(*) from lives where quest_id=$1 and status='scheduled'",[quest]),1)
+      assert.equal(await scalar(db,"select count(*) from live_participants p join lives l on l.id=p.live_id where l.quest_id=$1 and p.user_id=$2 and p.role='speaker'",[quest,user]),1)
     })
     await t.test('organizer singleton, completed duplicate Cron day and browser permissions', async () => {
       const run = await scalar(db,"select start_organizer('test','2026-09-21')")

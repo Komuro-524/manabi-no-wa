@@ -13,7 +13,7 @@ export default function InviteButtons({ id }) {
     const { error } = await supabaseBrowser().rpc('respond_invitation', { p_invitation_id: id, p_accept: accept })
     setBusy(false)
     if (error) setMsg(`答えられませんでした: ${error.message}`)
-    else { setMsg(accept ? '引き受けました。場づくりエージェントが次に動いたときに日程を決めます' : '見送りました'); router.refresh() }
+    else { setMsg(accept ? '引き受けました。ライブの予定をカレンダーに追加しました' : '見送りました'); router.refresh() }
   }
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
