@@ -32,7 +32,7 @@ export default function TagBoard({ tags, kinds = ['knowledge', 'interest'] }) {
     setErr('')
     setItems(xs => xs.map(x => x.tag_id === t.tag_id ? { ...x, requested: on } : x))
     const { error } = await supabaseBrowser().rpc('request_tag', { p_tag_id: t.tag_id, p_on: on })
-    if (error) { setErr(`申請できませんでした: ${error.message}`); setItems(xs => xs.map(x => x.tag_id === t.tag_id ? { ...x, requested: !on } : x)) }
+    if (error) { setErr(error.code === 'PGRST202' ? '申請の仕組みがまだデータベースに入っていません（管理者が 0020_tag_requests.sql を流すと使えます）' : `申請できませんでした: ${error.message}`); setItems(xs => xs.map(x => x.tag_id === t.tag_id ? { ...x, requested: !on } : x)) }
   }
 
   const zoneAt = (x, y) => document.elementFromPoint(x, y)?.closest('[data-zone]')?.getAttribute('data-zone') ?? null
