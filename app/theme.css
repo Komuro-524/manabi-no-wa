@@ -167,22 +167,11 @@ button.tab:disabled{opacity:.5;cursor:not-allowed}
   background-size:23px 19px,31px 27px,17px 21px;box-shadow:inset 0 3px 8px rgba(0,0,0,.45)}
 .planter-soil > .card{background:#FFFDF6}
 /* ライブのタネ: 場づくりエージェントの見回り（components/FieldWorker.js）
-   畝の上を畑番が左右に歩く。歩く速さは一定、端で向きを変える。吹き出しで「いま見ているタネ」と決めたことを話す */
-.field{display:flex;flex-direction:column;gap:8px;flex-shrink:0}
-.field-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.field-row{position:relative;height:132px;border-radius:12px;overflow:hidden;
-  background:repeating-linear-gradient(0deg,#6B4A31 0 9px,#5E4330 9px 18px);box-shadow:inset 0 3px 8px rgba(0,0,0,.35)}
-.field-row::before{content:"";position:absolute;inset:0;background-image:radial-gradient(circle at 20% 40%,rgba(78,122,63,.9) 0 2px,transparent 2.5px),radial-gradient(circle at 70% 70%,rgba(78,122,63,.7) 0 1.5px,transparent 2px);background-size:46px 18px,63px 18px;opacity:.7}
-.farmer{position:absolute;bottom:6px;left:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px;animation:farmerWalk 16s linear infinite}
-.farmer-talk{max-width:min(460px,70vw);background:#FFFDF6;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:5px 10px;font-size:12px;line-height:1.5;
-  box-shadow:0 4px 10px rgba(0,0,0,.2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.farmer-body{animation:farmerFace 16s steps(1) infinite, farmerBob .5s ease-in-out infinite alternate}
-.leg-a{transform-origin:22px 46px;animation:legSwing .5s ease-in-out infinite alternate}
-.leg-b{transform-origin:30px 46px;animation:legSwing .5s ease-in-out infinite alternate-reverse}
-@keyframes farmerWalk{0%{transform:translateX(8px)}50%{transform:translateX(calc(100cqw - 92px))}100%{transform:translateX(8px)}}
-@keyframes farmerFace{0%{transform:scaleX(1)}50%{transform:scaleX(-1)}}
+   ボタンの右に小さな畝を1本。畑番がちょこちょこ往復する。プランターの位置は動かさない */
+.field-head{display:flex;align-items:center;gap:12px;flex-wrap:nowrap;min-height:40px;flex-shrink:0}
+.field-talk{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.field-lane{position:relative;flex:0 0 150px;height:28px;border-bottom:3px dotted #8A5A2B;container-type:inline-size}
+.farmer{position:absolute;bottom:-1px;left:0;font-size:20px;line-height:1;display:inline-block;animation:farmerWalk 7s linear infinite,farmerBob .35s ease-in-out infinite alternate}
+@keyframes farmerWalk{0%{left:0;transform:scaleX(-1)}49.9%{left:calc(100% - 22px);transform:scaleX(-1)}50%{left:calc(100% - 22px);transform:scaleX(1)}100%{left:0;transform:scaleX(1)}}
 @keyframes farmerBob{from{translate:0 0}to{translate:0 -2px}}
-@keyframes legSwing{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}
-.field-row{container-type:inline-size}
-.field-log{margin:0;padding:8px 12px 8px 26px;background:var(--card);border:1px solid var(--line-soft);border-radius:10px;font-size:12px;color:var(--ink2);display:flex;flex-direction:column;gap:2px}
-@media (prefers-reduced-motion:reduce){.farmer,.farmer-body,.leg-a,.leg-b{animation:none}}
+@media (prefers-reduced-motion:reduce){.farmer{animation:none}}
