@@ -30,5 +30,5 @@ export function Icon({ name, size = 17 }) {
 // ロゴは小室さんのデザイン（public/logo.png）
 export function Logo({ size = 26 }) {
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src="/logo.png" width={size} height={size} alt="" style={{ flexShrink: 0, borderRadius: 4 }} />
+  return <img src="/logo.png" width={size} height={size} alt="" style={{ flexShrink: 0, objectFit: 'contain' }} />
 }
