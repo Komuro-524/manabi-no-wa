@@ -38,7 +38,8 @@ export async function POST(req) {
   }
 
   if (!['live', 'ended'].includes(live.status)) return NextResponse.json({ error: '配信中のライブだけ終えられます' }, { status: 409 })
-  if (live.status === 'live') {
+  const justEnded = live.status === 'live'
+  if (justEnded) {
     const { error } = await db.from('lives').update({ status: 'ended', ended_at: new Date().toISOString() })
       .eq('id', id).eq('status', 'live')
     if (error) return NextResponse.json({ error: 'ライブを終了できませんでした' }, { status: 500 })
@@ -46,5 +47,14 @@ export async function POST(req) {
   try {
     const result = await recorder(id)
     return NextResponse.json({ ok: true, message: result?.skipped ? 'ライブは終了済みです。取り込み状態は画面で確認できます' : 'ライブ終了後の取り込みが完了しました', result })
-  } catch (error) { return agentError(error) }
+  } catch (error) {
+    // 終了のDB更新はすでに確定済み。後処理の失敗で終了自体を失敗扱いしない。
+    // pending に戻るため Cron または画面の「取り込みを再実行」で回復できる。
+    if (justEnded) return NextResponse.json({
+      ok: true,
+      message: 'ライブは終了しました。タグ付けは自動で再処理します',
+      ingestPending: true,
+    }, { status: 202 })
+    return agentError(error)
+  }
 }
