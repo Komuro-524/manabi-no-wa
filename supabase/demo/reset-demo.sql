@@ -8,6 +8,8 @@
 --    D. 桜庭さん宛の打診 …… 「引き受ける／今は難しい」を押す前に戻す
 --    E. ライブのタネ 5つ …… 種・芽・葉・つぼみ・花の並びに戻す
 --    F. Power BI の予定のライブ …… 「始める」を押していたら予定に戻す
+--    G. 配信中のライブを1つ用意する …… 「Teams会議の小技を持ち寄る」が いま配信中（コメントつき）。
+--       デモで「終える」を押されていたら、それは過去のライブとして残し、新しく配信中のものを立て直す
 --
 --  使い方: Supabase の SQL Editor に貼って Run。何回流してもよい。
 --  ★ 本物の運用データには触らない（名前や source_ref でデモの行だけに絞っている）
@@ -105,11 +107,50 @@ update lives
        scheduled_end   = date_trunc('day', now()) + interval '3 days 17 hours' - interval '9 hours'
  where source_ref = 'ui-demo-0021-powerbi';
 
+-- ---------------------------------------------------------------------
+-- G. 配信中のライブを1つ用意する
+--    ・いま配信中のデモライブがあれば、開始時刻だけ「15分前」に直してそのまま使う
+--    ・終わっていたら（デモで「終える」を押された）、目印を外して過去のライブとして残し、新しく立てる
+--      ★ 同じライブを配信中に戻すと、もう一度終えたときにタグ付けが二重に走るため 作り直す
+-- ---------------------------------------------------------------------
+update lives set source_ref = 'ui-demo-onair-old-' || id
+ where source_ref = 'ui-demo-onair' and status <> 'live';
+
+insert into lives (title, status, started_at, source_ref, topic_tag_id)
+select 'まなびのライブ — Teams会議の小技を持ち寄る', 'live', now() - interval '15 minutes', 'ui-demo-onair', t.id
+from tags t where t.name = 'Teams会議の小技'
+on conflict (source_ref) do nothing;
+
+update lives set started_at = now() - interval '15 minutes'
+ where source_ref = 'ui-demo-onair' and status = 'live';
+
+insert into live_participants (live_id, user_id, role, joined_at)
+select l.id, u.id, case when u.display_name = '神谷 美月' then 'speaker' else 'listener' end, l.started_at
+from lives l
+join users u on u.display_name in ('神谷 美月','早坂 悠人','藤代 咲良','白石 結衣')
+where l.source_ref = 'ui-demo-onair'
+on conflict do nothing;
+
+-- コメント（まだ1件も無いときだけ入れる＝デモ中のコメントは消さない）
+insert into messages (live_id, user_id, body, is_agent, created_at)
+select l.id, (select id from users where display_name = v.who), v.body, v.who is null, now() - v.ago
+from lives l
+cross join (values
+  (null,        '場づくりエージェントです。「Teams会議の小技」に興味のある人が集まったので場を開きました。まずは最近助かった小ワザを1つずつどうぞ', interval '14 minutes'),
+  ('神谷 美月', '会議の最後に3分だけ取って、決まったことを読み上げるようにしています。議事録の手戻りがかなり減りました', interval '12 minutes'),
+  ('早坂 悠人', 'それいいですね。読み上げるとき、画面に決定事項だけ出してますか？', interval '10 minutes'),
+  ('神谷 美月', 'はい、チャットに箇条書きで貼ってから読んでいます。あとから探すときもチャットを見れば済むので', interval '9 minutes'),
+  ('藤代 咲良', '招待を送るときに議題を3行で本文に書いておくと、当日の脱線が減りました', interval '6 minutes'),
+  ('白石 結衣', '録画をオンにする前にひと言断る、のルールを部署で決めたら安心して話せるようになりました', interval '3 minutes')
+) v(who, body, ago)
+where l.source_ref = 'ui-demo-onair'
+  and not exists (select 1 from messages m where m.live_id = l.id);
+
 commit;
 
 -- =====================================================================
 --  確認（1行）
---  期待 → タグ帳の札6 ／ 申請3 ／ 神谷さんの申請0 ／ 打診_未回答1 ／ タネの並びOK=5 ／ PowerBI=scheduled
+--  期待 → タグ帳の札6 ／ 申請3 ／ 神谷さんの申請0 ／ 打診_未回答1 ／ タネの並びOK=5 ／ PowerBI=scheduled ／ 配信中=live
 -- =====================================================================
 select
   (select count(*) from tags where name in ('インデックス設計','経費精算の出し方','Teams会議の小技','議事録の要約','PADのエラー処理','新人オンボーディング')
@@ -122,4 +163,5 @@ select
      where u.display_name = '桜庭 芽衣' and t.name = '問い合わせ対応' and i.status = 'sent')             as 打診_未回答,
   (select count(*) from quests q join tags t on t.id = q.tag_id
      where (t.name, q.status) in (('VBAの保守','scouting'),('問い合わせ対応','inviting'),('要件定義','scheduling'),('Power BI','opened'),('Excel関数','done'))) as タネの並びOK,
-  (select status from lives where source_ref = 'ui-demo-0021-powerbi')                                  as PowerBI;
+  (select status from lives where source_ref = 'ui-demo-0021-powerbi')                                  as PowerBI,
+  (select status from lives where source_ref = 'ui-demo-onair')                                         as 配信中;
