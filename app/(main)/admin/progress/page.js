@@ -3,7 +3,7 @@ import { usersByIds } from '@/lib/users-by-id'
 import { requireAdmin } from '@/lib/admin-guard'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import Topbar from '@/components/Topbar'
-import AdminRunButton from '@/components/AdminRunButton'
+import FieldWorker from '@/components/FieldWorker'
 import AutoRefresh from '@/components/AutoRefresh'
 import { fmtWhen } from '@/lib/format'
 import Planter from '@/components/Planter'
@@ -24,7 +24,7 @@ export default async function Seeds() {
   const db = supabaseAdmin()
   const [{ data: quests }, { data: runs }] = await Promise.all([
     db.from('quests').select('id, status, current_invitee, tried_count, next_action_at, reevaluate_at, tag_id, tags(name)').in('status', COLS.map(c => c[0])).order('id', { ascending: false }).limit(500),
-    db.from('agent_runs').select('status, started_at').eq('agent', 'B').order('id', { ascending: false }).limit(1),
+    db.from('agent_runs').select('status, started_at, finished_at').eq('agent', 'B').order('id', { ascending: false }).limit(1),
   ])
   // 足あとは「いま進行中のタネ」の分だけ・話し手は相談中の人だけを読む（全件読むと年月で上限に当たる）
   const qIds = (quests ?? []).map(q => q.id)
@@ -43,19 +43,17 @@ export default async function Seeds() {
   for (const s of steps ?? []) if (!last.has(s.quest_id)) last.set(s.quest_id, s)
   const run = runs?.[0]
   const running = run?.status === 'running' && Date.now() - new Date(run.started_at).getTime() < 10 * 60 * 1000
+  // いちばん新しい周で エージェントが決めたこと（新しい順）。畑番の吹き出しと、終わったあとの一覧に使う
+  const { data: runSteps } = run ? await db.from('quest_steps').select('decision, reason, created_at, quests(tags(name))')
+    .gte('created_at', run.started_at).order('id', { ascending: false }).limit(20) : { data: [] }
+  const runLog = (runSteps ?? []).map(x => ({ decision: x.decision, reason: x.reason, tag: x.quests?.tags?.name ?? '?' }))
 
   return (
     <>
       <Topbar me={me} title="ライブのタネ" sub="場づくりエージェントが育てている、ライブになる前のタネ" />
-      <AutoRefresh active every={running ? 3000 : 15000} />
+      <AutoRefresh active={!running} every={15000} />
       <div className="body" style={{ overflow: 'hidden' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          {running
-            ? <span className="chip" style={{ background: 'var(--amber-bg)', color: 'var(--amber)', fontSize: 13, padding: '7px 12px' }}>
-                <span className="spin" style={{ width: 12, height: 12, borderRadius: 999, border: '2px solid var(--amber)', borderTopColor: 'transparent' }} />場づくりエージェントが動いています</span>
-            : <span className="chip" style={{ background: 'var(--sand)', color: 'var(--ink2)', fontSize: 13, padding: '7px 12px' }}>待機中{run ? `（前回 ${fmtWhen(run.started_at)}）` : ''}</span>}
-          {!running && <AdminRunButton url="/api/admin/organizer" label="いま1周動かす" small />}
-        </div>
+        <FieldWorker running={running} run={run ? { started_at: run.started_at, finished_at: run.finished_at } : null} steps={runLog} />
 
         <div style={{ flexGrow: 1, minHeight: 0, display: 'grid', gridTemplateColumns: `repeat(${COLS.length}, minmax(170px, 1fr))`, gap: 10, overflowX: 'auto' }} className="noscrollbar">
           {COLS.map(([st, name, plant], stage) => {
